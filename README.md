@@ -1,5 +1,6 @@
 # new_mvp
 
+```text
 docs/
 ├─ index.md                 # ドキュメントの入口（目次）
 ├─ architecture.md          # C4-Lite構成/責務/データフロー
