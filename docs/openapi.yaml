@@ -1,0 +1,43 @@
+openapi: 3.0.3
+info:
+  title: ThankYou Chores API
+  version: 0.1.0
+paths:
+  /chores:
+    get:
+      summary: List chores (owner or partner only)
+      responses: { '200': { description: OK } }
+    post:
+      summary: Create chore
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/ChoreCreate' } } } }
+      responses: { '201': { description: Created } }
+  /chores/{id}:
+    patch:
+      summary: Update chore (e.g., done=true)
+      parameters: [ { name: id, in: path, required: true, schema: { type: integer } } ]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/ChoreUpdate' } } } }
+      responses: { '200': { description: OK } }
+  /completions:
+    post:
+      summary: Insert completion
+      responses: { '201': { description: Created } }
+  /thanks:
+    post:
+      summary: Send thanks
+      responses: { '201': { description: Created } }
+  /me:
+    get:
+      summary: Get current user
+      responses: { '200': { description: OK } }
+components:
+  schemas:
+    ChoreCreate:
+      type: object
+      required: [title]
+      properties:
+        title: { type: string, maxLength: 100 }
+        partner_id: { type: string, format: uuid, nullable: true }
+    ChoreUpdate:
+      type: object
+      properties:
+        done: { type: boolean }
