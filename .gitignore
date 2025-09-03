@@ -6,6 +6,17 @@ node_modules/
 out/
 
 # Environment variables
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Next.js
+.next/
+out/
+build/
+
+# Environment variables
+.env
 .env.local
 .env.development.local
 .env.test.local
@@ -15,6 +26,32 @@ out/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+# Vercel
+.vercel
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Logs
+logs
+*.log
 
 # Runtime data
 pids
@@ -30,6 +67,7 @@ coverage/
 
 # Dependency directories
 node_modules/
+# Dependency directories
 jspm_packages/
 
 # Optional npm cache directory
@@ -85,3 +123,10 @@ jspm_packages/
 # Temporary folders
 tmp/
 temp/
+# Optional eslint cache
+.eslintcache
+
+# Backup files
+*.backup
+*.bak
+*.tmp
