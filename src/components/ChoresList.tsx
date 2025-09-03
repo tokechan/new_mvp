@@ -3,10 +3,23 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
-import { Database } from '@/lib/supabase'
 
-type Chore = Database['public']['Tables']['chores']['Row']
-type ChoreInsert = Database['public']['Tables']['chores']['Insert']
+// 新しいデータベーススキーマに対応した型定義
+type Chore = {
+  id: number
+  owner_id: string
+  partner_id: string | null
+  title: string
+  done: boolean
+  created_at: string
+}
+
+type ChoreInsert = {
+  owner_id: string
+  partner_id?: string | null
+  title: string
+  done?: boolean
+}
 
 export default function ChoresList() {
   const { user } = useAuth()
@@ -15,7 +28,7 @@ export default function ChoresList() {
   const [newChore, setNewChore] = useState('')
   const [isAdding, setIsAdding] = useState(false)
 
-  // 家事一覧を取得
+  // 家事一覧を取得（自分がownerまたはpartnerの家事を取得）
   const fetchChores = async () => {
     if (!user) return
 
@@ -23,7 +36,7 @@ export default function ChoresList() {
       const { data, error } = await supabase
         .from('chores')
         .select('*')
-        .eq('assigned_to', user.id)
+        .or(`owner_id.eq.${user.id},partner_id.eq.${user.id}`)
         .order('created_at', { ascending: false })
 
       if (error) throw error
@@ -44,9 +57,9 @@ export default function ChoresList() {
     try {
       const choreData: ChoreInsert = {
         title: newChore.trim(),
-        assigned_to: user.id,
-        created_by: user.id,
-        status: 'pending'
+        owner_id: user.id,
+        partner_id: null, // 後でパートナー設定機能を追加予定
+        done: false
       }
 
       const { data, error } = await supabase
@@ -67,19 +80,33 @@ export default function ChoresList() {
   }
 
   // 家事の完了状態を切り替え
-  const toggleChore = async (choreId: string, currentStatus: 'pending' | 'completed') => {
+  const toggleChore = async (choreId: number, currentDone: boolean) => {
     try {
-      const newStatus = currentStatus === 'pending' ? 'completed' : 'pending'
+      const newDone = !currentDone
       const { error } = await supabase
         .from('chores')
-        .update({ status: newStatus })
+        .update({ done: newDone })
         .eq('id', choreId)
 
       if (error) throw error
 
+      // 完了時にcompletionsテーブルにレコードを追加
+      if (newDone && user) {
+        const { error: completionError } = await supabase
+          .from('completions')
+          .insert({
+            chore_id: choreId,
+            user_id: user.id
+          })
+        
+        if (completionError) {
+          console.error('完了記録の追加に失敗しました:', completionError)
+        }
+      }
+
       setChores(chores.map(chore => 
         chore.id === choreId 
-          ? { ...chore, status: newStatus }
+          ? { ...chore, done: newDone }
           : chore
       ))
     } catch (error) {
@@ -88,7 +115,7 @@ export default function ChoresList() {
   }
 
   // 家事を削除
-  const deleteChore = async (choreId: string) => {
+  const deleteChore = async (choreId: number) => {
     if (!confirm('この家事を削除しますか？')) return
 
     try {
@@ -154,35 +181,40 @@ export default function ChoresList() {
             <div
               key={chore.id}
               className={`flex items-center justify-between p-4 border rounded-lg ${
-                chore.status === 'completed'
+                chore.done
                   ? 'bg-green-50 border-green-200'
                   : 'bg-white border-gray-200'
               }`}
             >
               <div className="flex items-center gap-3">
                 <button
-                  onClick={() => toggleChore(chore.id, chore.status)}
+                  onClick={() => toggleChore(chore.id, chore.done)}
                   className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
-                    chore.status === 'completed'
+                    chore.done
                       ? 'bg-green-500 border-green-500 text-white'
                       : 'border-gray-300 hover:border-green-500'
                   }`}
                 >
-                  {chore.status === 'completed' && (
+                  {chore.done && (
                     <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                     </svg>
                   )}
                 </button>
-                <span
-                  className={`text-lg ${
-                    chore.status === 'completed'
-                      ? 'line-through text-gray-500'
-                      : 'text-gray-900'
-                  }`}
-                >
-                  {chore.title}
-                </span>
+                <div className="flex flex-col">
+                  <span
+                    className={`text-lg ${
+                      chore.done
+                        ? 'line-through text-gray-500'
+                        : 'text-gray-900'
+                    }`}
+                  >
+                    {chore.title}
+                  </span>
+                  <span className="text-sm text-gray-500">
+                    {chore.owner_id === user?.id ? '自分が作成' : 'パートナーが作成'}
+                  </span>
+                </div>
               </div>
               <button
                 onClick={() => deleteChore(chore.id)}
