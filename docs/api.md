@@ -1,24 +1,86 @@
-# API 概要
+# API概要
 
-MVPで使う主要エンドポイント。詳細仕様は [openapi.yaml](./openapi.yaml)。
+## 認証
+- Supabase Auth（Email Link / Google OAuth）
+- JWT Bearer Token
+- RLS（Row Level Security）でDB側セキュリティ強制
 
-## エンドポイント一覧（概要）
-- POST `/chores` — 家事作成
-- GET  `/chores` — 家事一覧（自分 or ペア相手分のみ / RLS）
-- PATCH `/chores/{id}` — 完了更新（done=true）
-- POST `/completions` — 完了履歴の作成
-- POST `/thanks` — ありがとう送信
-- GET  `/me` — 自分情報
+## データアクセス（Supabase直接）
 
-## 使用例（curl）
-```sh
-# 家事の作成
-curl -X POST "$API/chores" \
- -H "Authorization: Bearer $TOKEN" \
- -d '{"title":"皿洗い","partner_id":"<uuid>"}'
+### 家事管理（chores）
+```javascript
+// 家事作成
+await supabase.from('chores').insert({
+  owner_id: user.id,           // RLSでauth.uid() = user.idチェック
+  partner_id: partnerId ?? null,
+  title: 'お皿洗い'
+});
 
-# 完了→通知
-curl -X PATCH "$API/chores/123" \
- -H "Authorization: Bearer $TOKEN" \
- -d '{"done":true}'
+// 家事一覧取得（自分がowner or partnerのもののみ）
+const { data } = await supabase
+  .from('chores')
+  .select('*')
+  .order('id', { ascending: false });
+
+// 完了登録（doneフラグ更新 + completionsへINSERT）
+await supabase.from('chores')
+  .update({ done: true })
+  .eq('id', choreId);
+
+await supabase.from('completions').insert({
+  chore_id: choreId,
+  user_id: user.id             // RLS: user本人しか挿せない
+});
 ```
+
+### ありがとう送信（thanks）
+```javascript
+// ありがとう送信
+await supabase.from('thanks').insert({
+  from_id: user.id,
+  to_id: partnerId,
+  message: '今日もありがとう！'
+});
+
+// ありがとう履歴取得
+const { data } = await supabase
+  .from('thanks')
+  .select('*')
+  .order('created_at', { ascending: false });
+```
+
+## Realtime（リアルタイム通知）
+
+```javascript
+// 完了イベント監視
+export const listenCompletions = (onNew: (row: any) => void) => {
+  return supabase
+    .channel('completions-feed')
+    .on('postgres_changes', {
+      event: 'INSERT',
+      schema: 'public',
+      table: 'completions'
+    }, (payload) => onNew(payload.new))
+    .subscribe();
+};
+
+// ありがとう受信監視
+export const listenThanks = (onNew: (row: any) => void) => {
+  return supabase
+    .channel('thanks-feed')
+    .on('postgres_changes', {
+      event: 'INSERT',
+      schema: 'public',
+      table: 'thanks'
+    }, (payload) => onNew(payload.new))
+    .subscribe();
+};
+```
+
+## 将来のBFF拡張
+
+Phase 2でCloudflare Workers（Hono）を追加予定：
+- 署名付きR2 URL発行
+- 外部API結合
+- 集計/レポートのキャッシュ（KV/Cache API）
+- SupabaseのJWT検証（JWKS使用）
