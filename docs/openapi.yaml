@@ -1,43 +1,300 @@
 openapi: 3.0.3
 info:
-  title: ThankYou Chores API
-  version: 0.1.0
+  title: new_mvp API (Supabase Direct)
+  version: 1.0.0
+  description: |
+    家事管理アプリのMVP API - Supabase直接アクセス版
+    RLS（Row Level Security）でセキュリティを担保
+    フロントエンド → Supabase直接 → PostgreSQL
+
+servers:
+  - url: https://your-project.supabase.co/rest/v1
+    description: Supabase REST API
+
 paths:
   /chores:
     get:
-      summary: List chores (owner or partner only)
-      responses: { '200': { description: OK } }
+      summary: 家事一覧取得（RLSで自分関連のみ）
+      security:
+        - supabaseAuth: []
+      parameters:
+        - name: select
+          in: query
+          schema:
+            type: string
+            default: "*"
+        - name: order
+          in: query
+          schema:
+            type: string
+            default: "id.desc"
+      responses:
+        '200':
+          description: 家事一覧（owner_id=自分 or partner_id=自分）
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Chore'
     post:
-      summary: Create chore
-      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/ChoreCreate' } } } }
-      responses: { '201': { description: Created } }
-  /chores/{id}:
+      summary: 家事作成
+      security:
+        - supabaseAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChoreCreate'
+      responses:
+        '201':
+          description: 作成成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Chore'
+
+  /chores:
     patch:
-      summary: Update chore (e.g., done=true)
-      parameters: [ { name: id, in: path, required: true, schema: { type: integer } } ]
-      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/ChoreUpdate' } } } }
-      responses: { '200': { description: OK } }
+      summary: 家事更新（完了フラグなど）
+      security:
+        - supabaseAuth: []
+      parameters:
+        - name: id
+          in: query
+          required: true
+          schema:
+            type: string
+            example: "eq.123"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChoreUpdate'
+      responses:
+        '204':
+          description: 更新成功
+
   /completions:
-    post:
-      summary: Insert completion
-      responses: { '201': { description: Created } }
-  /thanks:
-    post:
-      summary: Send thanks
-      responses: { '201': { description: Created } }
-  /me:
     get:
-      summary: Get current user
-      responses: { '200': { description: OK } }
+      summary: 完了履歴取得
+      security:
+        - supabaseAuth: []
+      responses:
+        '200':
+          description: 完了履歴（RLSで関係者のみ）
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Completion'
+    post:
+      summary: 完了記録作成
+      security:
+        - supabaseAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CompletionCreate'
+      responses:
+        '201':
+          description: 記録成功
+
+  /thanks:
+    get:
+      summary: ありがとう履歴取得
+      security:
+        - supabaseAuth: []
+      responses:
+        '200':
+          description: ありがとう履歴（from_id=自分 or to_id=自分）
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Thanks'
+    post:
+      summary: ありがとう送信
+      security:
+        - supabaseAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ThanksCreate'
+      responses:
+        '201':
+          description: 送信成功
+
+  /profiles:
+    get:
+      summary: プロフィール取得
+      security:
+        - supabaseAuth: []
+      responses:
+        '200':
+          description: 自分のプロフィール
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Profile'
+    post:
+      summary: プロフィール作成/更新
+      security:
+        - supabaseAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProfileUpsert'
+      responses:
+        '201':
+          description: 作成/更新成功
+
 components:
+  securitySchemes:
+    supabaseAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Supabase Auth JWT Token
+
   schemas:
+    Profile:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: auth.users.idと同じ
+        display_name:
+          type: string
+          nullable: true
+
+    ProfileUpsert:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        display_name:
+          type: string
+
+    Chore:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        owner_id:
+          type: string
+          format: uuid
+        partner_id:
+          type: string
+          format: uuid
+          nullable: true
+        title:
+          type: string
+        done:
+          type: boolean
+          default: false
+
     ChoreCreate:
       type: object
-      required: [title]
+      required:
+        - owner_id
+        - title
       properties:
-        title: { type: string, maxLength: 100 }
-        partner_id: { type: string, format: uuid, nullable: true }
+        owner_id:
+          type: string
+          format: uuid
+          description: auth.uid()と一致する必要あり（RLSチェック）
+        partner_id:
+          type: string
+          format: uuid
+          nullable: true
+        title:
+          type: string
+
     ChoreUpdate:
       type: object
       properties:
-        done: { type: boolean }
+        done:
+          type: boolean
+        title:
+          type: string
+
+    Completion:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        chore_id:
+          type: integer
+          format: int64
+        user_id:
+          type: string
+          format: uuid
+        created_at:
+          type: string
+          format: date-time
+
+    CompletionCreate:
+      type: object
+      required:
+        - chore_id
+        - user_id
+      properties:
+        chore_id:
+          type: integer
+          format: int64
+        user_id:
+          type: string
+          format: uuid
+          description: auth.uid()と一致する必要あり（RLSチェック）
+
+    Thanks:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        from_id:
+          type: string
+          format: uuid
+        to_id:
+          type: string
+          format: uuid
+        message:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+
+    ThanksCreate:
+      type: object
+      required:
+        - from_id
+        - to_id
+        - message
+      properties:
+        from_id:
+          type: string
+          format: uuid
+          description: auth.uid()と一致する必要あり（RLSチェック）
+        to_id:
+          type: string
+          format: uuid
+        message:
+          type: string
