@@ -101,7 +101,8 @@ export default function ChoresList() {
 
       if (error) throw error
 
-      setChores([data as Chore, ...chores])
+      // RealtimeのINSERTイベントと整合性を保つため、関数型アップデータを使用
+      setChores((prev) => [data as Chore, ...prev])
       setNewChore('')
     } catch (error: any) {
       console.error('家事の追加に失敗しました:', error)
@@ -138,11 +139,13 @@ export default function ChoresList() {
         }
       }
 
-      setChores(chores.map(chore => 
-        chore.id === choreId 
-          ? { ...chore, done: newDone }
-          : chore
-      ))
+      setChores((prev) => 
+        prev.map((chore) => 
+          chore.id === choreId 
+            ? { ...chore, done: newDone }
+            : chore
+        )
+      )
     } catch (error) {
       console.error('家事の更新に失敗しました:', error)
     }
@@ -160,15 +163,73 @@ export default function ChoresList() {
 
       if (error) throw error
 
-      setChores(chores.filter(chore => chore.id !== choreId))
+      setChores((prev) => prev.filter((chore) => chore.id !== choreId))
     } catch (error) {
       console.error('家事の削除に失敗しました:', error)
     }
   }
 
+  /**
+   * 初期データ取得＋Supabase Realtime購読を設定する。
+   * - userのowner/partnerに関係する行のみ購読（owner_id または partner_id が自分のID）。
+   * - INSERT/UPDATE/DELETE をハンドリングしてローカル状態を即時同期。
+   * - クリーンアップで前回のチャンネルを解除。
+   */
   useEffect(() => {
+    if (!user) {
+      // 未ログイン時は表示を初期化してローディングを解除
+      setChores([])
+      setLoading(false)
+      return
+    }
+
+    // 初期ロード
     fetchChores()
-  }, [user])
+
+    // 変更イベント共通ハンドラ（INSERT/UPDATE）
+    const handleUpsert = (payload: any) => {
+      const row = payload?.new as Chore | undefined
+      if (!row) return
+      // 楽観的UIと競合しにくいように関数型アップデータを使用
+      setChores((prev) => {
+        const idx = prev.findIndex((c) => c.id === row.id)
+        if (idx === -1) {
+          // 新規（INSERT）
+          return [row, ...prev]
+        }
+        // 更新（UPDATE）
+        const copy = [...prev]
+        copy[idx] = { ...copy[idx], ...row }
+        return copy
+      })
+    }
+
+    // 削除イベントハンドラ（DELETE）
+    const handleDelete = (payload: any) => {
+      const oldRow = payload?.old as { id: number } | undefined
+      if (!oldRow) return
+      setChores((prev) => prev.filter((c) => c.id !== oldRow.id))
+    }
+
+    // Realtime購読チャンネル作成
+    const channel = supabase
+      .channel(`chores-realtime-${user.id}`)
+      // INSERT
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'chores', filter: `owner_id=eq.${user.id}` }, handleUpsert)
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'chores', filter: `partner_id=eq.${user.id}` }, handleUpsert)
+      // UPDATE
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'chores', filter: `owner_id=eq.${user.id}` }, handleUpsert)
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'chores', filter: `partner_id=eq.${user.id}` }, handleUpsert)
+      // DELETE
+      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'chores', filter: `owner_id=eq.${user.id}` }, handleDelete)
+      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'chores', filter: `partner_id=eq.${user.id}` }, handleDelete)
+      .subscribe()
+
+    return () => {
+      // 前回の購読を解除
+      supabase.removeChannel(channel)
+    }
+  }, [user?.id])
 
   if (loading) {
     return (
@@ -177,6 +238,7 @@ export default function ChoresList() {
       </div>
     )
   }
+
 
   return (
     <div className="max-w-2xl mx-auto p-6">
