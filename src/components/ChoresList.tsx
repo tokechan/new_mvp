@@ -28,7 +28,10 @@ export default function ChoresList() {
   const [newChore, setNewChore] = useState('')
   const [isAdding, setIsAdding] = useState(false)
 
-  // 家事一覧を取得（自分がownerまたはpartnerの家事を取得）
+  /**
+   * 自分がownerまたはpartnerの家事を取得する。
+   * RLSにより他ユーザーのデータは除外される。
+   */
   const fetchChores = async () => {
     if (!user) return
 
@@ -48,6 +51,31 @@ export default function ChoresList() {
     }
   }
 
+  /**
+   * プロフィールが存在しない場合は作成する（RLSの前提を満たすため）。
+   * - 一部のRLSポリシーで profiles.id = auth.uid() の存在を前提とすることがある。
+   */
+  const ensureOwnProfile = async () => {
+    if (!user) return
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('id', user.id)
+        .single()
+      if (error && error.code !== 'PGRST116') throw error // PGRST116: No rows found for single() 相当
+      if (!data) {
+        const displayName = user.email?.split('@')[0] || 'ユーザー'
+        const { error: upsertError } = await supabase
+          .from('profiles')
+          .upsert({ id: user.id, display_name: displayName })
+        if (upsertError) throw upsertError
+      }
+    } catch (e) {
+      console.warn('プロフィール確認/作成に失敗しました:', e)
+    }
+  }
+
   // 新しい家事を追加
   const addChore = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -55,6 +83,9 @@ export default function ChoresList() {
 
     setIsAdding(true)
     try {
+      // RLS要件を満たすためプロフィールの存在を保証
+      await ensureOwnProfile()
+
       const choreData: ChoreInsert = {
         title: newChore.trim(),
         owner_id: user.id,
@@ -70,16 +101,19 @@ export default function ChoresList() {
 
       if (error) throw error
 
-      setChores([data, ...chores])
+      setChores([data as Chore, ...chores])
       setNewChore('')
-    } catch (error) {
+    } catch (error: any) {
       console.error('家事の追加に失敗しました:', error)
+      alert('家事の追加に失敗しました。ログイン状態やプロフィールの作成状況を確認してください。')
     } finally {
       setIsAdding(false)
     }
   }
 
-  // 家事の完了状態を切り替え
+  /**
+   * 家事の完了状態を切り替える。完了に変更された場合はcompletionsへ記録。
+   */
   const toggleChore = async (choreId: number, currentDone: boolean) => {
     try {
       const newDone = !currentDone
@@ -156,7 +190,8 @@ export default function ChoresList() {
             value={newChore}
             onChange={(e) => setNewChore(e.target.value)}
             placeholder="新しい家事を入力..."
-            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            aria-label="新しい家事"
+            className="flex-1 px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 border border-gray-300 bg-white text-gray-900 placeholder-gray-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:placeholder-zinc-400"
             disabled={isAdding}
           />
           <button
@@ -183,7 +218,7 @@ export default function ChoresList() {
               className={`flex items-center justify-between p-4 border rounded-lg ${
                 chore.done
                   ? 'bg-green-50 border-green-200'
-                  : 'bg-white border-gray-200'
+                  : 'bg-white border-gray-200 dark:bg-zinc-900 dark:border-zinc-700'
               }`}
             >
               <div className="flex items-center gap-3">
@@ -192,7 +227,7 @@ export default function ChoresList() {
                   className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
                     chore.done
                       ? 'bg-green-500 border-green-500 text-white'
-                      : 'border-gray-300 hover:border-green-500'
+                      : 'border-gray-300 hover:border-green-500 dark:border-zinc-600'
                   }`}
                 >
                   {chore.done && (
@@ -206,19 +241,19 @@ export default function ChoresList() {
                     className={`text-lg ${
                       chore.done
                         ? 'line-through text-gray-500'
-                        : 'text-gray-900'
+                        : 'text-gray-900 dark:text-zinc-100'
                     }`}
                   >
                     {chore.title}
                   </span>
-                  <span className="text-sm text-gray-500">
+                  <span className="text-sm text-gray-500 dark:text-zinc-400">
                     {chore.owner_id === user?.id ? '自分が作成' : 'パートナーが作成'}
                   </span>
                 </div>
               </div>
               <button
                 onClick={() => deleteChore(chore.id)}
-                className="px-3 py-1 text-red-600 hover:bg-red-50 rounded transition-colors"
+                className="px-3 py-1 text-red-600 hover:bg-red-50 rounded transition-colors dark:hover:bg-red-950/30"
               >
                 削除
               </button>
