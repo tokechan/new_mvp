@@ -1,15 +1,14 @@
-import { createClient } from '@supabase/supabase-js'
 import { createBrowserClient } from '@supabase/ssr'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 
-// Supabaseクライアントの作成（従来の方法）
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+// ブラウザ用の単一インスタンスのSupabaseクライアント（全アプリ共通で使用）
+export const supabase = createBrowserClient(supabaseUrl, supabaseAnonKey)
 
-// ブラウザ用Supabaseクライアントの作成（SSR対応）
+// 互換性維持のためのヘルパー（常に同じインスタンスを返す）
 export const createSupabaseBrowserClient = () => {
-  return createBrowserClient(supabaseUrl, supabaseAnonKey)
+  return supabase
 }
 
 // 型定義
