@@ -6,7 +6,7 @@ import { supabase } from '@/lib/supabase'
 
 // 新しいデータベーススキーマに対応した型定義
 type Chore = {
-  id: number
+  id: string
   owner_id: string
   partner_id: string | null
   title: string
@@ -115,7 +115,7 @@ export default function ChoresList() {
   /**
    * 家事の完了状態を切り替える。完了に変更された場合はcompletionsへ記録。
    */
-  const toggleChore = async (choreId: number, currentDone: boolean) => {
+  const toggleChore = async (choreId: string, currentDone: boolean) => {
     try {
       const newDone = !currentDone
       const { error } = await supabase
@@ -152,7 +152,7 @@ export default function ChoresList() {
   }
 
   // 家事を削除
-  const deleteChore = async (choreId: number) => {
+  const deleteChore = async (choreId: string) => {
     if (!confirm('この家事を削除しますか？')) return
 
     try {
@@ -188,6 +188,7 @@ export default function ChoresList() {
 
     // 変更イベント共通ハンドラ（INSERT/UPDATE）
     const handleUpsert = (payload: any) => {
+      console.log('Realtime UPSERT event received:', payload)
       const row = payload?.new as Chore | undefined
       if (!row) return
       // 楽観的UIと競合しにくいように関数型アップデータを使用
@@ -195,9 +196,11 @@ export default function ChoresList() {
         const idx = prev.findIndex((c) => c.id === row.id)
         if (idx === -1) {
           // 新規（INSERT）
+          console.log('Adding new chore via Realtime:', row.title)
           return [row, ...prev]
         }
         // 更新（UPDATE）
+        console.log('Updating chore via Realtime:', row.title)
         const copy = [...prev]
         copy[idx] = { ...copy[idx], ...row }
         return copy
@@ -206,27 +209,65 @@ export default function ChoresList() {
 
     // 削除イベントハンドラ（DELETE）
     const handleDelete = (payload: any) => {
-      const oldRow = payload?.old as { id: number } | undefined
+      console.log('Realtime DELETE event received:', payload)
+      const oldRow = payload?.old as { id: string } | undefined
       if (!oldRow) return
+      console.log('Deleting chore via Realtime:', oldRow.id)
       setChores((prev) => prev.filter((c) => c.id !== oldRow.id))
     }
 
-    // Realtime購読チャンネル作成
+    // Realtime購読チャンネル作成（シンプルな実装）
     const channel = supabase
-      .channel(`chores-realtime-${user.id}`)
-      // INSERT
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'chores', filter: `owner_id=eq.${user.id}` }, handleUpsert)
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'chores', filter: `partner_id=eq.${user.id}` }, handleUpsert)
-      // UPDATE
-      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'chores', filter: `owner_id=eq.${user.id}` }, handleUpsert)
-      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'chores', filter: `partner_id=eq.${user.id}` }, handleUpsert)
-      // DELETE
-      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'chores', filter: `owner_id=eq.${user.id}` }, handleDelete)
-      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'chores', filter: `partner_id=eq.${user.id}` }, handleDelete)
-      .subscribe()
+      .channel(`chores-${user.id}`)
+      // RLSが有効なテーブルでは、postgres_changesの購読に「等価フィルタ(filter)」が必要。
+      // そうしないとRLS判定に必要なキー情報が不足し、イベントが配送されないことがある。
+      // 本アプリのRLSは owner_id または partner_id が auth.uid() の行を許可しているため、
+      // それぞれの列に対して eq フィルタを指定して購読する。
+      // INSERT (owner)
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'chores', filter: `owner_id=eq.${user.id}` }, (payload) => {
+        console.log('INSERT event (owner match):', payload)
+        handleUpsert(payload)
+      })
+      // INSERT (partner)
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'chores', filter: `partner_id=eq.${user.id}` }, (payload) => {
+        console.log('INSERT event (partner match):', payload)
+        handleUpsert(payload)
+      })
+      // UPDATE (owner)
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'chores', filter: `owner_id=eq.${user.id}` }, (payload) => {
+        console.log('UPDATE event (owner match):', payload)
+        handleUpsert(payload)
+      })
+      // UPDATE (partner)
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'chores', filter: `partner_id=eq.${user.id}` }, (payload) => {
+        console.log('UPDATE event (partner match):', payload)
+        handleUpsert(payload)
+      })
+      // DELETE (owner)
+      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'chores', filter: `owner_id=eq.${user.id}` }, (payload) => {
+        console.log('DELETE event (owner match):', payload)
+        handleDelete(payload)
+      })
+      // DELETE (partner)
+      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'chores', filter: `partner_id=eq.${user.id}` }, (payload) => {
+        console.log('DELETE event (partner match):', payload)
+        handleDelete(payload)
+      })
+      .subscribe((status, err) => {
+        console.log('Realtime subscription status:', status)
+        if (err) {
+          console.error('Realtime subscription error:', err)
+        }
+        if (status === 'SUBSCRIBED') {
+          console.log('Successfully subscribed to realtime changes!')
+        }
+      })
 
+    console.log('Realtime channel created for user:', user.id)
+    
     return () => {
       // 前回の購読を解除
+      console.log('Cleaning up Realtime subscription')
       supabase.removeChannel(channel)
     }
   }, [user?.id])
