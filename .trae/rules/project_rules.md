@@ -4,7 +4,7 @@
 
 ### プロジェクト概要
 - **目的**: 夫婦/カップル向け家事管理アプリ（MVP）
-- **技術スタック**: Next.js + Supabase + Cloudflare Pages
+- **技術スタック**: Next.js + Supabase + Cloudflare Workers
 - **設計思想**: 最短での価値提供、段階的拡張可能性
 
 ### ドキュメント駆動開発
@@ -17,7 +17,7 @@
 ### 技術スタック
 - **フロントエンド**: Next.js 15+ (TypeScript)
 - **バックエンド/BaaS**: Supabase (Auth/Postgres/RLS/Realtime/Storage)
-- **デプロイ**: Cloudflare Pages
+- **デプロイ**: Cloudflare Workers
 - **将来拡張**: Cloudflare Workers (Hono) for BFF
 
 ### 責務分離
