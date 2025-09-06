@@ -247,106 +247,116 @@ export default function ChoresList() {
     // 🔄 Back to Basic: 複雑なハンドラーを削除してシンプルに
 
     // 🔄 Back to Basic: 最もシンプルなRealtime実装
-    console.log('🔄 Back to Basic: Setting up simple Realtime subscription')
-    const channel = supabase
-      .channel(`simple-chores-${user.id}`)
-      .on('postgres_changes', { 
-         event: 'INSERT', 
-         schema: 'public', 
-         table: 'chores'
-       }, (payload) => {
-         console.log('🟢 SIMPLE INSERT:', payload)
-          console.log('🔍 INSERT payload details:', {
-            new: payload.new,
-            eventType: payload.eventType,
-            timestamp: new Date().toISOString()
-          })
-          const newChore = payload.new as Chore
-          
-          // ユーザーフィルタリング（削除と同じロジック）
-          if (newChore && (newChore.owner_id === user.id || newChore.partner_id === user.id)) {
-            console.log('📝 Adding chore to state:', newChore.title)
-            setChores(prev => {
-              const updated = [newChore, ...prev]
-              console.log('📊 Updated chores count:', updated.length)
-              return updated
-            })
-            setRealtimeEvents(prev => {
-              const updated = { 
-                ...prev, 
-                inserts: prev.inserts + 1,
-                lastEvent: `INSERT: ${newChore.title}` 
-              }
-              console.log('📈 Updated realtime events:', updated)
-              return updated
-            })
-          } else {
-            console.log('⚠️ INSERT event for chore not owned by current user, ignoring:', newChore?.id)
-          }
-       })
-      .on('postgres_changes', { 
-         event: 'UPDATE', 
-         schema: 'public', 
-         table: 'chores'
-       }, (payload) => {
-         console.log('🟡 SIMPLE UPDATE:', payload)
-          console.log('🔍 UPDATE payload details:', {
-            new: payload.new,
+     console.log('🔄 Back to Basic: Setting up simple Realtime subscription')
+     const channel = supabase
+       .channel(`simple-chores-${user.id}`)
+       .on('postgres_changes', { 
+          event: 'INSERT', 
+          schema: 'public', 
+          table: 'chores'
+        }, (payload) => {
+           console.log('🟢 SIMPLE INSERT EVENT RECEIVED:', payload)
+           console.log('🔍 INSERT payload details:', {
+             new: payload.new,
+             eventType: payload.eventType,
+             timestamp: new Date().toISOString()
+           })
+           const newChore = payload.new as Chore
+           console.log('👤 Current user ID:', user.id)
+           console.log('🏠 New chore owner_id:', newChore?.owner_id)
+           console.log('👫 New chore partner_id:', newChore?.partner_id)
+           
+           // ユーザーフィルタリング（削除と同じロジック）
+           if (newChore && (newChore.owner_id === user.id || newChore.partner_id === user.id)) {
+             console.log('✅ INSERT: User filter PASSED - processing event')
+             console.log('📝 Adding chore to state:', newChore.title)
+             setChores(prev => {
+               const updated = [newChore, ...prev]
+               console.log('📊 Updated chores count:', updated.length)
+               return updated
+             })
+             setRealtimeEvents(prev => {
+               const updated = { 
+                 ...prev, 
+                 inserts: prev.inserts + 1,
+                 lastEvent: `INSERT: ${newChore.title}` 
+               }
+               console.log('📈 Updated realtime events:', updated)
+               return updated
+             })
+           } else {
+             console.log('❌ INSERT: User filter FAILED - ignoring event')
+             console.log('⚠️ INSERT event for chore not owned by current user, ignoring:', newChore?.id)
+           }
+        })
+       .on('postgres_changes', { 
+          event: 'UPDATE', 
+          schema: 'public', 
+          table: 'chores'
+        }, (payload) => {
+           console.log('🟡 SIMPLE UPDATE EVENT RECEIVED:', payload)
+           console.log('🔍 UPDATE payload details:', {
+             new: payload.new,
+             old: payload.old,
+             eventType: payload.eventType,
+             timestamp: new Date().toISOString()
+           })
+           const updatedChore = payload.new as Chore
+           console.log('👤 Current user ID:', user.id)
+           console.log('🏠 Updated chore owner_id:', updatedChore?.owner_id)
+           console.log('👫 Updated chore partner_id:', updatedChore?.partner_id)
+           
+           // ユーザーフィルタリング（削除と同じロジック）
+           if (updatedChore && (updatedChore.owner_id === user.id || updatedChore.partner_id === user.id)) {
+             console.log('✅ UPDATE: User filter PASSED - processing event')
+             console.log('📝 Updating chore in state:', updatedChore.title)
+             setChores(prev => {
+               const updated = prev.map(c => c.id === updatedChore.id ? updatedChore : c)
+               console.log('📊 Updated chores after UPDATE:', updated.length)
+               return updated
+             })
+             setRealtimeEvents(prev => {
+               const updated = { 
+                 ...prev, 
+                 updates: prev.updates + 1,
+                 lastEvent: `UPDATE: ${updatedChore.title}` 
+               }
+               console.log('📈 Updated realtime events:', updated)
+               return updated
+             })
+           } else {
+             console.log('❌ UPDATE: User filter FAILED - ignoring event')
+             console.log('⚠️ UPDATE event for chore not owned by current user, ignoring:', updatedChore?.id)
+           }
+        })
+       .on('postgres_changes', { 
+          event: 'DELETE', 
+          schema: 'public', 
+          table: 'chores'
+        }, (payload) => {
+          console.log('🔴 SIMPLE DELETE:', payload)
+          console.log('🔍 DELETE payload details:', {
             old: payload.old,
             eventType: payload.eventType,
             timestamp: new Date().toISOString()
           })
-          const updatedChore = payload.new as Chore
-          
-          // ユーザーフィルタリング（削除と同じロジック）
-          if (updatedChore && (updatedChore.owner_id === user.id || updatedChore.partner_id === user.id)) {
-            console.log('📝 Updating chore in state:', updatedChore.title)
-            setChores(prev => {
-              const updated = prev.map(c => c.id === updatedChore.id ? updatedChore : c)
-              console.log('📊 Updated chores after UPDATE:', updated.length)
-              return updated
-            })
-            setRealtimeEvents(prev => {
-              const updated = { 
-                ...prev, 
-                updates: prev.updates + 1,
-                lastEvent: `UPDATE: ${updatedChore.title}` 
-              }
-              console.log('📈 Updated realtime events:', updated)
-              return updated
-            })
-          } else {
-            console.log('⚠️ UPDATE event for chore not owned by current user, ignoring:', updatedChore?.id)
-          }
-       })
-      .on('postgres_changes', { 
-         event: 'DELETE', 
-         schema: 'public', 
-         table: 'chores'
-       }, (payload) => {
-         console.log('🔴 SIMPLE DELETE:', payload)
-         console.log('🔍 DELETE payload details:', {
-           old: payload.old,
-           eventType: payload.eventType,
-           timestamp: new Date().toISOString()
-         })
-         const deletedId = payload.old.id
-         console.log('📝 Removing chore from state:', deletedId)
-         setChores(prev => {
-           const updated = prev.filter(c => c.id !== deletedId)
-           console.log('📊 Updated chores after DELETE:', updated.length)
-           return updated
-         })
-         setRealtimeEvents(prev => {
-           const updated = { 
-             ...prev, 
-             deletes: prev.deletes + 1,
-             lastEvent: `DELETE: ${deletedId}` 
-           }
-           console.log('📈 Updated realtime events:', updated)
-           return updated
-         })
-       })
+          const deletedId = payload.old.id
+          console.log('📝 Removing chore from state:', deletedId)
+          setChores(prev => {
+            const updated = prev.filter(c => c.id !== deletedId)
+            console.log('📊 Updated chores after DELETE:', updated.length)
+            return updated
+          })
+          setRealtimeEvents(prev => {
+            const updated = { 
+              ...prev, 
+              deletes: prev.deletes + 1,
+              lastEvent: `DELETE: ${deletedId}` 
+            }
+            console.log('📈 Updated realtime events:', updated)
+            return updated
+          })
+        })
       .subscribe((status, err) => {
         console.log('📡 Realtime subscription status:', status, 'for user:', user.id)
         
