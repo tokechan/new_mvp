@@ -64,6 +64,10 @@ on public.chores for update
 using (owner_id = auth.uid() or partner_id = auth.uid())
 with check (owner_id = auth.uid() or partner_id = auth.uid());
 
+create policy "chores_delete_owner_or_partner"
+on public.chores for delete
+using (owner_id = auth.uid() or partner_id = auth.uid());
+
 -- completions: 見えるのは関係者、insertは自分の分だけ
 create policy "completions_select_related"
 on public.completions for select
