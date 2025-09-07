@@ -257,7 +257,8 @@ export default function ChoresList() {
         }, (payload) => {
            console.log('🟢 INSERT EVENT RECEIVED (owner):', payload)
            const newChore = payload.new as Chore
-           if (newChore) {
+           // クライアント側フィルタリング: owner_idまたはpartner_idがユーザーIDと一致する場合のみ処理
+           if (newChore && (newChore.owner_id === user.id || newChore.partner_id === user.id)) {
              console.log('📝 Adding chore to state:', newChore.title)
              setChores(prev => {
                // 重複チェック（ID型の不一致対応: 文字列化して比較）
@@ -275,36 +276,12 @@ export default function ChoresList() {
                inserts: prev.inserts + 1,
                lastEvent: `INSERT: ${newChore.title}`
              }))
+           } else {
+             console.log('⚠️ INSERT: Chore not for this user, skipping')
            }
         })
-       .on('postgres_changes', { 
-          event: 'INSERT', 
-          schema: 'public', 
-          table: 'chores',
-          filter: `partner_id=eq.${user.id}`
-        }, (payload) => {
-           console.log('🟢 INSERT EVENT RECEIVED (partner):', payload)
-           const newChore = payload.new as Chore
-           if (newChore) {
-             console.log('📝 Adding chore to state (as partner):', newChore.title)
-             setChores(prev => {
-               // 重複チェック（ID型の不一致対応: 文字列化して比較）
-               const exists = prev.some(c => String(c.id) === String(newChore.id))
-               if (exists) {
-                 console.log('⚠️ INSERT: Chore already exists, skipping:', newChore.id)
-                 return prev
-               }
-               const updated = [newChore, ...prev]
-               console.log('📊 Updated chores count:', updated.length)
-               return updated
-             })
-             setRealtimeEvents(prev => ({
-               ...prev, 
-               inserts: prev.inserts + 1,
-               lastEvent: `INSERT: ${newChore.title}`
-             }))
-           }
-        })
+       // partner_idフィルタを削除（nullの場合にマッチしないため）
+       // owner_idのみでフィルタリングし、クライアント側で追加判定を行う
        .on('postgres_changes', { 
           event: 'UPDATE', 
           schema: 'public', 
@@ -313,7 +290,8 @@ export default function ChoresList() {
         }, (payload) => {
            console.log('🟡 UPDATE EVENT RECEIVED (owner):', payload)
            const updatedChore = payload.new as Chore
-           if (updatedChore) {
+           // クライアント側フィルタリング: owner_idまたはpartner_idがユーザーIDと一致する場合のみ処理
+           if (updatedChore && (updatedChore.owner_id === user.id || updatedChore.partner_id === user.id)) {
              console.log('📝 Updating chore in state:', updatedChore.title)
              setChores(prev => {
                // ID型の不一致対応: 文字列化して比較
@@ -326,31 +304,12 @@ export default function ChoresList() {
                updates: prev.updates + 1,
                lastEvent: `UPDATE: ${updatedChore.title}`
              }))
+           } else {
+             console.log('⚠️ UPDATE: Chore not for this user, skipping')
            }
         })
-       .on('postgres_changes', { 
-          event: 'UPDATE', 
-          schema: 'public', 
-          table: 'chores',
-          filter: `partner_id=eq.${user.id}`
-        }, (payload) => {
-           console.log('🟡 UPDATE EVENT RECEIVED (partner):', payload)
-           const updatedChore = payload.new as Chore
-           if (updatedChore) {
-             console.log('📝 Updating chore in state (as partner):', updatedChore.title)
-             setChores(prev => {
-               // ID型の不一致対応: 文字列化して比較
-               const updated = prev.map(c => String(c.id) === String(updatedChore.id) ? updatedChore : c)
-               console.log('📊 Updated chores after UPDATE:', updated.length)
-               return updated
-             })
-             setRealtimeEvents(prev => ({
-               ...prev, 
-               updates: prev.updates + 1,
-               lastEvent: `UPDATE: ${updatedChore.title}`
-             }))
-           }
-        })
+       // partner_idフィルタを削除（nullの場合にマッチしないため）
+       // owner_idのみでフィルタリングし、クライアント側で更新判定を行う
        .on('postgres_changes', { 
           event: 'DELETE', 
           schema: 'public', 
@@ -428,11 +387,24 @@ export default function ChoresList() {
 
     console.log('📡 Realtime channel created for user:', user.id)
     console.log('🔗 Channel name:', `chores-${user.id}`)
-    
+
+    // DEBUG: Channel to receive all events without filters
+    const debugChannel = supabase
+      .channel(`chores-debug-${Date.now()}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'chores' },
+        (payload) => {
+          console.log('🐞 DEBUG EVENT (no filter):', payload)
+        }
+      )
+      .subscribe()
+
     return () => {
       // 前回の購読を解除
       console.log('🧹 Cleaning up Realtime subscription for user:', user.id)
       supabase.removeChannel(channel)
+      supabase.removeChannel(debugChannel)
     }
   }, [user?.id])
 
