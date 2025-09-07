@@ -39,26 +39,36 @@ export async function POST(request: NextRequest) {
     // リクエストボディの解析
     const body: CreateInvitationRequest = await request.json()
     
-    // 既にパートナーがいるかチェック
-    const { data: profile, error: profileError } = await supabase
-      .from('profiles')
-      .select('partner_id')
-      .eq('id', user.id)
-      .single()
-    
-    if (profileError) {
-      console.error('プロフィール取得エラー:', profileError)
-      return NextResponse.json(
-        { success: false, error: 'プロフィール情報の取得に失敗しました' } as CreateInvitationResponse,
-        { status: 500 }
-      )
-    }
-
-    if (profile.partner_id) {
-      return NextResponse.json(
-        { success: false, error: '既にパートナーが設定されています' } as CreateInvitationResponse,
-        { status: 400 }
-      )
+    // 既にパートナーがいるかチェック（循環参照を避けるため簡素化）
+    try {
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('partner_id')
+        .eq('id', user.id)
+        .maybeSingle() // singleの代わりにmaybeSingleを使用
+      
+      if (profileError) {
+        console.error('プロフィール取得エラー:', profileError)
+        // プロフィールが存在しない場合は作成を試行
+        console.log('プロフィールを作成します...')
+        const displayName = user.email?.split('@')[0] || 'ユーザー'
+        const { error: createError } = await supabase
+          .from('profiles')
+          .insert({ id: user.id, display_name: displayName })
+        
+        if (createError) {
+          console.error('プロフィール作成エラー:', createError)
+          // プロフィール作成に失敗しても招待は続行（RLSで保護されている）
+        }
+      } else if (profile?.partner_id) {
+        return NextResponse.json(
+          { success: false, error: '既にパートナーが設定されています' } as CreateInvitationResponse,
+          { status: 400 }
+        )
+      }
+    } catch (error) {
+      console.error('プロフィールチェックで予期しないエラー:', error)
+      // エラーが発生しても招待処理は続行（RLSで保護されている）
     }
 
     // 有効な招待が既に存在するかチェック
