@@ -1,6 +1,21 @@
 -- RLS（Row Level Security）ポリシー設定
 -- Supabase/PostgreSQLで実行
 
+-- Realtime Publication設定（リアルタイム機能に必要）
+-- 既存のpublicationを確認
+-- SELECT * FROM pg_publication WHERE pubname = 'supabase_realtime';
+-- SELECT * FROM pg_publication_tables WHERE pubname = 'supabase_realtime';
+
+-- choresテーブルをリアルタイム対象に追加（必要に応じて実行）
+-- ALTER PUBLICATION supabase_realtime ADD TABLE public.chores;
+-- または、すべてのテーブルを対象にする場合：
+-- ALTER PUBLICATION supabase_realtime SET TABLE public.chores, public.completions, public.thanks, public.profiles;
+
+-- REPLICA IDENTITYの設定（UPDATE/DELETEイベントに必要）
+-- ALTER TABLE public.chores REPLICA IDENTITY FULL;
+-- ALTER TABLE public.completions REPLICA IDENTITY FULL;
+-- ALTER TABLE public.thanks REPLICA IDENTITY FULL;
+
 -- スキーマ作成（MVPミニERD）
 -- profiles
 create table if not exists public.profiles (
