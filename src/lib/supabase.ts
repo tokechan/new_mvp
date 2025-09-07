@@ -51,87 +51,69 @@ export type Database = {
       chores: {
         Row: {
           id: string
+          owner_id: string
+          partner_id: string | null
           title: string
-          description: string | null
-          assigned_to: string
-          created_by: string
-          due_date: string | null
-          status: 'pending' | 'completed'
+          done: boolean
           created_at: string
-          updated_at: string
         }
         Insert: {
           id?: string
+          owner_id: string
+          partner_id?: string | null
           title: string
-          description?: string | null
-          assigned_to: string
-          created_by: string
-          due_date?: string | null
-          status?: 'pending' | 'completed'
+          done?: boolean
           created_at?: string
-          updated_at?: string
         }
         Update: {
           id?: string
+          owner_id?: string
+          partner_id?: string | null
           title?: string
-          description?: string | null
-          assigned_to?: string
-          created_by?: string
-          due_date?: string | null
-          status?: 'pending' | 'completed'
+          done?: boolean
           created_at?: string
-          updated_at?: string
         }
       }
       completions: {
         Row: {
           id: string
           chore_id: string
-          completed_by: string
-          completed_at: string
-          notes: string | null
+          user_id: string
           created_at: string
         }
         Insert: {
           id?: string
           chore_id: string
-          completed_by: string
-          completed_at?: string
-          notes?: string | null
+          user_id: string
           created_at?: string
         }
         Update: {
           id?: string
           chore_id?: string
-          completed_by?: string
-          completed_at?: string
-          notes?: string | null
+          user_id?: string
           created_at?: string
         }
       }
       thanks: {
         Row: {
           id: string
-          completion_id: string
-          from_user: string
-          to_user: string
-          message: string | null
+          from_id: string
+          to_id: string
+          message: string
           created_at: string
         }
         Insert: {
           id?: string
-          completion_id: string
-          from_user: string
-          to_user: string
-          message?: string | null
+          from_id: string
+          to_id: string
+          message: string
           created_at?: string
         }
         Update: {
           id?: string
-          completion_id?: string
-          from_user?: string
-          to_user?: string
-          message?: string | null
+          from_id?: string
+          to_id?: string
+          message?: string
           created_at?: string
         }
       }
