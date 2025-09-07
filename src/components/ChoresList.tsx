@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
+import PartnerInvitation from './PartnerInvitation'
 
 // 新しいデータベーススキーマに対応した型定義
 type Chore = {
@@ -27,6 +28,9 @@ export default function ChoresList() {
   const [loading, setLoading] = useState(true)
   const [newChore, setNewChore] = useState('')
   const [isAdding, setIsAdding] = useState(false)
+  // パートナー情報の状態管理
+  const [hasPartner, setHasPartner] = useState<boolean | null>(null)
+  const [partnerInfo, setPartnerInfo] = useState<{ id: string; name: string } | null>(null)
   // リアルタイムイベント追跡用
   const [realtimeEvents, setRealtimeEvents] = useState({
     inserts: 0,
@@ -82,6 +86,80 @@ export default function ChoresList() {
     } catch (e) {
       console.warn('プロフィール確認/作成に失敗しました:', e)
     }
+  }
+
+  /**
+   * パートナー情報を取得する
+   */
+  const fetchPartnerInfo = async () => {
+    if (!user) {
+      console.log('👤 ユーザーが未ログインのため、パートナー情報取得をスキップ')
+      return
+    }
+    
+    console.log('🔍 パートナー情報を取得中...', user.id)
+    
+    try {
+      // まず基本的なプロフィール情報のみ取得
+      const { data: profile, error } = await supabase
+        .from('profiles')
+        .select('partner_id')
+        .eq('id', user.id)
+        .single()
+      
+      console.log('📊 プロフィール取得結果:', { profile, error })
+      
+      if (error) {
+        console.error('❌ パートナー情報取得エラー:', error)
+        // エラーでもhasPartnerをfalseに設定して招待UIを表示
+        setHasPartner(false)
+        setPartnerInfo(null)
+        return
+      }
+
+      if (profile?.partner_id) {
+        console.log('✅ パートナーが存在:', profile.partner_id)
+        // パートナーの詳細情報を取得
+        const { data: partnerProfile, error: partnerError } = await supabase
+          .from('profiles')
+          .select('id, display_name')
+          .eq('id', profile.partner_id)
+          .single()
+        
+        if (partnerError) {
+          console.error('❌ パートナー詳細取得エラー:', partnerError)
+          setHasPartner(true)
+          setPartnerInfo({ id: profile.partner_id, name: 'パートナー' })
+        } else {
+          setHasPartner(true)
+          setPartnerInfo({
+            id: profile.partner_id,
+            name: partnerProfile?.display_name || 'パートナー'
+          })
+        }
+      } else {
+        console.log('❌ パートナーが未設定')
+        setHasPartner(false)
+        setPartnerInfo(null)
+      }
+    } catch (error) {
+      console.error('💥 パートナー情報取得で予期しないエラー:', error)
+      // エラーでもhasPartnerをfalseに設定して招待UIを表示
+      setHasPartner(false)
+      setPartnerInfo(null)
+    }
+    
+    console.log('🏁 パートナー情報取得完了')
+  }
+
+  /**
+   * パートナー連携完了時のコールバック
+   */
+  const handlePartnerLinked = async () => {
+    // パートナー情報を再取得
+    await fetchPartnerInfo()
+    // 家事一覧も再取得（パートナーの家事が表示されるように）
+    await fetchChores()
   }
 
   // 新しい家事を追加
@@ -238,6 +316,7 @@ export default function ChoresList() {
     console.log('🚀 Setting up Realtime for user:', user.id)
     // 初期ロード
     fetchChores()
+    fetchPartnerInfo()
 
     // 🔄 Back to Basic: 複雑なハンドラーを削除してシンプルに
 
@@ -476,6 +555,48 @@ export default function ChoresList() {
            詳細状態確認
          </button>
       </div>
+      
+      {/* パートナー情報デバッグパネル */}
+      <div className="mb-4 p-3 bg-purple-50 border border-purple-200 rounded-lg dark:bg-purple-950/30 dark:border-purple-800">
+        <h3 className="text-sm font-semibold mb-2 text-purple-800 dark:text-purple-400">
+          🔧 パートナー状態デバッグ
+        </h3>
+        <div className="text-xs text-purple-700 dark:text-purple-300 space-y-1">
+          <div>hasPartner: <span className="font-mono">{String(hasPartner)}</span></div>
+          <div>partnerInfo: <span className="font-mono">{partnerInfo ? JSON.stringify(partnerInfo) : 'null'}</span></div>
+          <div>ユーザーID: <span className="font-mono text-xs">{user?.id}</span></div>
+        </div>
+      </div>
+      
+      {/* パートナー情報・招待UI */}
+      {hasPartner === false && (
+        <div className="mb-6">
+          <PartnerInvitation onPartnerLinked={handlePartnerLinked} />
+        </div>
+      )}
+      
+      {hasPartner === true && partnerInfo && (
+        <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg dark:bg-green-950/30 dark:border-green-800">
+          <h3 className="text-lg font-semibold mb-2 text-green-800 dark:text-green-400">
+            👫 パートナー連携済み
+          </h3>
+          <div className="text-green-700 dark:text-green-300">
+            <p><span className="font-medium">パートナー:</span> {partnerInfo.name}</p>
+            <p className="text-sm mt-1">家事の追加・完了・削除がリアルタイムで共有されます</p>
+          </div>
+        </div>
+      )}
+      
+      {hasPartner === null && (
+        <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg dark:bg-yellow-950/30 dark:border-yellow-800">
+          <h3 className="text-lg font-semibold mb-2 text-yellow-800 dark:text-yellow-400">
+            ⏳ パートナー情報を確認中...
+          </h3>
+          <p className="text-yellow-700 dark:text-yellow-300 text-sm">
+            パートナー情報を取得しています。しばらくお待ちください。
+          </p>
+        </div>
+      )}
       
       {/* 新しい家事を追加するフォーム */}
       <form onSubmit={addChore} className="mb-6">

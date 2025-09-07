@@ -42,17 +42,10 @@ export async function GET(
     // 期限切れ招待のクリーンアップ
     await supabase.rpc('cleanup_expired_invitations')
 
-    // 招待情報を取得（招待者の情報も含む）
+    // 招待情報を取得（循環参照を避けるため簡素化）
     const { data: invitation, error: invitationError } = await supabase
       .from('partner_invitations')
-      .select(`
-        status,
-        expires_at,
-        inviter:profiles!inviter_id(
-          display_name,
-          id
-        )
-      `)
+      .select('status, expires_at, inviter_id')
       .eq('invite_code', code)
       .eq('status', 'pending')
       .gt('expires_at', new Date().toISOString())
@@ -65,23 +58,37 @@ export async function GET(
       )
     }
 
-    // 招待者のユーザー情報を取得
-    const { data: inviterAuth, error: authError } = await supabase.auth.admin.getUserById(
-      (invitation.inviter as any).id
-    )
-
-    if (authError || !inviterAuth.user) {
-      return NextResponse.json(
-        { success: false, error: '招待者の情報を取得できませんでした' } as GetInvitationResponse,
-        { status: 500 }
-      )
+    // 招待者の基本情報を取得（循環参照を避ける）
+    let inviterName = 'ユーザー'
+    let inviterEmail = ''
+    
+    try {
+      // 招待者のプロフィール情報を取得
+      const { data: inviterProfile } = await supabase
+        .from('profiles')
+        .select('display_name')
+        .eq('id', invitation.inviter_id)
+        .maybeSingle()
+      
+      if (inviterProfile?.display_name) {
+        inviterName = inviterProfile.display_name
+      }
+      
+      // 招待者のユーザー情報を取得
+      const { data: inviterAuth } = await supabase.auth.admin.getUserById(invitation.inviter_id)
+      if (inviterAuth.user?.email) {
+        inviterEmail = inviterAuth.user.email
+      }
+    } catch (error) {
+      console.error('招待者情報取得エラー:', error)
+      // エラーでもデフォルト値で続行
     }
 
     return NextResponse.json({
       success: true,
       data: {
-        inviter_name: (invitation.inviter as any).display_name || 'ユーザー',
-        inviter_email: inviterAuth.user.email || '',
+        inviter_name: inviterName,
+        inviter_email: inviterEmail,
         status: invitation.status as 'pending',
         expires_at: invitation.expires_at
       }
@@ -156,24 +163,35 @@ export async function POST(
       )
     }
 
-    // 連携後の情報を取得
-    const { data: profile, error: profileError } = await supabase
-      .from('profiles')
-      .select(`
-        partner_id,
-        partner:profiles!partner_id(
-          display_name
-        )
-      `)
-      .eq('id', user.id)
-      .single()
+    // 連携後の情報を取得（循環参照を避けるため簡素化）
+    let partnerName = 'パートナー'
+    let partnerId = ''
     
-    if (profileError || !profile) {
-      console.error('プロフィール取得エラー:', profileError)
-      return NextResponse.json(
-        { success: false, error: 'プロフィール情報の取得に失敗しました' } as AcceptInvitationResponse,
-        { status: 500 }
-      )
+    try {
+      // 自分のプロフィールからpartner_idを取得
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('partner_id')
+        .eq('id', user.id)
+        .maybeSingle()
+      
+      if (profile?.partner_id) {
+        partnerId = profile.partner_id
+        
+        // パートナーの表示名を取得
+        const { data: partnerProfile } = await supabase
+          .from('profiles')
+          .select('display_name')
+          .eq('id', profile.partner_id)
+          .maybeSingle()
+        
+        if (partnerProfile?.display_name) {
+          partnerName = partnerProfile.display_name
+        }
+      }
+    } catch (error) {
+      console.error('連携後情報取得エラー:', error)
+      // エラーでもデフォルト値で続行
     }
 
     // 共有された家事の数を取得
@@ -189,8 +207,8 @@ export async function POST(
     return NextResponse.json({
       success: true,
       data: {
-        partner_id: profile.partner_id!,
-        partner_name: (profile.partner as any)?.display_name || 'パートナー',
+        partner_id: partnerId,
+        partner_name: partnerName,
         shared_chores_count: sharedChoresCount || 0
       }
     } as AcceptInvitationResponse)
