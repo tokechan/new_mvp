@@ -472,6 +472,13 @@ export default function ChoresList() {
   const handleChoreChange = (payload: any) => {
     const { eventType, new: newRecord, old: oldRecord } = payload
     
+    console.log('🔄 handleChoreChange called:', {
+      eventType,
+      newRecord,
+      oldRecord,
+      timestamp: new Date().toISOString()
+    })
+    
     setRealtimeEvents(prev => ({
       ...prev,
       [eventType === 'INSERT' ? 'inserts' : 
@@ -486,10 +493,15 @@ export default function ChoresList() {
       switch (eventType) {
         case 'INSERT':
           // 重複チェック（ローカル更新と競合回避）
-          if (prev.some(c => c.id === newRecord.id)) return prev
+          if (prev.some(c => c.id === newRecord.id)) {
+            console.log('🔄 INSERT: Duplicate detected, skipping')
+            return prev
+          }
+          console.log('✅ INSERT: Adding new chore to list')
           return [newRecord as ExtendedChore, ...prev]
           
         case 'UPDATE':
+          console.log('✅ UPDATE: Updating chore in list')
           return prev.map(chore => 
             chore.id === newRecord.id 
               ? { ...chore, ...newRecord } as ExtendedChore
@@ -497,9 +509,13 @@ export default function ChoresList() {
           )
           
         case 'DELETE':
-          return prev.filter(chore => chore.id !== oldRecord.id)
+          console.log('🗑️ DELETE: Removing chore from list, ID:', oldRecord?.id)
+          const filteredChores = prev.filter(chore => chore.id !== oldRecord.id)
+          console.log('🗑️ DELETE: Before filter:', prev.length, 'After filter:', filteredChores.length)
+          return filteredChores
           
         default:
+          console.log('❓ Unknown event type:', eventType)
           return prev
       }
     })
@@ -593,11 +609,24 @@ export default function ChoresList() {
           })
           
           // ユーザーに関連する変更のみ処理
-           const record = payload.new || payload.old
-           if (record && 
-               ((record as any).owner_id === user.id || (record as any).partner_id === user.id)) {
-             handleChoreChange(payload)
-           }
+          // DELETEイベントではpayload.newはnullで、payload.oldにデータが含まれる
+          const record = payload.eventType === 'DELETE' ? payload.old : (payload.new || payload.old)
+          
+          console.log('🔍 Record check for user filtering:', {
+            eventType: payload.eventType,
+            record,
+            userId: user.id,
+            recordOwnerId: record?.owner_id,
+            recordPartnerId: record?.partner_id
+          })
+          
+          if (record && 
+              ((record as any).owner_id === user.id || (record as any).partner_id === user.id)) {
+            console.log('✅ Processing change for user:', payload.eventType)
+            handleChoreChange(payload)
+          } else {
+            console.log('❌ Skipping change - not for this user:', payload.eventType)
+          }
         }
       )
       .on(
