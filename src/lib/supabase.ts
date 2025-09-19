@@ -1,15 +1,21 @@
-import { createClient } from '@supabase/supabase-js'
 import { createBrowserClient } from '@supabase/ssr'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 
-// Supabaseクライアントの作成（従来の方法）
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+// ブラウザ用の単一インスタンスのSupabaseクライアント（全アプリ共通で使用）
+// Realtime機能を明示的に有効化
+export const supabase = createBrowserClient(supabaseUrl, supabaseAnonKey, {
+  realtime: {
+    params: {
+      eventsPerSecond: 10
+    }
+  }
+})
 
-// ブラウザ用Supabaseクライアントの作成（SSR対応）
+// 互換性維持のためのヘルパー（常に同じインスタンスを返す）
 export const createSupabaseBrowserClient = () => {
-  return createBrowserClient(supabaseUrl, supabaseAnonKey)
+  return supabase
 }
 
 // 型定義
@@ -45,87 +51,69 @@ export type Database = {
       chores: {
         Row: {
           id: string
+          owner_id: string
+          partner_id: string | null
           title: string
-          description: string | null
-          assigned_to: string
-          created_by: string
-          due_date: string | null
-          status: 'pending' | 'completed'
+          done: boolean
           created_at: string
-          updated_at: string
         }
         Insert: {
           id?: string
+          owner_id: string
+          partner_id?: string | null
           title: string
-          description?: string | null
-          assigned_to: string
-          created_by: string
-          due_date?: string | null
-          status?: 'pending' | 'completed'
+          done?: boolean
           created_at?: string
-          updated_at?: string
         }
         Update: {
           id?: string
+          owner_id?: string
+          partner_id?: string | null
           title?: string
-          description?: string | null
-          assigned_to?: string
-          created_by?: string
-          due_date?: string | null
-          status?: 'pending' | 'completed'
+          done?: boolean
           created_at?: string
-          updated_at?: string
         }
       }
       completions: {
         Row: {
           id: string
           chore_id: string
-          completed_by: string
-          completed_at: string
-          notes: string | null
+          user_id: string
           created_at: string
         }
         Insert: {
           id?: string
           chore_id: string
-          completed_by: string
-          completed_at?: string
-          notes?: string | null
+          user_id: string
           created_at?: string
         }
         Update: {
           id?: string
           chore_id?: string
-          completed_by?: string
-          completed_at?: string
-          notes?: string | null
+          user_id?: string
           created_at?: string
         }
       }
       thanks: {
         Row: {
           id: string
-          completion_id: string
-          from_user: string
-          to_user: string
-          message: string | null
+          from_id: string
+          to_id: string
+          message: string
           created_at: string
         }
         Insert: {
           id?: string
-          completion_id: string
-          from_user: string
-          to_user: string
-          message?: string | null
+          from_id: string
+          to_id: string
+          message: string
           created_at?: string
         }
         Update: {
           id?: string
-          completion_id?: string
-          from_user?: string
-          to_user?: string
-          message?: string | null
+          from_id?: string
+          to_id?: string
+          message?: string
           created_at?: string
         }
       }

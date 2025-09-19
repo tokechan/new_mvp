@@ -1,5 +1,11 @@
 # Dependencies
 node_modules/
+
+# Next.js build output
+.next/
+out/
+
+# Environment variables
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
@@ -16,6 +22,10 @@ build/
 .env.test.local
 .env.production.local
 
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 # Vercel
 .vercel
 
@@ -52,12 +62,67 @@ pids
 # Coverage directory used by tools like istanbul
 coverage/
 
+# nyc test coverage
+.nyc_output
+
+# Dependency directories
+node_modules/
 # Dependency directories
 jspm_packages/
 
 # Optional npm cache directory
 .npm
 
+# Optional REPL history
+.node_repl_history
+
+# Output of 'npm pack'
+*.tgz
+
+# Yarn Integrity file
+.yarn-integrity
+
+# dotenv environment variables file
+.env
+
+# parcel-bundler cache (https://parceljs.org/)
+.cache
+.parcel-cache
+
+# next.js build output
+.next
+
+# nuxt.js build output
+.nuxt
+
+# vuepress build output
+.vuepress/dist
+
+# Serverless directories
+.serverless
+
+# FuseBox cache
+.fusebox/
+
+# DynamoDB Local files
+.dynamodb/
+
+# TernJS port file
+.tern-port
+
+# Stores VSCode versions used for testing VSCode extensions
+.vscode-test
+
+# macOS
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
+
+# Temporary folders
+tmp/
+temp/
 # Optional eslint cache
 .eslintcache
 
