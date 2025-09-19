@@ -27,19 +27,31 @@ export default function ChoresList() {
   const [loading, setLoading] = useState(true)
   const [newChore, setNewChore] = useState('')
   const [isAdding, setIsAdding] = useState(false)
-  const [showThankYou, setShowThankYou] = useState<string | null>(null) // 表示中のありがとうメッセージフォーム
+  const [showThankYou, setShowThankYou] = useState<number | null>(null) // 表示中のありがとうメッセージフォーム
 
   // パートナー情報の状態管理
   const [hasPartner, setHasPartner] = useState<boolean | null>(null)
   const [partnerInfo, setPartnerInfo] = useState<{ id: string; name: string } | null>(null)
+  
+  // パートナー連携完了時のハンドラー
+  const handlePartnerLinked = async (partnerId: string, partnerName: string) => {
+    setPartnerInfo({ id: partnerId, name: partnerName })
+    setHasPartner(true)
+    await fetchChores() // パートナー連携後に家事一覧を再取得
+  }
+  
   // リアルタイムイベント追跡用
   const [realtimeEvents, setRealtimeEvents] = useState({
     inserts: 0,
     updates: 0,
     deletes: 0,
     lastEvent: null as string | null,
+    lastError: null as string | null,
+    reconnectAttempts: 0,
+    lastConnectedAt: null as number | null,
     connectionStatus: 'unknown' as 'unknown' | 'connected' | 'disconnected' | 'error'
   })
+  const [showRealtimeDetails, setShowRealtimeDetails] = useState(false)
 
   // 家事一覧を取得（完了記録とありがとうメッセージも含む）
   const fetchChores = async () => {
@@ -79,6 +91,13 @@ export default function ChoresList() {
         .select('id')
         .eq('id', user.id)
         .single()
+      
+      // 無限再帰エラーの場合はスキップ
+      if (error && (error.code === '42P17' || error.message?.includes('infinite recursion'))) {
+        console.warn('🔄 RLSポリシーの無限再帰エラーを検出。プロフィール確認をスキップします。')
+        return
+      }
+      
       if (error && error.code !== 'PGRST116') throw error // PGRST116: No rows found for single() 相当
       if (!data) {
         const displayName = user.email?.split('@')[0] || 'ユーザー'
@@ -94,20 +113,22 @@ export default function ChoresList() {
 
   /**
    * パートナー情報を取得する
+   * - エラーハンドリングを強化
+   * - リトライ機能を追加
    */
-  const fetchPartnerInfo = async () => {
+  const fetchPartnerInfo = async (retryCount = 0) => {
     if (!user) {
       console.log('👤 ユーザーが未ログインのため、パートナー情報取得をスキップ')
       return
     }
     
-    console.log('🔍 パートナー情報を取得中...', user.id)
+    console.log('🔍 パートナー情報を取得中...', user.id, retryCount > 0 ? `(リトライ: ${retryCount})` : '')
     
     try {
       // まず基本的なプロフィール情報のみ取得
       const { data: profile, error } = await supabase
         .from('profiles')
-        .select('partner_id')
+        .select('partner_id, display_name')
         .eq('id', user.id)
         .single()
       
@@ -115,7 +136,23 @@ export default function ChoresList() {
       
       if (error) {
         console.error('❌ パートナー情報取得エラー:', error)
-        // エラーでもhasPartnerをfalseに設定して招待UIを表示
+        
+        // 無限再帰エラーの場合は特別な処理
+        if (error.code === '42P17' || error.message?.includes('infinite recursion')) {
+          console.warn('🔄 RLSポリシーの無限再帰エラーを検出。プロフィール取得をスキップします。')
+          setHasPartner(false)
+          setPartnerInfo(null)
+          return
+        }
+        
+        // 認証エラーの場合はリトライ
+        if ((error.code === 'PGRST301' || error.message?.includes('JWT')) && retryCount < 3) {
+          console.log(`🔄 認証エラーのため ${retryCount + 1}/3 回目のリトライを実行します...`)
+          setTimeout(() => fetchPartnerInfo(retryCount + 1), 1000)
+          return
+        }
+        
+        // その他のエラーでもhasPartnerをfalseに設定して招待UIを表示
         setHasPartner(false)
         setPartnerInfo(null)
         return
@@ -148,7 +185,15 @@ export default function ChoresList() {
       }
     } catch (error) {
       console.error('💥 パートナー情報取得で予期しないエラー:', error)
-      // エラーでもhasPartnerをfalseに設定して招待UIを表示
+      
+      // 予期しないエラーの場合もリトライ
+      if (retryCount < 3) {
+        console.log(`🔄 予期しないエラーのため ${retryCount + 1}/3 回目のリトライを実行します...`)
+        setTimeout(() => fetchPartnerInfo(retryCount + 1), 1000)
+        return
+      }
+      
+      // リトライ回数超過でもhasPartnerをfalseに設定して招待UIを表示
       setHasPartner(false)
       setPartnerInfo(null)
     }
@@ -157,8 +202,32 @@ export default function ChoresList() {
   }
 
   /**
-   * パートナー連携完了時のコールバック
-   */
+   * // リアルタイム接続の手動再接続
+  const handleReconnect = () => {
+    console.log('🔄 手動再接続を実行します')
+    
+    // 再接続前に状態をリセット
+    setRealtimeEvents(prev => ({
+      ...prev,
+      connectionStatus: 'disconnected',
+      lastError: null
+    }))
+    
+    // 少し待ってから再接続（useEffectが再実行される）
+    setTimeout(() => {
+      // useEffectを再実行するためにユーザーIDの依存配列を変更する小技
+      // 実際にはIDは変わらないが、ReactはuseEffectを再実行する
+      if (user) {
+        const tempUser = {...user}
+        setRealtimeEvents(prev => ({
+          ...prev,
+          lastEvent: `手動再接続: ${new Date().toLocaleTimeString()}`
+        }))
+      }
+    }, 500)
+  }
+
+  // パートナー連携完了時のコールバック
   const handlePartnerLinked = async () => {
     // パートナー情報を再取得
     await fetchPartnerInfo()
@@ -212,22 +281,52 @@ export default function ChoresList() {
       console.log('✨ Add chore completed successfully - UI updated locally; waiting for realtime confirmation')
     } catch (error: any) {
       console.error('❌ 家事の追加に失敗しました:', error)
-      alert('家事の追加に失敗しました。ログイン状態やプロフィールの作成状況を確認してください。')
+      
+      // より具体的なエラーメッセージを提供
+      let errorMessage = '家事の追加に失敗しました。'
+      
+      if (error?.code === '42P17' || error?.message?.includes('infinite recursion')) {
+        errorMessage = 'データベースの設定に問題があります。しばらく待ってから再度お試しください。'
+      } else if (error?.code === '23503') {
+        errorMessage = 'プロフィールの設定に問題があります。ページを再読み込みしてから再度お試しください。'
+      } else if (error?.message?.includes('JWT')) {
+        errorMessage = 'ログインの有効期限が切れています。再度ログインしてください。'
+      } else if (error?.message?.includes('network') || error?.message?.includes('fetch')) {
+        errorMessage = 'ネットワークエラーが発生しました。インターネット接続を確認してください。'
+      }
+      
+      // リトライ機能付きのアラート
+      const retry = confirm(`${errorMessage}\n\n再試行しますか？`)
+      if (retry) {
+        // 少し待ってからリトライ
+        setTimeout(() => {
+          addChore(e)
+        }, 1000)
+      }
     } finally {
       setIsAdding(false)
     }
   }
 
   /**
-   * 家事の完了状態を切り替える
+   * 家事の完了状態を切り替える（リアルタイム対応最適化版）
    * @param choreId - 家事のID
    * @param currentDone - 現在の完了状態
    */
-  const toggleChore = async (choreId: string, currentDone: boolean) => {
+  const toggleChore = async (choreId: number, currentDone: boolean) => {
     if (!user) return
+
+    console.log('🔄 Toggling chore completion:', { choreId, currentDone, newDone: !currentDone })
 
     try {
       const newDone = !currentDone
+
+      // ✅ 即時反映: ローカル状態を先に更新（UX向上）
+      setChores(prev => prev.map(chore => 
+        chore.id === choreId 
+          ? { ...chore, done: newDone }
+          : chore
+      ))
 
       // 家事の完了状態を更新
       const { error: choreError } = await supabase
@@ -235,7 +334,15 @@ export default function ChoresList() {
         .update({ done: newDone })
         .eq('id', choreId)
 
-      if (choreError) throw choreError
+      if (choreError) {
+        // エラー時はローカル状態を元に戻す
+        setChores(prev => prev.map(chore => 
+          chore.id === choreId 
+            ? { ...chore, done: currentDone }
+            : chore
+        ))
+        throw choreError
+      }
 
       if (newDone) {
         // 完了記録を作成
@@ -246,7 +353,21 @@ export default function ChoresList() {
             user_id: user.id
           }])
 
-        if (completionError) throw completionError
+        if (completionError) {
+          console.error('完了記録の作成に失敗:', completionError)
+          // 完了記録の作成に失敗した場合、家事の状態を元に戻す
+          await supabase
+            .from('chores')
+            .update({ done: false })
+            .eq('id', choreId)
+          
+          setChores(prev => prev.map(chore => 
+            chore.id === choreId 
+              ? { ...chore, done: false }
+              : chore
+          ))
+          throw completionError
+        }
       } else {
         // 未完了にする場合は完了記録を削除
         const { error: deleteError } = await supabase
@@ -255,18 +376,40 @@ export default function ChoresList() {
           .eq('chore_id', choreId)
           .eq('user_id', user.id)
 
-        if (deleteError) throw deleteError
+        if (deleteError) {
+          console.error('完了記録の削除に失敗:', deleteError)
+          throw deleteError
+        }
       }
 
-      // 家事一覧を再取得
-      fetchChores()
-    } catch (error) {
-      console.error('Error toggling chore:', error)
+      console.log('✅ Toggle chore completed successfully - UI updated locally; realtime will sync')
+    } catch (error: any) {
+      console.error('❌ 家事の完了状態変更に失敗:', error)
+      
+      // より具体的なエラーメッセージを提供
+      let errorMessage = '家事の完了状態の変更に失敗しました。'
+      
+      if (error?.code === '23503') {
+        errorMessage = 'データベースの制約エラーが発生しました。プロフィールの設定を確認してください。'
+      } else if (error?.message?.includes('JWT')) {
+        errorMessage = 'ログインの有効期限が切れています。再度ログインしてください。'
+      } else if (error?.message?.includes('network') || error?.message?.includes('fetch')) {
+        errorMessage = 'ネットワークエラーが発生しました。インターネット接続を確認してください。'
+      }
+      
+      // リトライ機能付きのアラート
+       const retry = confirm(`${errorMessage}\n\n再試行しますか？`)
+       if (retry) {
+         // 少し待ってからリトライ
+         setTimeout(() => {
+           toggleChore(choreId, currentDone) // 元の状態でリトライ
+         }, 1000)
+       }
     }
   }
 
   // 家事を削除
-  const deleteChore = async (choreId: string) => {
+  const deleteChore = async (choreId: number) => {
     if (!confirm('この家事を削除しますか？')) return
 
     console.log('🗑️ Starting delete operation for chore ID:', choreId)
@@ -297,45 +440,206 @@ export default function ChoresList() {
       
     } catch (error) {
       console.error('❌ 家事の削除に失敗しました:', error)
-      alert('家事の削除に失敗しました。再度お試しください。')
+      
+      // エラーの種類に応じたメッセージを設定
+      let errorMessage = '家事の削除に失敗しました。'
+      
+      if (error instanceof Error) {
+        if (error.message.includes('JWT')) {
+          errorMessage = 'ログインセッションが期限切れです。再度ログインしてください。'
+        } else if (error.message.includes('network') || error.message.includes('fetch')) {
+          errorMessage = 'ネットワークエラーが発生しました。インターネット接続を確認してください。'
+        } else if (error.message.includes('constraint') || error.message.includes('foreign key')) {
+          errorMessage = 'この家事には関連データがあるため削除できません。'
+        } else if (error.message.includes('permission') || error.message.includes('policy')) {
+          errorMessage = 'この家事を削除する権限がありません。'
+        }
+      }
+      
+      // リトライ機能付きのアラート
+      const retry = confirm(`${errorMessage}\n\n再試行しますか？`)
+      if (retry) {
+        // 少し待ってからリトライ
+        setTimeout(() => {
+          deleteChore(choreId)
+        }, 1000)
+      }
     }
   }
 
   // 家事の完了状態を切り替え
 
   /**
+   * 効fficientなリアルタイム更新処理
+   * - 全データ再取得ではなく、増分更新を実装
+   * - パフォーマンスを向上させ、ネットワーク負荷を軽減
+   */
+  const handleChoreChange = (payload: any) => {
+    const { eventType, new: newRecord, old: oldRecord } = payload
+    
+    setRealtimeEvents(prev => ({
+      ...prev,
+      [eventType === 'INSERT' ? 'inserts' : 
+       eventType === 'UPDATE' ? 'updates' : 'deletes']: 
+       prev[eventType === 'INSERT' ? 'inserts' : 
+            eventType === 'UPDATE' ? 'updates' : 'deletes'] + 1,
+      lastEvent: new Date().toLocaleTimeString(),
+      connectionStatus: 'connected'
+    }))
+
+    setChores(prev => {
+      switch (eventType) {
+        case 'INSERT':
+          // 重複チェック（ローカル更新と競合回避）
+          if (prev.some(c => c.id === newRecord.id)) return prev
+          return [newRecord as ExtendedChore, ...prev]
+          
+        case 'UPDATE':
+          return prev.map(chore => 
+            chore.id === newRecord.id 
+              ? { ...chore, ...newRecord } as ExtendedChore
+              : chore
+          )
+          
+        case 'DELETE':
+          return prev.filter(chore => chore.id !== oldRecord.id)
+          
+        default:
+          return prev
+      }
+    })
+  }
+
+  /**
+   * 完了記録の変更処理
+   * - 完了記録が変更された場合、関連する家事データを再取得
+   */
+  const handleCompletionChange = async (payload: any) => {
+    const { eventType, new: newRecord, old: oldRecord } = payload
+    
+    setRealtimeEvents(prev => ({
+      ...prev,
+      [eventType === 'INSERT' ? 'inserts' : 
+       eventType === 'UPDATE' ? 'updates' : 'deletes']: 
+       prev[eventType === 'INSERT' ? 'inserts' : 
+            eventType === 'UPDATE' ? 'updates' : 'deletes'] + 1,
+      lastEvent: new Date().toLocaleTimeString(),
+      connectionStatus: 'connected'
+    }))
+
+    // 完了記録の変更は関連する家事の完了状態に影響するため、
+    // 該当する家事のデータを再取得
+    const choreId = newRecord?.chore_id || oldRecord?.chore_id
+    if (choreId) {
+      try {
+        const { data, error } = await supabase
+          .from('chores')
+          .select(`
+            *,
+            completions (
+              *,
+              thanks (*)
+            )
+          `)
+          .eq('id', choreId)
+          .single()
+
+        if (error) throw error
+        
+        if (data) {
+          setChores(prev => prev.map(chore => 
+            chore.id === choreId ? data as ExtendedChore : chore
+          ))
+        }
+      } catch (error) {
+        console.error('完了記録変更後の家事データ更新に失敗:', error)
+      }
+    }
+  }
+
+  /**
    * 初期データ取得＋Supabase Realtime購読を設定する。
-   * - userのowner/partnerに関係する行のみ購読（owner_id または partner_id が自分のID）。
-   * - INSERT/UPDATE/DELETE をハンドリングしてローカル状態を即時同期。
-   * - クリーンアップで前回のチャンネルを解除。
+   * - Supabase公式ベストプラクティスに基づく実装
+   * - 単一チャンネルでシンプルな構成
+   * - 効率的な増分更新を実装
    */
   useEffect(() => {
     if (!user) {
-      // 未ログイン時は表示を初期化してローディングを解除
       console.log('👤 No user logged in, skipping Realtime setup')
       setChores([])
       setLoading(false)
       return
     }
 
-    console.log('🚀 Setting up Realtime for user:', user.id)
-    // 初期ロード
+    console.log('🚀 Setting up optimized Realtime for user:', user.id)
+    
+    // 初期データ取得
+    ensureOwnProfile()
     fetchChores()
     fetchPartnerInfo()
 
-    // Realtime購読の設定
+    // Supabase公式推奨: 単一チャンネルでシンプルな構成
     const channel = supabase
-      .channel('chores-changes')
+      .channel(`user:${user.id}:chores`) // privateフラグを削除
       .on(
         'postgres_changes',
         {
           event: '*',
           schema: 'public',
-          table: 'chores',
-          filter: `owner_id=eq.${user.id}`
+          table: 'chores'
         },
         (payload) => {
-          console.log('🔄 Realtime event received:', payload)
+          console.log('🔄 Chore change received:', {
+            event: payload.eventType,
+            table: payload.table,
+            new: payload.new,
+            old: payload.old,
+            timestamp: new Date().toISOString()
+          })
+          
+          // ユーザーに関連する変更のみ処理
+           const record = payload.new || payload.old
+           if (record && 
+               ((record as any).owner_id === user.id || (record as any).partner_id === user.id)) {
+             handleChoreChange(payload)
+           }
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'completions'
+        },
+        (payload) => {
+          console.log('🔄 Completion change received:', {
+            event: payload.eventType,
+            table: payload.table,
+            new: payload.new,
+            old: payload.old,
+            timestamp: new Date().toISOString()
+          })
+          
+          handleCompletionChange(payload)
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'thanks'
+        },
+        (payload) => {
+          console.log('🔄 Thanks change received:', {
+            event: payload.eventType,
+            table: payload.table,
+            new: payload.new,
+            old: payload.old,
+            timestamp: new Date().toISOString()
+          })
+          
           setRealtimeEvents(prev => ({
             ...prev,
             [payload.eventType === 'INSERT' ? 'inserts' : 
@@ -346,19 +650,56 @@ export default function ChoresList() {
             connectionStatus: 'connected'
           }))
           
-          // データを再取得
-          fetchChores()
+          // ありがとうメッセージの変更は関連する完了記録を再取得
+          //  const completionId = (payload.new as any)?.completion_id || (payload.old as any)?.completion_id
+          //  if (completionId) {
+             fetchChores() // 簡単のため全体を再取得（ありがとうメッセージは頻度が低いため）
+          //  }
         }
       )
-      .subscribe((status) => {
-        console.log('📡 Realtime subscription status:', status)
-        setRealtimeEvents(prev => ({
-          ...prev,
-          connectionStatus: status === 'SUBSCRIBED' ? 'connected' : 
-                           status === 'CHANNEL_ERROR' ? 'error' : 'disconnected'
-        }))
+      .subscribe((status, err) => {
+        console.log('📡 Realtime subscription status:', status, err)
+        
+        // エラーがある場合はログに記録
+        if (err) {
+          console.error('Realtime subscription error:', err)
+        }
+        
+        // 接続状態を更新
+        setRealtimeEvents(prev => {
+          const newState = {
+            ...prev,
+            connectionStatus: status === 'SUBSCRIBED' ? 'connected' : 
+                             status === 'CHANNEL_ERROR' ? 'error' : 'disconnected',
+            lastError: err ? String(err) : prev.lastError
+          }
+          
+          // 接続成功時は接続時刻を記録
+          if (status === 'SUBSCRIBED') {
+            newState.lastConnectedAt = Date.now()
+          }
+          
+          return newState
+        })
+        
+        // エラー発生時に自動再接続を試みる
+        if (status === 'CHANNEL_ERROR') {
+          console.log('🔄 Attempting to reconnect in 3 seconds...')
+          
+          // 再接続試行回数をインクリメント
+          setRealtimeEvents(prev => ({
+            ...prev,
+            reconnectAttempts: prev.reconnectAttempts + 1
+          }))
+          
+          setTimeout(() => {
+            console.log('🔄 Reconnecting to Realtime...')
+            channel.subscribe()
+          }, 3000)
+        }
       })
 
+    // Supabase公式推奨: 適切なクリーンアップ
     return () => {
       console.log('🧹 Cleaning up Realtime subscription')
       supabase.removeChannel(channel)
@@ -396,6 +737,11 @@ export default function ChoresList() {
                 realtimeEvents.connectionStatus === 'disconnected' ? '🟡 切断' :
                 '⚪ 不明'}
              </span>
+             {realtimeEvents.connectionStatus === 'error' && (
+               <span className="text-xs text-red-600">
+                 (自動再接続を試行中...)
+               </span>
+             )}
            </div>
            <div className="grid grid-cols-3 gap-2 mt-2">
              <div className="text-center p-2 bg-green-100 rounded">
@@ -411,24 +757,52 @@ export default function ChoresList() {
                <div className="text-xs">削除</div>
              </div>
            </div>
-           {realtimeEvents.lastEvent && (
-             <div className="text-xs text-gray-600 mt-2">
-               最新イベント: <span className="font-mono">{realtimeEvents.lastEvent}</span>
+           <div className="mt-2">
+             <button
+               onClick={() => {
+                 console.log('🔍 詳細状態確認')
+                 console.log('リアルタイムイベント:', realtimeEvents)
+                 console.log('家事数:', chores.length)
+                 console.log('ユーザーID:', user?.id)
+                 console.log('Supabase接続状態:', supabase)
+                 
+                 // 詳細表示を切り替え
+                 setShowRealtimeDetails && setShowRealtimeDetails(prev => !prev)
+               }}
+               className="px-3 py-1 bg-blue-500 text-white rounded text-sm hover:bg-blue-600"
+             >
+               {showRealtimeDetails ? '詳細を隠す' : '詳細を表示'}
+             </button>
+           </div>
+           
+           {showRealtimeDetails && (
+             <div className="mt-2 p-2 bg-gray-100 rounded text-xs font-mono overflow-x-auto">
+               <div>最終イベント: {realtimeEvents.lastEvent || 'なし'}</div>
+               <div>最終エラー: {realtimeEvents.lastError || 'なし'}</div>
+               <div>接続試行回数: {realtimeEvents.reconnectAttempts || 0}</div>
+               <div>最終接続時刻: {realtimeEvents.lastConnectedAt ? new Date(realtimeEvents.lastConnectedAt).toLocaleString() : 'なし'}</div>
              </div>
            )}
+           
+           <div className="flex gap-2 mt-2">
+             <button 
+               onClick={() => {
+                 console.log('🔄 手動再接続を試行')
+                 // handleReconnect関数が定義されていれば呼び出し
+                 handleReconnect && handleReconnect()
+               }}
+               className="px-3 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600"
+             >
+               再接続を試みる
+             </button>
+             <button 
+               onClick={() => setRealtimeEvents(prev => ({...prev, inserts: 0, updates: 0, deletes: 0}))}
+               className="px-3 py-1 bg-gray-500 text-white text-xs rounded hover:bg-gray-600"
+             >
+               カウンターリセット
+             </button>
+           </div>
          </div>
-        <button
-           onClick={() => {
-             console.log('🔍 Manual connection status check')
-             console.log('Current realtime events:', realtimeEvents)
-             console.log('Current chores count:', chores.length)
-             console.log('User ID:', user?.id)
-             console.log('Supabase client status:', supabase)
-           }}
-           className="mt-2 px-3 py-1 bg-blue-500 text-white rounded text-sm hover:bg-blue-600"
-         >
-           詳細状態確認
-         </button>
       </div>
 
       {/* パートナー状態デバッグ */}
@@ -474,7 +848,7 @@ export default function ChoresList() {
       )}
 
       {/* 家事追加フォーム */}
-      <form onSubmit={addChore} className="mb-6">
+      <form onSubmit={(e) => addChore(e)} className="mb-6">
         <div className="flex gap-2">
           <input
             type="text"
@@ -520,7 +894,7 @@ export default function ChoresList() {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <button
-                      onClick={() => toggleChore(chore.id, chore.done)}
+                      onClick={() => toggleChore(chore.id, chore.done ?? false)}
                       className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
                         isCompleted
                           ? 'bg-green-500 border-green-500 text-white'
@@ -552,7 +926,7 @@ export default function ChoresList() {
                     {/* ありがとうボタン（完了済みで自分以外が完了した場合のみ表示） */}
                     {isCompleted && latestCompletion && latestCompletion.user_id !== user?.id && !hasThankYou && (
                       <button
-                        onClick={() => setShowThankYou(latestCompletion.id)}
+                        onClick={() => setShowThankYou(chore.id)}
                         className="px-3 py-1 text-pink-600 hover:bg-pink-50 rounded transition-colors dark:hover:bg-pink-950/30"
                       >
                         ありがとう
@@ -573,7 +947,7 @@ export default function ChoresList() {
                     <h4 className="text-sm font-semibold text-pink-800 mb-2">💖 ありがとうメッセージ</h4>
                     {latestCompletion.thanks.map((thank) => (
                       <div key={thank.id} className="text-sm text-pink-700">
-                        <p>"{thank.message}"</p>
+                        <p>&ldquo;{thank.message}&rdquo;</p>
                         <p className="text-xs text-pink-500 mt-1">
                           {new Date(thank.created_at).toLocaleString()}
                         </p>
@@ -583,10 +957,10 @@ export default function ChoresList() {
                 )}
 
                 {/* ありがとうメッセージフォーム */}
-                {showThankYou === latestCompletion?.id && latestCompletion && (
+                {showThankYou === chore.id && latestCompletion && latestCompletion.user_id && (
                   <div className="mt-3">
                     <ThankYouMessage
-                      completionId={latestCompletion.id}
+                      completionId={latestCompletion.id.toString()}
                       toUserId={latestCompletion.user_id}
                       toUserName="パートナー"
                       onSuccess={() => {
