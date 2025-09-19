@@ -28,6 +28,7 @@ erDiagram
     bigint id PK
     uuid from_id FK
     uuid to_id FK
+    bigint chore_id FK
     text message
     timestamptz created_at
   }
@@ -36,6 +37,7 @@ erDiagram
   profiles ||--o{ chores : "partner_id"
   chores ||--o{ completions : "chore_id"
   profiles ||--o{ completions : "user_id"
+  chores ||--o{ thanks : "chore_id"
   profiles ||--o{ thanks : "from_id"
   profiles ||--o{ thanks : "to_id"
 ```

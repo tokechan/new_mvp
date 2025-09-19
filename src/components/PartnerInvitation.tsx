@@ -16,7 +16,8 @@ import {
 } from '@/lib/invitation-api'
 import type { 
   CreateInvitationResponse,
-  GetInvitationsResponse 
+  GetInvitationsResponse,
+  PartnerInvitation
 } from '@/lib/types/partner-invitation'
 
 interface PartnerInvitationProps {
@@ -38,17 +39,17 @@ export default function PartnerInvitation({ onPartnerLinked }: PartnerInvitation
     
     try {
       setIsLoading(true)
-      const response: GetInvitationsResponse = await getInvitations()
+      const invitations: PartnerInvitation[] = await getInvitations()
       
-      if (response.success && response.data) {
-        setInvitations(response.data.invitations)
+      if (invitations && invitations.length > 0) {
+        setInvitations(invitations)
         // 有効な招待があるかチェック
-        const activeInvitation = response.data.invitations.find(
+        const activeInvitation = invitations.find(
           inv => inv.status === 'pending' && new Date(inv.expires_at) > new Date()
         )
         setCurrentInvitation(activeInvitation || null)
       } else {
-        setError(response.error || '招待一覧の取得に失敗しました')
+        setError('招待一覧の取得に失敗しました')
       }
     } catch (err) {
       setError(getErrorMessage(err))

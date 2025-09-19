@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { useAuth } from '@/contexts/AuthContext'
@@ -9,33 +9,48 @@ import { useAuth } from '@/contexts/AuthContext'
  * サインインページ
  * メール認証とGoogle認証に対応
  */
-export default function SignIn() {
+function SignInContent() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
-  
-  const { signIn, signInWithGoogle } = useAuth()
+  const [localError, setLocalError] = useState('')
   const router = useRouter()
   const searchParams = useSearchParams()
-  const errorParam = searchParams.get('error')
+  const { signIn, signInWithGoogle, error: authError, clearError } = useAuth()
+
+  // URLパラメータからエラーメッセージを取得
+  useEffect(() => {
+    const errorParam = searchParams.get('error')
+    if (errorParam) {
+      setLocalError(decodeURIComponent(errorParam))
+    }
+  }, [searchParams])
+
+  // エラーをクリアする関数
+  const clearAllErrors = () => {
+    setLocalError('')
+    clearError()
+  }
+
+  // 表示するエラーメッセージを決定
+  const displayError = authError || localError
 
   // メール認証でのサインイン処理
   const handleEmailSignIn = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
-    setError('')
+    clearAllErrors()
 
     try {
       const { error } = await signIn(email, password)
       
       if (error) {
-        setError(error.message || 'サインインに失敗しました')
+        setLocalError(error.message || 'サインインに失敗しました')
       } else {
         router.push('/')
       }
     } catch (err) {
-      setError('予期しないエラーが発生しました')
+      setLocalError('予期しないエラーが発生しました')
     } finally {
       setLoading(false)
     }
@@ -44,18 +59,23 @@ export default function SignIn() {
   // Google認証でのサインイン処理
   const handleGoogleSignIn = async () => {
     setLoading(true)
-    setError('')
+    clearAllErrors()
 
     try {
+      console.log('Google認証を開始します...')
       const { error } = await signInWithGoogle()
       
       if (error) {
-        setError(error.message || 'Google認証に失敗しました')
+        console.error('Google認証エラー:', error)
+        setLocalError(`Google認証に失敗しました: ${error.message}`)
         setLoading(false)
+      } else {
+        console.log('Google認証リダイレクトが開始されました')
       }
       // 成功時はコールバックページで処理される
     } catch (err) {
-      setError('予期しないエラーが発生しました')
+      console.error('予期しないエラー:', err)
+      setLocalError(`予期しないエラーが発生しました: ${err instanceof Error ? err.message : String(err)}`)
       setLoading(false)
     }
   }
@@ -79,9 +99,19 @@ export default function SignIn() {
         </div>
         
         {/* エラーメッセージ */}
-        {(error || errorParam) && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-            {error || errorParam}
+        {displayError && (
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative">
+            <div className="flex justify-between items-center">
+              <span>{displayError}</span>
+              <button
+                type="button"
+                onClick={clearAllErrors}
+                className="text-red-500 hover:text-red-700 ml-2"
+                aria-label="エラーを閉じる"
+              >
+                ×
+              </button>
+            </div>
           </div>
         )}
 
@@ -171,5 +201,13 @@ export default function SignIn() {
         </form>
       </div>
     </div>
+  )
+}
+
+export default function SignIn() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <SignInContent />
+    </Suspense>
   )
 }

@@ -13,10 +13,10 @@ import {
 // 招待情報取得 (GET)
 export async function GET(
   request: NextRequest,
-  { params }: { params: { code: string } }
+  { params }: { params: Promise<{ code: string }> }
 ) {
   try {
-    const { code } = params
+    const { code } = await params
     
     // 招待コードの形式チェック
     if (!isValidInviteCode(code)) {
@@ -106,10 +106,10 @@ export async function GET(
 // 招待受諾 (POST)
 export async function POST(
   request: NextRequest,
-  { params }: { params: { code: string } }
+  { params }: { params: Promise<{ code: string }> }
 ) {
   try {
-    const { code } = params
+    const { code } = await params
     
     // 招待コードの形式チェック
     if (!isValidInviteCode(code)) {
