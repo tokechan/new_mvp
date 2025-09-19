@@ -1,12 +1,12 @@
 'use client'
 
 import { useState } from 'react'
-import { ExtendedChore } from '@/hooks/useChores'
+import { Chore } from '@/types/chore'
 
 interface ChoreItemProps {
-  chore: ExtendedChore
-  onToggle: (choreId: number, currentDone: boolean) => Promise<boolean>
-  onDelete: (choreId: number) => Promise<boolean>
+  chore: Chore
+  onToggle: (choreId: string, currentDone: boolean) => Promise<boolean>
+  onDelete: (choreId: string) => Promise<boolean>
   currentUserId: string
 }
 
@@ -55,26 +55,20 @@ export function ChoreItem({ chore, onToggle, onDelete, currentUserId }: ChoreIte
   }
 
   /**
-   * 最新の完了記録を取得
+   * 完了時刻の表示用フォーマット
    */
-  const getLatestCompletion = () => {
-    if (!chore.completions || chore.completions.length === 0) return null
-    
-    return chore.completions.reduce((latest, completion) => {
-      return new Date(completion.created_at) > new Date(latest.created_at) 
-        ? completion 
-        : latest
-    })
+  const getCompletedTimeDisplay = () => {
+    if (!chore.completed_at) return null
+    return new Date(chore.completed_at).toLocaleString('ja-JP')
   }
 
   /**
    * 完了者の表示名を取得
    */
   const getCompletedByText = () => {
-    const latestCompletion = getLatestCompletion()
-    if (!latestCompletion) return ''
+    if (!chore.done) return ''
     
-    const isCompletedByCurrentUser = latestCompletion.user_id === currentUserId
+    const isCompletedByCurrentUser = chore.owner_id === currentUserId
     return isCompletedByCurrentUser ? 'あなた' : 'パートナー'
   }
 
@@ -82,10 +76,9 @@ export function ChoreItem({ chore, onToggle, onDelete, currentUserId }: ChoreIte
    * 完了日時のフォーマット
    */
   const formatCompletionDate = () => {
-    const latestCompletion = getLatestCompletion()
-    if (!latestCompletion) return ''
+    if (!chore.completed_at) return ''
     
-    const date = new Date(latestCompletion.created_at)
+    const date = new Date(chore.completed_at)
     const now = new Date()
     const diffInHours = (now.getTime() - date.getTime()) / (1000 * 60 * 60)
     

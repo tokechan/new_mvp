@@ -1,141 +1,139 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
-import { Database } from '@/lib/supabase'
-
-// 型定義
-type Profile = Database['public']['Tables']['profiles']['Row']
+import { PartnerInfo } from '@/types/chore'
 
 /**
  * パートナー管理のカスタムフック
- * パートナー情報の取得、招待機能の責務を担当
+ * ChoresList.tsxから分離されたパートナー関連ロジック
  */
 export function usePartner() {
   const { user } = useAuth()
-  const [partnerInfo, setPartnerInfo] = useState<Profile | null>(null)
-  const [partnerLoading, setPartnerLoading] = useState(false)
-  const [partnerError, setPartnerError] = useState<string | null>(null)
-  const [retryCount, setRetryCount] = useState(0)
+  const [hasPartner, setHasPartner] = useState<boolean | null>(null)
+  const [partnerInfo, setPartnerInfo] = useState<PartnerInfo | null>(null)
 
   /**
-   * パートナー情報を取得（エラーハンドリングとリトライ機能付き）
+   * パートナー情報を取得する
    */
   const fetchPartnerInfo = useCallback(async () => {
     if (!user) {
-      console.log('👤 User not authenticated, skipping partner fetch')
+      console.log('👤 ユーザーが未ログインのため、パートナー情報取得をスキップ')
       return
     }
-
-    console.log('🔍 Fetching partner info for user:', user.id)
-    setPartnerLoading(true)
-    setPartnerError(null)
-
+    
+    console.log('🔍 パートナー情報を取得中...', user.id)
+    
     try {
-      // 現在のユーザーのプロフィールを取得してpartner_idを確認
-      const { data: profile, error: profileError } = await supabase
+      // まず基本的なプロフィール情報のみ取得
+      const { data: profile, error } = await supabase
         .from('profiles')
         .select('partner_id')
         .eq('id', user.id)
         .single()
-
-      if (profileError) {
-        if (profileError.code === 'PGRST116') {
-          console.log('👤 User profile not found')
-          setPartnerInfo(null)
-          return
-        }
-        throw profileError
-      }
-
-      if (!profile?.partner_id) {
-        console.log('👥 No partner linked to user')
+      
+      console.log('📊 プロフィール取得結果:', { profile, error })
+      
+      if (error) {
+        console.error('❌ パートナー情報取得エラー:', error)
+        // エラーでもhasPartnerをfalseに設定して招待UIを表示
+        setHasPartner(false)
         setPartnerInfo(null)
         return
       }
 
-      // パートナーの詳細情報を取得
-      const { data: partner, error: partnerError } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', profile.partner_id)
-        .single()
-
-      if (partnerError) {
-        if (partnerError.code === 'PGRST116') {
-          console.log('👥 Partner profile not found')
-          setPartnerInfo(null)
-          return
+      if (profile?.partner_id) {
+        console.log('✅ パートナーが存在:', profile.partner_id)
+        // パートナーの詳細情報を取得
+        const { data: partnerProfile, error: partnerError } = await supabase
+          .from('profiles')
+          .select('id, display_name')
+          .eq('id', profile.partner_id)
+          .single()
+        
+        if (partnerError) {
+          console.error('❌ パートナー詳細取得エラー:', partnerError)
+          setHasPartner(true)
+          setPartnerInfo({ id: profile.partner_id, name: 'パートナー' })
+        } else {
+          setHasPartner(true)
+          setPartnerInfo({
+            id: profile.partner_id,
+            name: partnerProfile?.display_name || 'パートナー'
+          })
         }
-        throw partnerError
+      } else {
+        console.log('❌ パートナーが未設定')
+        setHasPartner(false)
+        setPartnerInfo(null)
       }
-
-      console.log('✅ Partner info fetched successfully:', partner.display_name)
-      setPartnerInfo(partner)
-      setRetryCount(0) // 成功時はリトライカウントをリセット
-    } catch (error: any) {
-      console.error('❌ Failed to fetch partner info:', error)
-      
-      // エラーの種類に応じたメッセージを設定
-      let errorMessage = 'パートナー情報の取得に失敗しました。'
-      
-      if (error?.message?.includes('JWT')) {
-        errorMessage = 'ログインセッションが期限切れです。再度ログインしてください。'
-      } else if (error?.message?.includes('network') || error?.message?.includes('fetch')) {
-        errorMessage = 'ネットワークエラーが発生しました。インターネット接続を確認してください。'
-      } else if (error?.code === '42P17' || error?.message?.includes('infinite recursion')) {
-        errorMessage = 'データベースの設定に問題があります。しばらく待ってから再度お試しください。'
-      }
-      
-      setPartnerError(errorMessage)
-      
-      // 自動リトライ（最大3回まで）
-      if (retryCount < 3 && !error?.message?.includes('JWT')) {
-        console.log(`🔄 Auto-retrying partner fetch (attempt ${retryCount + 1}/3) in 2 seconds...`)
-        setTimeout(() => {
-          setRetryCount(prev => prev + 1)
-          fetchPartnerInfo()
-        }, 2000)
-      }
-    } finally {
-      setPartnerLoading(false)
+    } catch (error) {
+      console.error('💥 パートナー情報取得で予期しないエラー:', error)
+      // エラーでもhasPartnerをfalseに設定して招待UIを表示
+      setHasPartner(false)
+      setPartnerInfo(null)
     }
-  }, [user, retryCount])
+    
+    console.log('🏁 パートナー情報取得完了')
+  }, [user])
 
   /**
-   * パートナー情報を手動で再取得
+   * パートナー連携完了時のコールバック
    */
-  const refetchPartnerInfo = useCallback(() => {
-    setRetryCount(0)
-    fetchPartnerInfo()
+  const handlePartnerLinked = useCallback(async () => {
+    // パートナー情報を再取得
+    await fetchPartnerInfo()
   }, [fetchPartnerInfo])
 
   /**
-   * パートナー情報をクリア
+   * パートナー連携を解除
    */
-  const clearPartnerInfo = useCallback(() => {
-    setPartnerInfo(null)
-    setPartnerError(null)
-    setRetryCount(0)
-  }, [])
+  const unlinkPartner = useCallback(async () => {
+    if (!user || !hasPartner) return false
+
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ partner_id: null })
+        .eq('id', user.id)
+
+      if (error) throw error
+
+      // 相手側のpartner_idもクリア
+      if (partnerInfo) {
+        await supabase
+          .from('profiles')
+          .update({ partner_id: null })
+          .eq('id', partnerInfo.id)
+      }
+
+      setHasPartner(false)
+      setPartnerInfo(null)
+      return true
+    } catch (error) {
+      console.error('❌ パートナー連携解除に失敗しました:', error)
+      throw error
+    }
+  }, [user, hasPartner, partnerInfo])
 
   /**
-   * パートナー情報を直接設定（リアルタイム更新用）
+   * 初期化時にパートナー情報を取得
    */
-  const setPartner = useCallback((partner: Profile | null) => {
-    setPartnerInfo(partner)
-    setPartnerError(null)
-  }, [])
+  useEffect(() => {
+    if (user) {
+      fetchPartnerInfo()
+    } else {
+      setHasPartner(null)
+      setPartnerInfo(null)
+    }
+  }, [user, fetchPartnerInfo])
 
   return {
+    hasPartner,
     partnerInfo,
-    partnerLoading,
-    partnerError,
-    retryCount,
     fetchPartnerInfo,
-    refetchPartnerInfo,
-    clearPartnerInfo,
-    setPartner
+    handlePartnerLinked,
+    unlinkPartner
   }
 }
