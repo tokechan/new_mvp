@@ -36,10 +36,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const ensureProfile = async (u: User) => {
     try {
       const displayName = (u.user_metadata?.name as string | undefined) || (u.email?.split('@')[0] ?? 'ユーザー')
-      await supabase.from('profiles').upsert({
+      const { error } = await supabase.from('profiles').upsert({
         id: u.id,
         display_name: displayName,
       })
+      
+      // 無限再帰エラーの場合は警告のみ
+      if (error && (error.code === '42P17' || error.message?.includes('infinite recursion'))) {
+        console.warn('🔄 RLSポリシーの無限再帰エラーを検出。プロフィール作成をスキップします。')
+        return
+      }
+      
+      if (error) throw error
     } catch (err) {
       console.warn('プロフィールの自動作成/更新に失敗しました:', err)
     }
