@@ -3,31 +3,32 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
+import { Database } from '@/lib/supabase'
+import ThankYouMessage from './ThankYouMessage'
 import PartnerInvitation from './PartnerInvitation'
 
-// 新しいデータベーススキーマに対応した型定義
-type Chore = {
-  id: string
-  owner_id: string
-  partner_id: string | null
-  title: string
-  done: boolean
-  created_at: string
-}
+// 統合された型定義（両方の機能をサポート）
+type Chore = Database['public']['Tables']['chores']['Row']
+type ChoreInsert = Database['public']['Tables']['chores']['Insert']
+type Completion = Database['public']['Tables']['completions']['Row']
+type CompletionInsert = Database['public']['Tables']['completions']['Insert']
+type ThankYou = Database['public']['Tables']['thanks']['Row']
 
-type ChoreInsert = {
-  owner_id: string
-  partner_id?: string | null
-  title: string
-  done?: boolean
+// 拡張された家事型（完了記録とありがとうメッセージを含む）
+interface ExtendedChore extends Chore {
+  completions?: (Completion & {
+    thanks?: ThankYou[]
+  })[]
 }
 
 export default function ChoresList() {
   const { user } = useAuth()
-  const [chores, setChores] = useState<Chore[]>([])
+  const [chores, setChores] = useState<ExtendedChore[]>([])
   const [loading, setLoading] = useState(true)
   const [newChore, setNewChore] = useState('')
   const [isAdding, setIsAdding] = useState(false)
+  const [showThankYou, setShowThankYou] = useState<string | null>(null) // 表示中のありがとうメッセージフォーム
+
   // パートナー情報の状態管理
   const [hasPartner, setHasPartner] = useState<boolean | null>(null)
   const [partnerInfo, setPartnerInfo] = useState<{ id: string; name: string } | null>(null)
@@ -40,17 +41,20 @@ export default function ChoresList() {
     connectionStatus: 'unknown' as 'unknown' | 'connected' | 'disconnected' | 'error'
   })
 
-  /**
-   * 自分がownerまたはpartnerの家事を取得する。
-   * RLSにより他ユーザーのデータは除外される。
-   */
+  // 家事一覧を取得（完了記録とありがとうメッセージも含む）
   const fetchChores = async () => {
     if (!user) return
 
     try {
       const { data, error } = await supabase
         .from('chores')
-        .select('*')
+        .select(`
+          *,
+          completions (
+            *,
+            thanks (*)
+          )
+        `)
         .or(`owner_id.eq.${user.id},partner_id.eq.${user.id}`)
         .order('created_at', { ascending: false })
 
@@ -176,7 +180,7 @@ export default function ChoresList() {
       const choreData: ChoreInsert = {
         title: newChore.trim(),
         owner_id: user.id,
-        partner_id: null, // 後でパートナー設定機能を追加予定
+        partner_id: partnerInfo?.id || null,
         done: false
       }
 
@@ -200,7 +204,7 @@ export default function ChoresList() {
         setChores(prev => {
           // 重複チェック（Realtimeでも同じ行が到着するため）
           if (prev.some(c => c.id === (data as any).id)) return prev
-          return [data as Chore, ...prev]
+          return [data as ExtendedChore, ...prev]
         })
       }
 
@@ -215,50 +219,49 @@ export default function ChoresList() {
   }
 
   /**
-   * 家事の完了状態を切り替える。完了に変更された場合はcompletionsへ記録。
+   * 家事の完了状態を切り替える
+   * @param choreId - 家事のID
+   * @param currentDone - 現在の完了状態
    */
   const toggleChore = async (choreId: string, currentDone: boolean) => {
-    const newDone = !currentDone
-    console.log(`🔄 Starting toggle chore operation: ID=${choreId}, ${currentDone ? 'completed' : 'pending'} → ${newDone ? 'completed' : 'pending'}`)
-    
+    if (!user) return
+
     try {
-      console.log('📝 Updating chore status in database')
-      const { error } = await supabase
+      const newDone = !currentDone
+
+      // 家事の完了状態を更新
+      const { error: choreError } = await supabase
         .from('chores')
         .update({ done: newDone })
         .eq('id', choreId)
 
-      if (error) {
-        console.error('❌ Toggle chore operation failed:', error)
-        throw error
-      }
+      if (choreError) throw choreError
 
-      console.log('✅ Chore status updated successfully')
-
-      // ✅ 即時反映: ローカル状態の done を先に更新
-      setChores(prev => prev.map(c => (c.id === choreId ? { ...c, done: newDone } : c)))
-
-      // 完了時にcompletionsテーブルにレコードを追加
-      if (newDone && user) {
-        console.log('📝 Adding completion record')
+      if (newDone) {
+        // 完了記録を作成
         const { error: completionError } = await supabase
           .from('completions')
-          .insert({
+          .insert([{
             chore_id: choreId,
             user_id: user.id
-          })
-        
-        if (completionError) {
-          console.error('❌ 完了記録の追加に失敗しました:', completionError)
-        } else {
-          console.log('✅ Completion record added successfully')
-        }
+          }])
+
+        if (completionError) throw completionError
+      } else {
+        // 未完了にする場合は完了記録を削除
+        const { error: deleteError } = await supabase
+          .from('completions')
+          .delete()
+          .eq('chore_id', choreId)
+          .eq('user_id', user.id)
+
+        if (deleteError) throw deleteError
       }
 
-      console.log('✨ Toggle chore completed successfully - UI updated locally; waiting for realtime update')
+      // 家事一覧を再取得
+      fetchChores()
     } catch (error) {
-      console.error('❌ 家事の更新に失敗しました:', error)
-      alert('家事の更新に失敗しました。再度お試しください。')
+      console.error('Error toggling chore:', error)
     }
   }
 
@@ -298,6 +301,8 @@ export default function ChoresList() {
     }
   }
 
+  // 家事の完了状態を切り替え
+
   /**
    * 初期データ取得＋Supabase Realtime購読を設定する。
    * - userのowner/partnerに関係する行のみ購読（owner_id または partner_id が自分のID）。
@@ -318,189 +323,61 @@ export default function ChoresList() {
     fetchChores()
     fetchPartnerInfo()
 
-    // 🔄 Back to Basic: 複雑なハンドラーを削除してシンプルに
-
-    // 🔄 Back to Basic: 最もシンプルなRealtime実装
-     console.log('🔄 Setting up Realtime subscription with REPLICA IDENTITY FULL')
-     console.log('🔧 User ID for filters:', user.id)
-     
-     // 適切なサーバ側フィルタに復旧
-     console.log('🔄 Restoring proper server-side filters')
-     const channel = supabase
-       .channel(`chores-realtime-${user.id}-${Date.now()}`)
-       .on('postgres_changes', { 
-          event: 'INSERT', 
-          schema: 'public', 
+    // Realtime購読の設定
+    const channel = supabase
+      .channel('chores-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
           table: 'chores',
           filter: `owner_id=eq.${user.id}`
-        }, (payload) => {
-           console.log('🟢 INSERT EVENT RECEIVED (owner):', payload)
-           const newChore = payload.new as Chore
-           // クライアント側フィルタリング: owner_idまたはpartner_idがユーザーIDと一致する場合のみ処理
-           if (newChore && (newChore.owner_id === user.id || newChore.partner_id === user.id)) {
-             console.log('📝 Adding chore to state:', newChore.title)
-             setChores(prev => {
-               // 重複チェック（ID型の不一致対応: 文字列化して比較）
-               const exists = prev.some(c => String(c.id) === String(newChore.id))
-               if (exists) {
-                 console.log('⚠️ INSERT: Chore already exists, skipping:', newChore.id)
-                 return prev
-               }
-               const updated = [newChore, ...prev]
-               console.log('📊 Updated chores count:', updated.length)
-               return updated
-             })
-             setRealtimeEvents(prev => ({
-               ...prev, 
-               inserts: prev.inserts + 1,
-               lastEvent: `INSERT: ${newChore.title}`
-             }))
-           } else {
-             console.log('⚠️ INSERT: Chore not for this user, skipping')
-           }
-        })
-       // partner_idフィルタを削除（nullの場合にマッチしないため）
-       // owner_idのみでフィルタリングし、クライアント側で追加判定を行う
-       .on('postgres_changes', { 
-          event: 'UPDATE', 
-          schema: 'public', 
-          table: 'chores',
-          filter: `owner_id=eq.${user.id}`
-        }, (payload) => {
-           console.log('🟡 UPDATE EVENT RECEIVED (owner):', payload)
-           const updatedChore = payload.new as Chore
-           // クライアント側フィルタリング: owner_idまたはpartner_idがユーザーIDと一致する場合のみ処理
-           if (updatedChore && (updatedChore.owner_id === user.id || updatedChore.partner_id === user.id)) {
-             console.log('📝 Updating chore in state:', updatedChore.title)
-             setChores(prev => {
-               // ID型の不一致対応: 文字列化して比較
-               const updated = prev.map(c => String(c.id) === String(updatedChore.id) ? updatedChore : c)
-               console.log('📊 Updated chores after UPDATE:', updated.length)
-               return updated
-             })
-             setRealtimeEvents(prev => ({
-               ...prev, 
-               updates: prev.updates + 1,
-               lastEvent: `UPDATE: ${updatedChore.title}`
-             }))
-           } else {
-             console.log('⚠️ UPDATE: Chore not for this user, skipping')
-           }
-        })
-       // partner_idフィルタを削除（nullの場合にマッチしないため）
-       // owner_idのみでフィルタリングし、クライアント側で更新判定を行う
-       .on('postgres_changes', { 
-          event: 'DELETE', 
-          schema: 'public', 
-          table: 'chores',
-          filter: `owner_id=eq.${user.id}`
-        }, (payload) => {
-          console.log('🔴 DELETE EVENT RECEIVED (owner):', payload)
-          const deletedId = payload.old.id
-          if (deletedId) {
-            console.log('📝 Removing chore from state:', deletedId)
-            setChores(prev => {
-              // ID型の不一致対応: 文字列化して比較
-              const updated = prev.filter(c => String(c.id) !== String(deletedId))
-              console.log('📊 Updated chores after DELETE:', updated.length)
-              return updated
-            })
-            setRealtimeEvents(prev => ({
-              ...prev, 
-              deletes: prev.deletes + 1,
-              lastEvent: `DELETE: ${deletedId}`
-            }))
-          }
-        })
-       .on('postgres_changes', { 
-          event: 'DELETE', 
-          schema: 'public', 
-          table: 'chores',
-          filter: `partner_id=eq.${user.id}`
-        }, (payload) => {
-          console.log('🔴 DELETE EVENT RECEIVED (partner):', payload)
-          const deletedId = payload.old.id
-          if (deletedId) {
-            console.log('📝 Removing chore from state (as partner):', deletedId)
-            setChores(prev => {
-              // ID型の不一致対応: 文字列化して比較
-              const updated = prev.filter(c => String(c.id) !== String(deletedId))
-              console.log('📊 Updated chores after DELETE:', updated.length)
-              return updated
-            })
-            setRealtimeEvents(prev => ({
-              ...prev, 
-              deletes: prev.deletes + 1,
-              lastEvent: `DELETE: ${deletedId}`
-            }))
-          }
-        })
-      .subscribe((status, err) => {
-        console.log('📡 Realtime subscription status:', status, 'for user:', user.id)
-        
-        // 接続状態を更新
+        },
+        (payload) => {
+          console.log('🔄 Realtime event received:', payload)
+          setRealtimeEvents(prev => ({
+            ...prev,
+            [payload.eventType === 'INSERT' ? 'inserts' : 
+             payload.eventType === 'UPDATE' ? 'updates' : 'deletes']: 
+             prev[payload.eventType === 'INSERT' ? 'inserts' : 
+                  payload.eventType === 'UPDATE' ? 'updates' : 'deletes'] + 1,
+            lastEvent: new Date().toLocaleTimeString(),
+            connectionStatus: 'connected'
+          }))
+          
+          // データを再取得
+          fetchChores()
+        }
+      )
+      .subscribe((status) => {
+        console.log('📡 Realtime subscription status:', status)
         setRealtimeEvents(prev => ({
           ...prev,
           connectionStatus: status === 'SUBSCRIBED' ? 'connected' : 
-                           status === 'CHANNEL_ERROR' ? 'error' : 
-                           status === 'TIMED_OUT' ? 'disconnected' : 'unknown'
+                           status === 'CHANNEL_ERROR' ? 'error' : 'disconnected'
         }))
-        
-        if (err) {
-          console.error('❌ Realtime subscription error:', err)
-          setRealtimeEvents(prev => ({ ...prev, connectionStatus: 'error' }))
-        }
-        if (status === 'SUBSCRIBED') {
-          console.log('✅ Successfully subscribed to realtime changes for user:', user.id)
-          console.log('🔍 Listening for events on chores table with filters:')
-          console.log('  - owner_id=eq.' + user.id)
-          console.log('  - partner_id=eq.' + user.id)
-        }
-        if (status === 'CHANNEL_ERROR') {
-          console.error('❌ Channel error - check Supabase connection and RLS policies')
-        }
-        if (status === 'TIMED_OUT') {
-          console.error('⏰ Subscription timed out - check network connection')
-        }
       })
 
-    console.log('📡 Realtime channel created for user:', user.id)
-    console.log('🔗 Channel name:', `chores-${user.id}`)
-
-    // DEBUG: Channel to receive all events without filters
-    const debugChannel = supabase
-      .channel(`chores-debug-${Date.now()}`)
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'chores' },
-        (payload) => {
-          console.log('🐞 DEBUG EVENT (no filter):', payload)
-        }
-      )
-      .subscribe()
-
     return () => {
-      // 前回の購読を解除
-      console.log('🧹 Cleaning up Realtime subscription for user:', user.id)
+      console.log('🧹 Cleaning up Realtime subscription')
       supabase.removeChannel(channel)
-      supabase.removeChannel(debugChannel)
     }
   }, [user?.id])
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center p-8">
-        <div className="text-lg">家事を読み込み中...</div>
+      <div className="max-w-2xl mx-auto p-6">
+        <div className="text-center">読み込み中...</div>
       </div>
     )
   }
 
-
   return (
     <div className="max-w-2xl mx-auto p-6">
       <h2 className="text-2xl font-bold mb-6">家事一覧</h2>
-      
-      {/* リアルタイム接続テスト用パネル */}
+
+      {/* リアルタイム接続テスト */}
       <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
         <h3 className="text-lg font-semibold mb-2 text-blue-800">🔧 リアルタイム接続テスト</h3>
         <div className="space-y-2 text-sm">
@@ -542,21 +419,19 @@ export default function ChoresList() {
          </div>
         <button
            onClick={() => {
-             console.log('🔍 現在の状態確認:')
-             console.log('- 家事数:', chores.length)
-             console.log('- 家事一覧:', chores.map(c => ({ id: c.id, title: c.title, done: c.done })))
-             console.log('- ユーザーID:', user?.id)
-             console.log('- リアルタイムイベント:', realtimeEvents)
-             console.log('- Supabase URL:', process.env.NEXT_PUBLIC_SUPABASE_URL)
-             console.log('- Supabase Anon Key:', process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? 'Set' : 'Not Set')
+             console.log('🔍 Manual connection status check')
+             console.log('Current realtime events:', realtimeEvents)
+             console.log('Current chores count:', chores.length)
+             console.log('User ID:', user?.id)
+             console.log('Supabase client status:', supabase)
            }}
            className="mt-2 px-3 py-1 bg-blue-500 text-white rounded text-sm hover:bg-blue-600"
          >
            詳細状態確認
          </button>
       </div>
-      
-      {/* パートナー情報デバッグパネル */}
+
+      {/* パートナー状態デバッグ */}
       <div className="mb-4 p-3 bg-purple-50 border border-purple-200 rounded-lg dark:bg-purple-950/30 dark:border-purple-800">
         <h3 className="text-sm font-semibold mb-2 text-purple-800 dark:text-purple-400">
           🔧 パートナー状態デバッグ
@@ -567,14 +442,14 @@ export default function ChoresList() {
           <div>ユーザーID: <span className="font-mono text-xs">{user?.id}</span></div>
         </div>
       </div>
-      
-      {/* パートナー情報・招待UI */}
+
+      {/* パートナー招待UI */}
       {hasPartner === false && (
         <div className="mb-6">
           <PartnerInvitation onPartnerLinked={handlePartnerLinked} />
         </div>
       )}
-      
+
       {hasPartner === true && partnerInfo && (
         <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg dark:bg-green-950/30 dark:border-green-800">
           <h3 className="text-lg font-semibold mb-2 text-green-800 dark:text-green-400">
@@ -586,7 +461,7 @@ export default function ChoresList() {
           </div>
         </div>
       )}
-      
+
       {hasPartner === null && (
         <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg dark:bg-yellow-950/30 dark:border-yellow-800">
           <h3 className="text-lg font-semibold mb-2 text-yellow-800 dark:text-yellow-400">
@@ -597,8 +472,8 @@ export default function ChoresList() {
           </p>
         </div>
       )}
-      
-      {/* 新しい家事を追加するフォーム */}
+
+      {/* 家事追加フォーム */}
       <form onSubmit={addChore} className="mb-6">
         <div className="flex gap-2">
           <input
@@ -627,54 +502,104 @@ export default function ChoresList() {
           上のフォームから家事を追加してみましょう！
         </div>
       ) : (
-        <div className="space-y-3">
-          {chores.map((chore) => (
-            <div
-              key={chore.id}
-              className={`flex items-center justify-between p-4 border rounded-lg ${
-                chore.done
-                  ? 'bg-green-50 border-green-200'
-                  : 'bg-white border-gray-200 dark:bg-zinc-900 dark:border-zinc-700'
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={() => toggleChore(chore.id, chore.done)}
-                  className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
-                    chore.done
-                      ? 'bg-green-500 border-green-500 text-white'
-                      : 'border-gray-300 hover:border-green-500 dark:border-zinc-600'
-                  }`}
-                >
-                  {chore.done && (
-                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                    </svg>
-                  )}
-                </button>
-                <div className="flex flex-col">
-                  <span
-                    className={`text-lg ${
-                      chore.done
-                        ? 'line-through text-gray-500'
-                        : 'text-gray-900 dark:text-zinc-100'
-                    }`}
-                  >
-                    {chore.title}
-                  </span>
-                  <span className="text-sm text-gray-500 dark:text-zinc-400">
-                    {chore.owner_id === user?.id ? '自分が作成' : 'パートナーが作成'}
-                  </span>
-                </div>
-              </div>
-              <button
-                onClick={() => deleteChore(chore.id)}
-                className="px-3 py-1 text-red-600 hover:bg-red-50 rounded transition-colors dark:hover:bg-red-950/30"
+        <div className="space-y-4">
+          {chores.map((chore) => {
+            const isCompleted = chore.done
+            const latestCompletion = chore.completions?.[0]
+            const hasThankYou = latestCompletion?.thanks && latestCompletion.thanks.length > 0
+
+            return (
+              <div
+                key={chore.id}
+                className={`p-4 border rounded-lg ${
+                  isCompleted
+                    ? 'bg-green-50 border-green-200'
+                    : 'bg-white border-gray-200 dark:bg-zinc-900 dark:border-zinc-700'
+                }`}
               >
-                削除
-              </button>
-            </div>
-          ))}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={() => toggleChore(chore.id, chore.done)}
+                      className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
+                        isCompleted
+                          ? 'bg-green-500 border-green-500 text-white'
+                          : 'border-gray-300 hover:border-green-500 dark:border-zinc-600'
+                      }`}
+                    >
+                      {isCompleted && (
+                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                      )}
+                    </button>
+                    <div className="flex flex-col">
+                      <span
+                        className={`text-lg ${
+                          isCompleted
+                            ? 'line-through text-gray-500'
+                            : 'text-gray-900 dark:text-zinc-100'
+                        }`}
+                      >
+                        {chore.title}
+                      </span>
+                      <span className="text-sm text-gray-500 dark:text-zinc-400">
+                        {chore.owner_id === user?.id ? '自分が作成' : 'パートナーが作成'}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {/* ありがとうボタン（完了済みで自分以外が完了した場合のみ表示） */}
+                    {isCompleted && latestCompletion && latestCompletion.user_id !== user?.id && !hasThankYou && (
+                      <button
+                        onClick={() => setShowThankYou(latestCompletion.id)}
+                        className="px-3 py-1 text-pink-600 hover:bg-pink-50 rounded transition-colors dark:hover:bg-pink-950/30"
+                      >
+                        ありがとう
+                      </button>
+                    )}
+                    <button
+                      onClick={() => deleteChore(chore.id)}
+                      className="px-3 py-1 text-red-600 hover:bg-red-50 rounded transition-colors dark:hover:bg-red-950/30"
+                    >
+                      削除
+                    </button>
+                  </div>
+                </div>
+
+                {/* ありがとうメッセージ表示 */}
+                {hasThankYou && latestCompletion?.thanks && (
+                  <div className="mt-3 p-3 bg-pink-50 border border-pink-200 rounded-lg">
+                    <h4 className="text-sm font-semibold text-pink-800 mb-2">💖 ありがとうメッセージ</h4>
+                    {latestCompletion.thanks.map((thank) => (
+                      <div key={thank.id} className="text-sm text-pink-700">
+                        <p>"{thank.message}"</p>
+                        <p className="text-xs text-pink-500 mt-1">
+                          {new Date(thank.created_at).toLocaleString()}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* ありがとうメッセージフォーム */}
+                {showThankYou === latestCompletion?.id && latestCompletion && (
+                  <div className="mt-3">
+                    <ThankYouMessage
+                      completionId={latestCompletion.id}
+                      toUserId={latestCompletion.user_id}
+                      toUserName="パートナー"
+                      onSuccess={() => {
+                        setShowThankYou(null)
+                        fetchChores()
+                      }}
+                      onCancel={() => setShowThankYou(null)}
+                    />
+                  </div>
+                )}
+              </div>
+            )
+          })}
         </div>
       )}
     </div>

@@ -1,12 +1,15 @@
 'use client'
 
 import { useAuth } from '@/contexts/AuthContext'
+import { useNotifications } from '@/contexts/NotificationContext'
 import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
 import ChoresList from '@/components/ChoresList'
+import NotificationCenter from '@/components/NotificationCenter'
 
 export default function Home() {
   const { user, loading, signOut } = useAuth()
+  const { addNotification } = useNotifications()
   const router = useRouter()
 
   useEffect(() => {
@@ -37,6 +40,18 @@ export default function Home() {
         <div className="flex items-center gap-4">
           <span>こんにちは、{user.email}さん</span>
           <button 
+            onClick={() => {
+              addNotification({
+                title: 'テスト通知',
+                message: 'これはテスト用の通知です',
+                type: 'info'
+              })
+            }}
+            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+          >
+            テスト通知
+          </button>
+          <button 
             onClick={async () => {
               try {
                 await signOut()
@@ -50,6 +65,11 @@ export default function Home() {
             ログアウト
           </button>
         </div>
+      </div>
+
+      {/* 通知センター */}
+      <div className="w-full max-w-4xl mb-8">
+        <NotificationCenter />
       </div>
 
       {/* 家事管理メインコンテンツ */}

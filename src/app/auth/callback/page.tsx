@@ -15,25 +15,48 @@ export default function AuthCallback() {
   useEffect(() => {
     const handleAuthCallback = async () => {
       try {
-        // URLからコードを取得してセッションを交換
-        const { data, error } = await supabase.auth.getSession()
+        console.log('認証コールバック処理開始...')
+        console.log('現在のURL:', window.location.href)
+        
+        // URLパラメータからエラーを確認
+        const urlParams = new URLSearchParams(window.location.search)
+        const errorParam = urlParams.get('error')
+        const errorDescription = urlParams.get('error_description')
+        
+        if (errorParam) {
+          console.error('OAuth認証エラー:', { error: errorParam, description: errorDescription })
+          const errorMessage = errorDescription || errorParam || 'OAuth認証に失敗しました'
+          router.push(`/auth/signin?error=${encodeURIComponent(errorMessage)}`)
+          return
+        }
+        
+        // OAuth認証コードを処理してセッションを取得
+        const { data, error } = await supabase.auth.getUser()
+        
+        console.log('ユーザー取得結果:', { 
+          user: data.user ? { id: data.user.id, email: data.user.email } : null, 
+          error 
+        })
         
         if (error) {
-          console.error('認証エラー:', error)
-          router.push('/auth/signin?error=認証に失敗しました')
+          console.error('ユーザー取得エラー:', error)
+          router.push(`/auth/signin?error=${encodeURIComponent(error.message)}`)
           return
         }
 
-        if (data.session) {
+        if (data.user) {
+          console.log('認証成功、ホームページにリダイレクト')
           // 認証成功時はホームページにリダイレクト
           router.push('/')
         } else {
-          // セッションがない場合はサインインページにリダイレクト
-          router.push('/auth/signin')
+          console.log('ユーザー情報なし、サインインページにリダイレクト')
+          // ユーザー情報がない場合はサインインページにリダイレクト
+          router.push('/auth/signin?error=認証情報が見つかりません')
         }
       } catch (error) {
         console.error('認証コールバック処理エラー:', error)
-        router.push('/auth/signin?error=認証処理中にエラーが発生しました')
+        const errorMessage = error instanceof Error ? error.message : '認証処理中にエラーが発生しました'
+        router.push(`/auth/signin?error=${encodeURIComponent(errorMessage)}`)
       }
     }
 
