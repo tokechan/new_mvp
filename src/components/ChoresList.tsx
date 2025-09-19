@@ -422,10 +422,8 @@ export default function ChoresList() {
 
       console.log('✅ Delete operation successful:', data)
       
-      // ✅ 即時反映: ローカル状態からも先に削除
-      setChores(prev => prev.filter(c => c.id !== choreId))
-      
-      console.log('✨ Delete chore completed successfully - UI updated locally; waiting for realtime update')
+      // リアルタイムイベントによる更新を待つ（即時ローカル更新は削除）
+      console.log('✨ Delete chore completed successfully - waiting for realtime update')
       
       // 削除操作後にリアルタイム接続状態を確認
       setTimeout(() => {
