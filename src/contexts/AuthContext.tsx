@@ -9,10 +9,12 @@ interface AuthContextType {
   user: User | null
   session: Session | null
   loading: boolean
+  error: string | null
   signIn: (email: string, password: string) => Promise<{ error: any }>
   signUp: (email: string, password: string, name?: string) => Promise<{ error: any }>
   signOut: () => Promise<void>
   signInWithGoogle: () => Promise<{ error: any }>
+  clearError: () => void
 }
 
 // 認証コンテキストの作成
@@ -23,6 +25,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [session, setSession] = useState<Session | null>(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const supabase = createSupabaseBrowserClient()
 
   useEffect(() => {
@@ -88,23 +91,49 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Googleでサインイン
   const signInWithGoogle = async () => {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
-      },
-    })
-    return { error }
+    try {
+      setError(null) // エラーをクリア
+      console.log('Supabase Google OAuth開始...')
+      console.log('リダイレクトURL:', `${window.location.origin}/auth/callback`)
+      
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+        },
+      })
+      
+      if (error) {
+        console.error('Supabase OAuth エラー:', error)
+        setError(error.message || 'Google認証に失敗しました')
+      } else {
+        console.log('OAuth リダイレクト成功')
+      }
+      
+      return { error }
+    } catch (err) {
+      console.error('OAuth 予期しないエラー:', err)
+      const errorMessage = err instanceof Error ? err.message : 'Google認証中に予期しないエラーが発生しました'
+      setError(errorMessage)
+      return { error: err }
+    }
+  }
+
+  // エラーをクリアする関数
+  const clearError = () => {
+    setError(null)
   }
 
   const value = {
     user,
     session,
     loading,
+    error,
     signIn,
     signUp,
     signOut,
     signInWithGoogle,
+    clearError,
   }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
