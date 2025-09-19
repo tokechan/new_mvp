@@ -27,10 +27,10 @@ test.describe('家事管理機能', () => {
     const choreTitle = 'テスト用家事 - 掃除機をかける';
     
     // 家事追加フォームが表示されていることを確認
-    await expect(page.locator('input[placeholder*="新しい家事"]')).toBeVisible();
+    await expect(page.locator('input[placeholder*="新しい家事を入力"]')).toBeVisible();
     
     // 家事のタイトルを入力
-    await page.fill('input[placeholder*="新しい家事"]', choreTitle);
+    await page.fill('input[placeholder*="新しい家事を入力"]', choreTitle);
     
     // 追加ボタンをクリック
     await page.click('button:has-text("追加")');
@@ -50,7 +50,7 @@ test.describe('家事管理機能', () => {
     const choreTitle = 'テスト用家事 - 洗濯物を干す';
     
     // 家事を追加
-    await page.fill('input[placeholder*="新しい家事"]', choreTitle);
+    await page.fill('input[placeholder*="新しい家事を入力"]', choreTitle);
     await page.click('button:has-text("追加")');
     
     // 追加された家事が表示されるまで待機
@@ -66,7 +66,7 @@ test.describe('家事管理機能', () => {
     await expect(choreItem.locator(`text=${choreTitle}`)).toHaveClass(/line-through/);
     
     // ありがとうボタンが表示されることを確認
-    await expect(choreItem.locator('button:has-text("💝 ありがとう")')).toBeVisible();
+    await expect(choreItem.locator('button:has-text("ありがとう")')).toBeVisible();
     
     // 再度完了ボタンをクリックして未完了に戻す
     await completeButton.click();
@@ -76,7 +76,7 @@ test.describe('家事管理機能', () => {
     await expect(choreItem.locator(`text=${choreTitle}`)).not.toHaveClass(/line-through/);
     
     // ありがとうボタンが非表示になることを確認
-    await expect(choreItem.locator('button:has-text("💝 ありがとう")')).not.toBeVisible();
+    await expect(choreItem.locator('button:has-text("ありがとう")')).not.toBeVisible();
   });
 
   /**
@@ -86,7 +86,7 @@ test.describe('家事管理機能', () => {
     const choreTitle = 'テスト用家事 - 削除テスト';
     
     // 家事を追加
-    await page.fill('input[placeholder*="新しい家事"]', choreTitle);
+    await page.fill('input[placeholder*="新しい家事を入力"]', choreTitle);
     await page.click('button:has-text("追加")');
     
     // 追加された家事が表示されるまで待機
@@ -112,7 +112,7 @@ test.describe('家事管理機能', () => {
     
     // 複数の家事を追加
     for (const chore of chores) {
-      await page.fill('input[placeholder*="新しい家事"]', chore);
+      await page.fill('input[placeholder*="新しい家事を入力"]', chore);
       await page.click('button:has-text("追加")');
       await expect(page.locator(`text=${chore}`)).toBeVisible();
     }

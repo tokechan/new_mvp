@@ -618,12 +618,19 @@ export default function ChoresList() {
             recordPartnerId: record?.partner_id
           })
           
-          if (record && 
-              ((record as any).owner_id === user.id || (record as any).partner_id === user.id)) {
-            console.log('✅ Processing change for user:', payload.eventType)
+          // ユーザーに関連する変更のみ処理（partner_idがnullでもowner_idが一致すれば処理）
+          if (record && (record as any).owner_id === user.id) {
+            console.log('✅ Processing change for user (owner):', payload.eventType)
+            handleChoreChange(payload)
+          } else if (record && (record as any).partner_id === user.id) {
+            console.log('✅ Processing change for user (partner):', payload.eventType)
             handleChoreChange(payload)
           } else {
-            console.log('❌ Skipping change - not for this user:', payload.eventType)
+            console.log('❌ Skipping change - not for this user:', payload.eventType, {
+              recordOwnerId: record?.owner_id,
+              recordPartnerId: record?.partner_id,
+              userId: user.id
+            })
           }
         }
       )
