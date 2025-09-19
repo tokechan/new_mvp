@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
+import { useNotifications } from '@/contexts/NotificationContext'
 import { supabase } from '@/lib/supabase'
 import { Database } from '@/lib/supabase'
 import ThankYouMessage from './ThankYouMessage'
@@ -21,6 +22,7 @@ interface ExtendedChore extends Chore {
 
 export default function ChoresList() {
   const { user } = useAuth()
+  const { addNotification } = useNotifications()
   const [chores, setChores] = useState<ExtendedChore[]>([])
   const [loading, setLoading] = useState(true)
   const [newChore, setNewChore] = useState('')
@@ -204,6 +206,8 @@ export default function ChoresList() {
   }
 
   // リアルタイム接続の手動再接続
+  const [reconnectTrigger, setReconnectTrigger] = useState(0)
+  
   const handleReconnect = () => {
     console.log('🔄 手動再接続を実行します')
     
@@ -211,21 +215,12 @@ export default function ChoresList() {
     setRealtimeEvents(prev => ({
       ...prev,
       connectionStatus: 'disconnected',
-      lastError: null
+      lastError: null,
+      reconnectAttempts: prev.reconnectAttempts + 1
     }))
     
-    // 少し待ってから再接続（useEffectが再実行される）
-    setTimeout(() => {
-      // useEffectを再実行するためにユーザーIDの依存配列を変更する小技
-      // 実際にはIDは変わらないが、ReactはuseEffectを再実行する
-      if (user) {
-        const tempUser = {...user}
-        setRealtimeEvents(prev => ({
-          ...prev,
-          lastEvent: `手動再接続: ${new Date().toLocaleTimeString()}`
-        }))
-      }
-    }, 500)
+    // useEffectを再実行するためにトリガーを変更
+    setReconnectTrigger(prev => prev + 1)
   }
 
 
@@ -408,7 +403,18 @@ export default function ChoresList() {
     if (!confirm('この家事を削除しますか？')) return
 
     console.log('🗑️ Starting delete operation for chore ID:', choreId)
+    
+    // 削除前の状態を保存（エラー時の復元用）
+    const originalChores = [...chores]
+    
     try {
+      // ✅ 即時反映: ローカル状態を先に更新（UX向上）
+      setChores(prev => {
+        const filtered = prev.filter(chore => chore.id !== choreId)
+        console.log('🗑️ Immediate local update: Removing chore from UI')
+        return filtered
+      })
+
       const { error, data } = await supabase
         .from('chores')
         .delete()
@@ -417,13 +423,13 @@ export default function ChoresList() {
 
       if (error) {
         console.error('❌ Delete operation failed:', error)
+        // エラー時はローカル状態を元に戻す
+        setChores(originalChores)
         throw error
       }
 
       console.log('✅ Delete operation successful:', data)
-      
-      // リアルタイムイベントによる更新を待つ（即時ローカル更新は削除）
-      console.log('✨ Delete chore completed successfully - waiting for realtime update')
+      console.log('✨ Delete chore completed successfully - UI updated locally; realtime will sync')
       
       // 削除操作後にリアルタイム接続状態を確認
       setTimeout(() => {
@@ -508,6 +514,11 @@ export default function ChoresList() {
           
         case 'DELETE':
           console.log('🗑️ DELETE: Removing chore from list, ID:', oldRecord?.id)
+          // 重複チェック（即時ローカル更新と競合回避）
+          if (!prev.some(c => c.id === oldRecord.id)) {
+            console.log('🗑️ DELETE: Chore already removed locally, skipping')
+            return prev
+          }
           const filteredChores = prev.filter(chore => chore.id !== oldRecord.id)
           console.log('🗑️ DELETE: Before filter:', prev.length, 'After filter:', filteredChores.length)
           return filteredChores
@@ -736,7 +747,7 @@ export default function ChoresList() {
       console.log('🧹 Cleaning up Realtime subscription')
       supabase.removeChannel(channel)
     }
-  }, [user?.id])
+  }, [user?.id, reconnectTrigger])
 
   if (loading) {
     return (
@@ -826,6 +837,20 @@ export default function ChoresList() {
                className="px-3 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600"
              >
                再接続を試みる
+             </button>
+             <button 
+               onClick={() => {
+                 console.log('🔔 テスト通知を送信')
+                 addNotification({
+                   title: 'テスト通知',
+                   message: 'リアルタイム通知システムが正常に動作しています！',
+                   type: 'info',
+                   userId: user?.id
+                 })
+               }}
+               className="px-3 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600"
+             >
+               テスト通知
              </button>
              <button 
                onClick={() => setRealtimeEvents(prev => ({...prev, inserts: 0, updates: 0, deletes: 0}))}
