@@ -1,29 +1,26 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
-import { Database } from '@/lib/supabase'
-
-// 型定義
-type Chore = Database['public']['Tables']['chores']['Row']
-type ChoreInsert = Database['public']['Tables']['chores']['Insert']
-type Completion = Database['public']['Tables']['completions']['Row']
-
-// 拡張された家事型（完了記録を含む）
-export interface ExtendedChore extends Chore {
-  completions?: Completion[]
-}
+import { Chore, ChoreInsert, RealtimeEvents } from '@/types/chore'
 
 /**
  * 家事管理のカスタムフック
- * 家事の取得、追加、更新、削除の責務を担当
+ * ChoresList.tsxから分離されたビジネスロジック
  */
 export function useChores() {
   const { user } = useAuth()
-  const [chores, setChores] = useState<ExtendedChore[]>([])
+  const [chores, setChores] = useState<Chore[]>([])
   const [loading, setLoading] = useState(true)
   const [isAdding, setIsAdding] = useState(false)
+  const [realtimeEvents, setRealtimeEvents] = useState<RealtimeEvents>({
+    inserts: 0,
+    updates: 0,
+    deletes: 0,
+    lastEvent: null,
+    connectionStatus: 'unknown'
+  })
 
   /**
    * プロフィールが存在しない場合は作成する（RLSの前提を満たすため）
@@ -36,14 +33,7 @@ export function useChores() {
         .select('id')
         .eq('id', user.id)
         .single()
-      
-      // 無限再帰エラーの場合はスキップ
-      if (error && (error.code === '42P17' || error.message?.includes('infinite recursion'))) {
-        console.warn('🔄 RLSポリシーの無限再帰エラーを検出。プロフィール確認をスキップします。')
-        return
-      }
-      
-      if (error && error.code !== 'PGRST116') throw error // PGRST116: No rows found for single() 相当
+      if (error && error.code !== 'PGRST116') throw error
       if (!data) {
         const displayName = user.email?.split('@')[0] || 'ユーザー'
         const { error: upsertError } = await supabase
@@ -57,25 +47,20 @@ export function useChores() {
   }, [user])
 
   /**
-   * 家事一覧を取得（完了記録も含む）
+   * 自分がownerまたはpartnerの家事を取得する
    */
   const fetchChores = useCallback(async () => {
     if (!user) return
 
     try {
-      // 家事と完了記録を取得
-      const { data: choresData, error: choresError } = await supabase
+      const { data, error } = await supabase
         .from('chores')
-        .select(`
-          *,
-          completions (*)
-        `)
+        .select('*')
         .or(`owner_id.eq.${user.id},partner_id.eq.${user.id}`)
         .order('created_at', { ascending: false })
 
-      if (choresError) throw choresError
-      
-      setChores(choresData || [])
+      if (error) throw error
+      setChores(data || [])
     } catch (error) {
       console.error('家事の取得に失敗しました:', error)
     } finally {
@@ -86,19 +71,18 @@ export function useChores() {
   /**
    * 新しい家事を追加
    */
-  const addChore = useCallback(async (title: string, partnerId?: string) => {
+  const addChore = useCallback(async (title: string) => {
     if (!user || !title.trim()) return false
 
     console.log('➕ Starting add chore operation:', title.trim())
     setIsAdding(true)
     try {
-      // RLS要件を満たすためプロフィールの存在を保証
       await ensureOwnProfile()
 
       const choreData: ChoreInsert = {
         title: title.trim(),
         owner_id: user.id,
-        partner_id: partnerId || null,
+        partner_id: null,
         done: false
       }
 
@@ -116,35 +100,19 @@ export function useChores() {
 
       console.log('✅ Add chore operation successful:', data)
       
-      // ✅ 即時反映: 成功したらローカル状態を先に更新（UX向上）
-      //    Realtimeはタブ間同期のために併用し、重複はIDで弾く
+      // 即時反映: 成功したらローカル状態を先に更新
       if (data) {
         setChores(prev => {
-          // 重複チェック（Realtimeでも同じ行が到着するため）
           if (prev.some(c => c.id === (data as any).id)) return prev
-          return [data as ExtendedChore, ...prev]
+          return [data as Chore, ...prev]
         })
       }
 
-      console.log('✨ Add chore completed successfully - UI updated locally; waiting for realtime confirmation')
+      console.log('✨ Add chore completed successfully')
       return true
     } catch (error: any) {
       console.error('❌ 家事の追加に失敗しました:', error)
-      
-      // より具体的なエラーメッセージを提供
-      let errorMessage = '家事の追加に失敗しました。'
-      
-      if (error?.code === '42P17' || error?.message?.includes('infinite recursion')) {
-        errorMessage = 'データベースの設定に問題があります。しばらく待ってから再度お試しください。'
-      } else if (error?.code === '23503') {
-        errorMessage = 'プロフィールの設定に問題があります。ページを再読み込みしてから再度お試しください。'
-      } else if (error?.message?.includes('JWT')) {
-        errorMessage = 'ログインの有効期限が切れています。再度ログインしてください。'
-      } else if (error?.message?.includes('network') || error?.message?.includes('fetch')) {
-        errorMessage = 'ネットワークエラーが発生しました。インターネット接続を確認してください。'
-      }
-      
-      throw new Error(errorMessage)
+      throw error
     } finally {
       setIsAdding(false)
     }
@@ -153,106 +121,62 @@ export function useChores() {
   /**
    * 家事の完了状態を切り替える
    */
-  const toggleChore = useCallback(async (choreId: number, currentDone: boolean) => {
-    if (!user) return false
-
-    console.log('🔄 Toggling chore completion:', { choreId, currentDone, newDone: !currentDone })
-
+  const toggleChore = useCallback(async (choreId: string, currentDone: boolean) => {
+    const newDone = !currentDone
+    console.log(`🔄 Starting toggle chore operation: ID=${choreId}, ${currentDone ? 'completed' : 'pending'} → ${newDone ? 'completed' : 'pending'}`)
+    
     try {
-      const newDone = !currentDone
-
-      // ✅ 即時反映: ローカル状態を先に更新（UX向上）
-      setChores(prev => prev.map(chore => 
-        chore.id === choreId 
-          ? { ...chore, done: newDone }
-          : chore
-      ))
-
-      // 家事の完了状態を更新
-      const { error: choreError } = await supabase
+      console.log('📝 Updating chore status in database')
+      const { error } = await supabase
         .from('chores')
         .update({ done: newDone })
         .eq('id', choreId)
 
-      if (choreError) {
-        // エラー時はローカル状態を元に戻す
-        setChores(prev => prev.map(chore => 
-          chore.id === choreId 
-            ? { ...chore, done: currentDone }
-            : chore
-        ))
-        throw choreError
+      if (error) {
+        console.error('❌ Toggle chore operation failed:', error)
+        throw error
       }
 
-      if (newDone) {
-        // 完了記録を作成
+      console.log('✅ Chore status updated successfully')
+
+      // 即時反映: ローカル状態の done を先に更新
+      setChores(prev => prev.map(c => (c.id === choreId ? { ...c, done: newDone } : c)))
+
+      // 完了時にcompletionsテーブルにレコードを追加
+      if (newDone && user) {
+        console.log('📝 Adding completion record')
         const { error: completionError } = await supabase
           .from('completions')
-          .insert([{
+          .insert({
             chore_id: choreId,
             user_id: user.id
-          }])
-
+          })
+        
         if (completionError) {
-          console.error('完了記録の作成に失敗:', completionError)
-          // 完了記録の作成に失敗した場合、家事の状態を元に戻す
-          await supabase
-            .from('chores')
-            .update({ done: false })
-            .eq('id', choreId)
-          
-          setChores(prev => prev.map(chore => 
-            chore.id === choreId 
-              ? { ...chore, done: false }
-              : chore
-          ))
-          throw completionError
-        }
-      } else {
-        // 未完了にする場合は完了記録を削除
-        const { error: deleteError } = await supabase
-          .from('completions')
-          .delete()
-          .eq('chore_id', choreId)
-          .eq('user_id', user.id)
-
-        if (deleteError) {
-          console.error('完了記録の削除に失敗:', deleteError)
-          throw deleteError
+          console.error('❌ 完了記録の追加に失敗しました:', completionError)
+        } else {
+          console.log('✅ Completion record added successfully')
         }
       }
 
-      console.log('✅ Toggle chore completed successfully - UI updated locally; realtime will sync')
-      return true
-    } catch (error: any) {
-      console.error('❌ 家事の完了状態変更に失敗:', error)
-      
-      // より具体的なエラーメッセージを提供
-      let errorMessage = '家事の完了状態の変更に失敗しました。'
-      
-      if (error?.code === '23503') {
-        errorMessage = 'データベースの制約エラーが発生しました。プロフィールの設定を確認してください。'
-      } else if (error?.message?.includes('JWT')) {
-        errorMessage = 'ログインの有効期限が切れています。再度ログインしてください。'
-      } else if (error?.message?.includes('network') || error?.message?.includes('fetch')) {
-        errorMessage = 'ネットワークエラーが発生しました。インターネット接続を確認してください。'
-      }
-      
-      throw new Error(errorMessage)
+      console.log('✨ Toggle chore completed successfully')
+    } catch (error) {
+      console.error('❌ 家事の更新に失敗しました:', error)
+      throw error
     }
   }, [user])
 
   /**
    * 家事を削除
    */
-  const deleteChore = useCallback(async (choreId: number) => {
+  const deleteChore = useCallback(async (choreId: string) => {
     console.log('🗑️ Starting delete operation for chore ID:', choreId)
     try {
       const { error, data } = await supabase
         .from('chores')
         .delete()
         .eq('id', choreId)
-        .select() // 削除されたデータを取得
+        .select()
 
       if (error) {
         console.error('❌ Delete operation failed:', error)
@@ -260,46 +184,171 @@ export function useChores() {
       }
 
       console.log('✅ Delete operation successful:', data)
-      console.log('✨ Delete chore completed successfully - waiting for realtime update')
-      return true
+      
+      // 即時反映: ローカル状態からも先に削除
+      setChores(prev => prev.filter(c => c.id !== choreId))
+      
+      console.log('✨ Delete chore completed successfully')
+      
+      // 削除操作後にリアルタイム接続状態を確認
+      setTimeout(() => {
+        console.log('⏰ Post-delete connection check: Realtime should still be active')
+        console.log('📊 Current realtime events count:', realtimeEvents)
+      }, 1000)
+      
     } catch (error) {
       console.error('❌ 家事の削除に失敗しました:', error)
-      
-      // エラーの種類に応じたメッセージを設定
-      let errorMessage = '家事の削除に失敗しました。'
-      
-      if (error instanceof Error) {
-        if (error.message.includes('JWT')) {
-          errorMessage = 'ログインセッションが期限切れです。再度ログインしてください。'
-        } else if (error.message.includes('network') || error.message.includes('fetch')) {
-          errorMessage = 'ネットワークエラーが発生しました。インターネット接続を確認してください。'
-        } else if (error.message.includes('constraint') || error.message.includes('foreign key')) {
-          errorMessage = 'この家事には関連データがあるため削除できません。'
-        } else if (error.message.includes('permission') || error.message.includes('policy')) {
-          errorMessage = 'この家事を削除する権限がありません。'
-        }
-      }
-      
-      throw new Error(errorMessage)
+      throw error
     }
-  }, [])
+  }, [realtimeEvents])
 
   /**
-   * リアルタイム更新用のセッター関数
+   * リアルタイム購読の設定
    */
-  const updateChores = useCallback((updater: (prev: ExtendedChore[]) => ExtendedChore[]) => {
-    setChores(updater)
-  }, [])
+  useEffect(() => {
+    if (!user) {
+      console.log('👤 No user logged in, skipping Realtime setup')
+      setChores([])
+      setLoading(false)
+      return
+    }
+
+    console.log('🚀 Setting up Realtime for user:', user.id)
+    fetchChores()
+
+    console.log('🔄 Setting up Realtime subscription with REPLICA IDENTITY FULL')
+    console.log('🔧 User ID for filters:', user.id)
+    
+    const channel = supabase
+      .channel(`chores-realtime-${user.id}-${Date.now()}`)
+      .on('postgres_changes', { 
+         event: 'INSERT', 
+         schema: 'public', 
+         table: 'chores',
+         filter: `owner_id=eq.${user.id}`
+       }, (payload) => {
+          console.log('🟢 INSERT EVENT RECEIVED (owner):', payload)
+          const newChore = payload.new as Chore
+          if (newChore && (newChore.owner_id === user.id || newChore.partner_id === user.id)) {
+            console.log('📝 Adding chore to state:', newChore.title)
+            setChores(prev => {
+              const exists = prev.some(c => String(c.id) === String(newChore.id))
+              if (exists) {
+                console.log('⚠️ INSERT: Chore already exists, skipping:', newChore.id)
+                return prev
+              }
+              const updated = [newChore, ...prev]
+              console.log('📊 Updated chores count:', updated.length)
+              return updated
+            })
+            setRealtimeEvents(prev => ({
+              ...prev, 
+              inserts: prev.inserts + 1,
+              lastEvent: `INSERT: ${newChore.title}`
+            }))
+          }
+       })
+      .on('postgres_changes', { 
+         event: 'UPDATE', 
+         schema: 'public', 
+         table: 'chores',
+         filter: `owner_id=eq.${user.id}`
+       }, (payload) => {
+          console.log('🟡 UPDATE EVENT RECEIVED (owner):', payload)
+          const updatedChore = payload.new as Chore
+          if (updatedChore && (updatedChore.owner_id === user.id || updatedChore.partner_id === user.id)) {
+            console.log('📝 Updating chore in state:', updatedChore.title)
+            setChores(prev => {
+              const updated = prev.map(c => String(c.id) === String(updatedChore.id) ? updatedChore : c)
+              console.log('📊 Updated chores after UPDATE:', updated.length)
+              return updated
+            })
+            setRealtimeEvents(prev => ({
+              ...prev, 
+              updates: prev.updates + 1,
+              lastEvent: `UPDATE: ${updatedChore.title}`
+            }))
+          }
+       })
+      .on('postgres_changes', { 
+         event: 'DELETE', 
+         schema: 'public', 
+         table: 'chores',
+         filter: `owner_id=eq.${user.id}`
+       }, (payload) => {
+         console.log('🔴 DELETE EVENT RECEIVED (owner):', payload)
+         const deletedId = payload.old.id
+         if (deletedId) {
+           console.log('📝 Removing chore from state:', deletedId)
+           setChores(prev => {
+             const updated = prev.filter(c => String(c.id) !== String(deletedId))
+             console.log('📊 Updated chores after DELETE:', updated.length)
+             return updated
+           })
+           setRealtimeEvents(prev => ({
+             ...prev, 
+             deletes: prev.deletes + 1,
+             lastEvent: `DELETE: ${deletedId}`
+           }))
+         }
+       })
+      .on('postgres_changes', { 
+         event: 'DELETE', 
+         schema: 'public', 
+         table: 'chores',
+         filter: `partner_id=eq.${user.id}`
+       }, (payload) => {
+         console.log('🔴 DELETE EVENT RECEIVED (partner):', payload)
+         const deletedId = payload.old.id
+         if (deletedId) {
+           console.log('📝 Removing chore from state (as partner):', deletedId)
+           setChores(prev => {
+             const updated = prev.filter(c => String(c.id) !== String(deletedId))
+             console.log('📊 Updated chores after DELETE:', updated.length)
+             return updated
+           })
+           setRealtimeEvents(prev => ({
+             ...prev, 
+             deletes: prev.deletes + 1,
+             lastEvent: `DELETE: ${deletedId}`
+           }))
+         }
+       })
+     .subscribe((status, err) => {
+       console.log('📡 Realtime subscription status:', status, 'for user:', user.id)
+       
+       setRealtimeEvents(prev => ({
+         ...prev,
+         connectionStatus: status === 'SUBSCRIBED' ? 'connected' : 
+                          status === 'CHANNEL_ERROR' ? 'error' : 
+                          status === 'TIMED_OUT' ? 'disconnected' : 'unknown'
+       }))
+       
+       if (err) {
+         console.error('❌ Realtime subscription error:', err)
+         setRealtimeEvents(prev => ({ ...prev, connectionStatus: 'error' }))
+       }
+       if (status === 'SUBSCRIBED') {
+         console.log('✅ Successfully subscribed to realtime changes for user:', user.id)
+       }
+     })
+
+    console.log('📡 Realtime channel created for user:', user.id)
+
+    return () => {
+      console.log('🧹 Cleaning up Realtime subscription for user:', user.id)
+      supabase.removeChannel(channel)
+    }
+  }, [user?.id, fetchChores])
 
   return {
     chores,
     loading,
     isAdding,
-    fetchChores,
+    realtimeEvents,
     addChore,
     toggleChore,
     deleteChore,
-    updateChores,
-    ensureOwnProfile
+    refetch: fetchChores
   }
 }

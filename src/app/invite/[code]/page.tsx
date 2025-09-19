@@ -19,13 +19,13 @@ import type {
 } from '@/lib/types/partner-invitation'
 
 interface InvitePageProps {
-  params: {
+  params: Promise<{
     code: string
-  }
+  }>
 }
 
 export default function InvitePage({ params }: InvitePageProps) {
-  const { code } = params
+  const [code, setCode] = useState<string>('')
   const router = useRouter()
   const { user, signIn } = useAuth()
   const [isLoading, setIsLoading] = useState(true)
@@ -33,6 +33,15 @@ export default function InvitePage({ params }: InvitePageProps) {
   const [error, setError] = useState<string | null>(null)
   const [invitationData, setInvitationData] = useState<any | null>(null)
   const [acceptanceResult, setAcceptanceResult] = useState<any | null>(null)
+
+  // paramsを非同期で取得
+  useEffect(() => {
+    const getParams = async () => {
+      const resolvedParams = await params
+      setCode(resolvedParams.code)
+    }
+    getParams()
+  }, [params])
 
   // 招待情報を取得
   const fetchInvitationInfo = async () => {
@@ -91,7 +100,9 @@ export default function InvitePage({ params }: InvitePageProps) {
 
   // 初期データ取得
   useEffect(() => {
-    fetchInvitationInfo()
+    if (code) {
+      fetchInvitationInfo()
+    }
   }, [code])
 
   // ローディング中
