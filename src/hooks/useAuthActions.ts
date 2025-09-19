@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { authService } from '@/services/authService'
+import { profileService } from '@/services/profileService'
 
 /**
  * 認証操作を管理するカスタムフック
@@ -34,6 +35,7 @@ export function useAuthActions() {
 
   /**
    * メールアドレスとパスワードでサインアップ
+   * サインアップ成功後、プロフィールを自動作成
    */
   const signUp = async (email: string, password: string, name?: string) => {
     try {
@@ -42,7 +44,14 @@ export function useAuthActions() {
       const result = await authService.signUp(email, password, name)
       if (result.error) {
         setError(result.error.message || 'サインアップに失敗しました')
+        return result
       }
+      
+      // サインアップ成功後、プロフィールを作成
+      // 注意: サインアップ直後はセッションが確立されていない場合があるため、
+      // useAuthStateでの自動プロフィール作成に依存
+      console.log('サインアップ成功 - プロフィール作成は認証状態変更時に実行されます')
+      
       return result
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'サインアップ中にエラーが発生しました'
@@ -73,6 +82,7 @@ export function useAuthActions() {
 
   /**
    * Googleでサインイン
+   * 初回サインイン時はプロフィールが自動作成される
    */
   const signInWithGoogle = async () => {
     try {
@@ -82,7 +92,12 @@ export function useAuthActions() {
       if (result.error) {
         const errorMessage = (result.error instanceof Error ? result.error.message : null) || 'Google認証に失敗しました'
         setError(errorMessage)
+        return result
       }
+      
+      // Google認証成功後、プロフィール作成は認証状態変更時に自動実行される
+      console.log('Google認証成功 - プロフィール作成は認証状態変更時に実行されます')
+      
       return result
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Google認証中に予期しないエラーが発生しました'

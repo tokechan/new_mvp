@@ -15,6 +15,49 @@ export function useAuthState() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    // テスト環境では認証をスキップ
+    if (process.env.NODE_ENV === 'test' || process.env.NEXT_PUBLIC_SKIP_AUTH === 'true') {
+      const mockUser = {
+        id: 'test-user-id',
+        email: 'test@example.com',
+        user_metadata: { name: 'テストユーザー' },
+        app_metadata: {},
+        aud: 'authenticated',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      } as User
+      
+      const mockSession = {
+        user: mockUser,
+        access_token: 'mock-token',
+        refresh_token: 'mock-refresh-token',
+        expires_in: 3600,
+        expires_at: Date.now() / 1000 + 3600,
+        token_type: 'bearer',
+      } as Session
+      
+      // テスト用プロフィールを作成
+      const createTestProfile = async () => {
+        try {
+          const { createSupabaseBrowserClient } = await import('@/lib/supabase')
+          const supabase = createSupabaseBrowserClient()
+          
+          await supabase.from('profiles').upsert({
+            id: mockUser.id,
+            display_name: 'テストユーザー',
+          })
+        } catch (error) {
+          console.warn('テスト用プロフィール作成に失敗:', error)
+        }
+      }
+      
+      createTestProfile()
+      setUser(mockUser)
+      setSession(mockSession)
+      setLoading(false)
+      return
+    }
+
     // 初期セッション取得
     const getInitialSession = async () => {
       try {
