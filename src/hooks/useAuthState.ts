@@ -18,7 +18,7 @@ export function useAuthState() {
     // テスト環境では認証をスキップ
     if (process.env.NODE_ENV === 'test' || process.env.NEXT_PUBLIC_SKIP_AUTH === 'true') {
       const mockUser = {
-        id: 'test-user-id',
+        id: '550e8400-e29b-41d4-a716-446655440000', // 有効なUUID形式
         email: 'test@example.com',
         user_metadata: { name: 'テストユーザー' },
         app_metadata: {},
