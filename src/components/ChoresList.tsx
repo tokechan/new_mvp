@@ -14,11 +14,9 @@ type Completion = Database['public']['Tables']['completions']['Row']
 type CompletionInsert = Database['public']['Tables']['completions']['Insert']
 type ThankYou = Database['public']['Tables']['thanks']['Row']
 
-// 拡張された家事型（完了記録とありがとうメッセージを含む）
+// 拡張された家事型（完了記録を含む）
 interface ExtendedChore extends Chore {
-  completions?: (Completion & {
-    thanks?: ThankYou[]
-  })[]
+  completions?: Completion[]
 }
 
 export default function ChoresList() {
@@ -34,10 +32,11 @@ export default function ChoresList() {
   const [partnerInfo, setPartnerInfo] = useState<{ id: string; name: string } | null>(null)
   
   // パートナー連携完了時のハンドラー
-  const handlePartnerLinked = async (partnerId: string, partnerName: string) => {
-    setPartnerInfo({ id: partnerId, name: partnerName })
-    setHasPartner(true)
-    await fetchChores() // パートナー連携後に家事一覧を再取得
+  const handlePartnerLinked = async () => {
+    // パートナー情報を再取得
+    await fetchPartnerInfo()
+    // 家事一覧も再取得（パートナーの家事が表示されるように）
+    await fetchChores()
   }
   
   // リアルタイムイベント追跡用
@@ -53,25 +52,28 @@ export default function ChoresList() {
   })
   const [showRealtimeDetails, setShowRealtimeDetails] = useState(false)
 
-  // 家事一覧を取得（完了記録とありがとうメッセージも含む）
+  // 家事一覧を取得（完了記録も含む）
   const fetchChores = async () => {
     if (!user) return
 
     try {
-      const { data, error } = await supabase
+      // 家事と完了記録を取得
+      const { data: choresData, error: choresError } = await supabase
         .from('chores')
         .select(`
           *,
-          completions (
-            *,
-            thanks (*)
-          )
+          completions (*)
         `)
         .or(`owner_id.eq.${user.id},partner_id.eq.${user.id}`)
         .order('created_at', { ascending: false })
 
-      if (error) throw error
-      setChores(data || [])
+      if (choresError) throw choresError
+
+      // 現在のスキーマではthanksテーブルにchore_idがないため、
+      // ありがとうメッセージは別途取得する必要があります
+      // TODO: Migration 003実行後は、chores -> thanks の直接関係で取得可能
+      
+      setChores(choresData || [])
     } catch (error) {
       console.error('家事の取得に失敗しました:', error)
     } finally {
@@ -201,8 +203,7 @@ export default function ChoresList() {
     console.log('🏁 パートナー情報取得完了')
   }
 
-  /**
-   * // リアルタイム接続の手動再接続
+  // リアルタイム接続の手動再接続
   const handleReconnect = () => {
     console.log('🔄 手動再接続を実行します')
     
@@ -227,13 +228,7 @@ export default function ChoresList() {
     }, 500)
   }
 
-  // パートナー連携完了時のコールバック
-  const handlePartnerLinked = async () => {
-    // パートナー情報を再取得
-    await fetchPartnerInfo()
-    // 家事一覧も再取得（パートナーの家事が表示されるように）
-    await fetchChores()
-  }
+
 
   // 新しい家事を追加
   const addChore = async (e: React.FormEvent) => {
@@ -667,10 +662,13 @@ export default function ChoresList() {
         
         // 接続状態を更新
         setRealtimeEvents(prev => {
+          const connectionStatus: 'unknown' | 'connected' | 'disconnected' | 'error' = 
+            status === 'SUBSCRIBED' ? 'connected' : 
+            status === 'CHANNEL_ERROR' ? 'error' : 'disconnected'
+          
           const newState = {
             ...prev,
-            connectionStatus: status === 'SUBSCRIBED' ? 'connected' : 
-                             status === 'CHANNEL_ERROR' ? 'error' : 'disconnected',
+            connectionStatus,
             lastError: err ? String(err) : prev.lastError
           }
           
@@ -880,7 +878,9 @@ export default function ChoresList() {
           {chores.map((chore) => {
             const isCompleted = chore.done
             const latestCompletion = chore.completions?.[0]
-            const hasThankYou = latestCompletion?.thanks && latestCompletion.thanks.length > 0
+            // TODO: Migration 003実行後に有効化
+            // const hasThankYou = latestCompletion?.thanks && latestCompletion.thanks.length > 0
+            const hasThankYou = false // 一時的に無効化
 
             return (
               <div
@@ -942,6 +942,7 @@ export default function ChoresList() {
                 </div>
 
                 {/* ありがとうメッセージ表示 */}
+                {/* TODO: Migration 003実行後に有効化
                 {hasThankYou && latestCompletion?.thanks && (
                   <div className="mt-3 p-3 bg-pink-50 border border-pink-200 rounded-lg">
                     <h4 className="text-sm font-semibold text-pink-800 mb-2">💖 ありがとうメッセージ</h4>
@@ -955,6 +956,7 @@ export default function ChoresList() {
                     ))}
                   </div>
                 )}
+                */}
 
                 {/* ありがとうメッセージフォーム */}
                 {showThankYou === chore.id && latestCompletion && latestCompletion.user_id && (
