@@ -11,12 +11,7 @@ jest.mock('@/contexts/AuthContext', () => ({
 const { useAuth } = require('@/contexts/AuthContext')
 const mockUseAuth = useAuth as jest.MockedFunction<typeof useAuth>
 
-// Supabaseクライアントのモック
-jest.mock('@/lib/supabase', () => ({
-  supabase: {
-    from: jest.fn()
-  }
-}))
+// Supabaseクライアントのモック（jest.setup.jsで設定済み）
 const mockSupabase = supabase as jest.Mocked<typeof supabase>
 
 // テスト用のモックデータ
@@ -32,7 +27,7 @@ const mockUser = {
 
 const mockChores = [
   {
-    id: 1,
+    id: '1',
     title: 'テスト家事1',
     done: false,
     owner_id: 'user-123',
@@ -40,7 +35,7 @@ const mockChores = [
     created_at: '2024-01-01T00:00:00Z'
   },
   {
-    id: 2,
+    id: '2',
     title: 'テスト家事2',
     done: true,
     owner_id: 'user-123',
@@ -156,7 +151,7 @@ describe('useChores', () => {
       const { result } = renderHook(() => useChores())
       
       await act(async () => {
-        await result.current.fetchChores()
+        await result.current.refetch()
       })
       
       expect(mockSupabase.from).toHaveBeenCalledWith('chores')
@@ -189,7 +184,7 @@ describe('useChores', () => {
       const { result } = renderHook(() => useChores())
       
       await act(async () => {
-        await result.current.fetchChores()
+        await result.current.refetch()
       })
       
       expect(mockSupabase.from).toHaveBeenCalledWith('chores')
@@ -360,7 +355,7 @@ describe('useChores', () => {
       const { result } = renderHook(() => useChores())
       
       await act(async () => {
-        const success = await result.current.toggleChore(1, false)
+        const success = await result.current.toggleChore('1', false)
         expect(success).toBe(true)
       })
       
@@ -390,7 +385,7 @@ describe('useChores', () => {
       mockSupabase.from.mockReturnValueOnce(updateQueryChain as any)
       
       await act(async () => {
-        await expect(result.current.toggleChore(1, false)).rejects.toThrow(
+        await expect(result.current.toggleChore('1', false)).rejects.toThrow(
           '家事の完了状態の変更に失敗しました。'
         )
       })
@@ -420,7 +415,7 @@ describe('useChores', () => {
       const { result } = renderHook(() => useChores())
       
       await act(async () => {
-        const success = await result.current.deleteChore(1)
+        const success = await result.current.deleteChore('1')
         expect(success).toBe(true)
       })
       
@@ -454,40 +449,29 @@ describe('useChores', () => {
       const { result } = renderHook(() => useChores())
       
       await act(async () => {
-        await expect(result.current.deleteChore(1)).rejects.toThrow(
+        await expect(result.current.deleteChore('1')).rejects.toThrow(
           'この家事を削除する権限がありません。'
         )
       })
     })
   })
 
-  describe('updateChores', () => {
+  describe('refetch', () => {
     /**
-     * リアルタイム更新用のセッター関数が正常に動作することを確認
+     * refetch関数が正常に動作することを確認
      */
-    it('should update chores using updater function', async () => {
+    it('should refetch chores successfully', async () => {
       const mockQueryChain = createMockQueryChain({ data: mockChores, error: null })
       mockSupabase.from.mockReturnValue(mockQueryChain as any)
       
       const { result } = renderHook(() => useChores())
       
       await act(async () => {
-        result.current.updateChores(prev => [
-          ...prev,
-          {
-            id: 3,
-            title: 'リアルタイム追加',
-            done: false,
-            owner_id: 'user-123',
-            partner_id: null,
-            created_at: '2024-01-03T00:00:00Z'
-          }
-        ])
+        await result.current.refetch()
       })
       
-      // updateChoresは内部状態を更新するため、直接的な検証は困難
-      // 実際のアプリケーションではリアルタイム機能と組み合わせて使用される
-      expect(result.current.updateChores).toBeDefined()
+      // refetch関数が定義されていることを確認
+      expect(result.current.refetch).toBeDefined()
     })
   })
 })

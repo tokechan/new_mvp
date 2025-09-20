@@ -20,20 +20,41 @@ export async function POST(request: NextRequest) {
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
       {
         cookies: {
-          get(name: string) {
-            return cookieStore.get(name)?.value
+          getAll() {
+            return cookieStore.getAll()
+          },
+          setAll(cookiesToSet) {
+            try {
+              cookiesToSet.forEach(({ name, value, options }) =>
+                cookieStore.set(name, value, options)
+              )
+            } catch {
+              // The `setAll` method was called from a Server Component.
+              // This can be ignored if you have middleware refreshing
+              // user sessions.
+            }
           },
         },
       }
     )
     
-    // 認証確認
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
-    if (authError || !user) {
-      return NextResponse.json(
-        { success: false, error: '認証が必要です' } as CreateInvitationResponse,
-        { status: 401 }
-      )
+    // 認証確認（テスト環境対応）
+    let user
+    if (process.env.NEXT_PUBLIC_SKIP_AUTH === 'true') {
+      // テスト環境では固定ユーザーを使用
+      user = {
+        id: '550e8400-e29b-41d4-a716-446655440000',
+        email: 'test@example.com'
+      }
+    } else {
+      const { data: { user: authUser }, error: authError } = await supabase.auth.getUser()
+      if (authError || !authUser) {
+        return NextResponse.json(
+          { success: false, error: '認証が必要です' } as CreateInvitationResponse,
+          { status: 401 }
+        )
+      }
+      user = authUser
     }
 
     // リクエストボディの解析
@@ -160,20 +181,41 @@ export async function GET() {
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
       {
         cookies: {
-          get(name: string) {
-            return cookieStore.get(name)?.value
+          getAll() {
+            return cookieStore.getAll()
+          },
+          setAll(cookiesToSet) {
+            try {
+              cookiesToSet.forEach(({ name, value, options }) =>
+                cookieStore.set(name, value, options)
+              )
+            } catch {
+              // The `setAll` method was called from a Server Component.
+              // This can be ignored if you have middleware refreshing
+              // user sessions.
+            }
           },
         },
       }
     )
     
-    // 認証確認
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
-    if (authError || !user) {
-      return NextResponse.json(
-        { success: false, error: '認証が必要です' } as GetInvitationsResponse,
-        { status: 401 }
-      )
+    // 認証確認（テスト環境対応）
+    let user
+    if (process.env.NEXT_PUBLIC_SKIP_AUTH === 'true') {
+      // テスト環境では固定ユーザーを使用
+      user = {
+        id: '550e8400-e29b-41d4-a716-446655440000',
+        email: 'test@example.com'
+      }
+    } else {
+      const { data: { user: authUser }, error: authError } = await supabase.auth.getUser()
+      if (authError || !authUser) {
+        return NextResponse.json(
+          { success: false, error: '認証が必要です' } as GetInvitationsResponse,
+          { status: 401 }
+        )
+      }
+      user = authUser
     }
 
     // 期限切れ招待のクリーンアップ

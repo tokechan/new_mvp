@@ -42,10 +42,20 @@ export function useAuthState() {
           const { createSupabaseBrowserClient } = await import('@/lib/supabase')
           const supabase = createSupabaseBrowserClient()
           
-          await supabase.from('profiles').upsert({
-            id: mockUser.id,
-            display_name: 'テストユーザー',
-          })
+          // プロフィールが存在するかチェック
+          const { data: existingProfile } = await supabase
+            .from('profiles')
+            .select('id')
+            .eq('id', mockUser.id)
+            .single()
+          
+          if (!existingProfile) {
+            await supabase.from('profiles').insert({
+              id: mockUser.id,
+              display_name: 'テストユーザー',
+            })
+            console.log('テスト用プロフィールを作成しました')
+          }
         } catch (error) {
           console.warn('テスト用プロフィール作成に失敗:', error)
         }
@@ -62,12 +72,18 @@ export function useAuthState() {
     const getInitialSession = async () => {
       try {
         const session = await authService.getSession()
+        console.log('初期セッション:', session)
         setSession(session)
         setUser(session?.user ?? null)
         
         if (session?.user) {
           // プロフィール自動作成（非同期で実行）
-          profileService.ensureProfile(session.user)
+          try {
+            await profileService.ensureProfile(session.user)
+            console.log('プロフィール確認完了')
+          } catch (profileError) {
+            console.error('プロフィール作成エラー:', profileError)
+          }
         }
       } catch (error) {
         console.error('初期セッション取得エラー:', error)

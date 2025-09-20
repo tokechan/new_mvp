@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RLSポリシー動作確認テスト</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px;
+            transition: background-color 0.2s;
+        }
+        .button:hover {
+            background: #0056b3;
+        }
+        .button.success {
+            background: #28a745;
+        }
+        .button.danger {
+            background: #dc3545;
+        }
+        .button.warning {
+            background: #ffc107;
+            color: #212529;
+        }
+        .instructions {
+            background: #e7f3ff;
+            border: 1px solid #b3d9ff;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .test-step {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        .test-step h3 {
+            margin-top: 0;
+            color: #495057;
+        }
+        .status {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+        .status.pending {
+            background: #ffeaa7;
+            color: #2d3436;
+        }
+        .status.running {
+            background: #74b9ff;
+            color: white;
+        }
+        .status.success {
+            background: #00b894;
+            color: white;
+        }
+        .status.error {
+            background: #e17055;
+            color: white;
+        }
+        .log {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 6px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 14px;
+            max-height: 400px;
+            overflow-y: auto;
+            margin: 15px 0;
+        }
+        .security-warning {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 20px 0;
+            color: #856404;
+        }
+        .test-result {
+            padding: 10px;
+            border-radius: 6px;
+            margin: 10px 0;
+        }
+        .test-result.pass {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .test-result.fail {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔒 RLSポリシー動作確認テスト</h1>
+        
+        <div class="instructions">
+            <h3>📋 テスト概要</h3>
+            <p>このテストでは、Supabase Row Level Security (RLS) ポリシーの動作を検証します。</p>
+            <p>認証されたユーザーが自分のデータのみにアクセスできることを確認します。</p>
+        </div>
+        
+        <div class="security-warning">
+            <h3>⚠️ セキュリティテストについて</h3>
+            <p>このテストは、データベースレベルでの認可制御が正しく動作することを確認するものです。</p>
+            <p>実際のアプリケーションでは、フロントエンドでの制御に加えて、RLSによる強制的な制御が重要です。</p>
+        </div>
+        
+        <div style="text-align: center; margin: 30px 0;">
+            <button class="button" onclick="startRLSTest()" id="startButton">🚀 RLSテスト開始</button>
+            <button class="button warning" onclick="resetTest()" id="resetButton">🔄 テストリセット</button>
+        </div>
+        
+        <div class="test-step">
+            <h3>ステップ 1: 認証状態の確認 <span class="status pending" id="step1Status">待機中</span></h3>
+            <p>現在のユーザーの認証状態とプロフィール情報を確認します。</p>
+            <button class="button" onclick="checkAuthStatus()" id="checkAuthButton">🔍 認証状態確認</button>
+            <div id="authResult"></div>
+        </div>
+        
+        <div class="test-step">
+            <h3>ステップ 2: 家事データの読み取りテスト <span class="status pending" id="step2Status">待機中</span></h3>
+            <p>認証されたユーザーが自分の家事データのみを読み取れることを確認します。</p>
+            <button class="button" onclick="testReadAccess()" id="testReadButton" disabled>📖 読み取りテスト</button>
+            <div id="readResult"></div>
+        </div>
+        
+        <div class="test-step">
+            <h3>ステップ 3: 家事データの書き込みテスト <span class="status pending" id="step3Status">待機中</span></h3>
+            <p>認証されたユーザーが家事データを作成・更新できることを確認します。</p>
+            <button class="button" onclick="testWriteAccess()" id="testWriteButton" disabled>✏️ 書き込みテスト</button>
+            <div id="writeResult"></div>
+        </div>
+        
+        <div class="test-step">
+            <h3>ステップ 4: 他ユーザーデータへのアクセステスト <span class="status pending" id="step4Status">待機中</span></h3>
+            <p>他のユーザーのデータにアクセスできないことを確認します（RLSによる制御）。</p>
+            <button class="button danger" onclick="testUnauthorizedAccess()" id="testUnauthorizedButton" disabled>🚫 不正アクセステスト</button>
+            <div id="unauthorizedResult"></div>
+        </div>
+        
+        <div class="log" id="testLog">
+            <div>🔒 RLSポリシーテストログ</div>
+            <div>テスト開始を待機中...</div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        let currentUser = null;
+        let testChoreId = null;
+        let supabaseClient = null;
+        
+        // Supabaseクライアントを初期化
+        function initializeSupabase() {
+            const supabaseUrl = 'https://njbormsqqfwnzwbigxuh.supabase.co';
+            const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5qYm9ybXNxcWZ3bnp3YmlneHVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY4NTk0NTUsImV4cCI6MjA3MjQzNTQ1NX0.l7RtcUzoORpe1oUOW4MrahBH9fWjwpGqAc-QeCTYKIQ';
+            
+            try {
+                supabaseClient = supabase.createClient(supabaseUrl, supabaseAnonKey);
+                log('✅ Supabaseクライアント初期化完了');
+                return true;
+            } catch (error) {
+                log(`❌ Supabaseクライアント初期化エラー: ${error.message}`);
+                return false;
+            }
+        }
+        
+        function log(message) {
+            const logElement = document.getElementById('testLog');
+            const timestamp = new Date().toLocaleTimeString();
+            logElement.innerHTML += `<div>[${timestamp}] ${message}</div>`;
+            logElement.scrollTop = logElement.scrollHeight;
+            console.log(`[RLS Test] ${message}`);
+        }
+        
+        function updateStatus(stepId, status, text) {
+            const element = document.getElementById(stepId);
+            element.className = `status ${status}`;
+            element.textContent = text;
+        }
+        
+        function showResult(containerId, success, message) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = `
+                <div class="test-result ${success ? 'pass' : 'fail'}">
+                    ${success ? '✅' : '❌'} ${message}
+                </div>
+            `;
+        }
+        
+        async function startRLSTest() {
+            log('🚀 RLSポリシーテスト開始');
+            document.getElementById('startButton').disabled = true;
+            
+            // Supabaseクライアントを初期化
+            if (!initializeSupabase()) {
+                log('❌ Supabaseクライアントの初期化に失敗しました');
+                return;
+            }
+            
+            // まず認証状態を確認
+            await checkAuthStatus();
+        }
+        
+        async function checkAuthStatus() {
+            updateStatus('step1Status', 'running', '実行中');
+            log('🔍 認証状態を確認しています...');
+            
+            try {
+                // 直接Supabaseクライアントで認証状態を確認
+                const { data: { user }, error } = await supabaseClient.auth.getUser();
+                
+                if (error) {
+                    throw new Error(`認証エラー: ${error.message}`);
+                }
+                
+                if (!user) {
+                    log('❌ ユーザーが認証されていません');
+                    log('💡 テスト用ユーザーでサインインします...');
+                    
+                    // テスト用ユーザーでサインイン
+                    const { data: signInData, error: signInError } = await supabaseClient.auth.signInWithPassword({
+                        email: 'test@example.com',
+                        password: 'testpassword123'
+                    });
+                    
+                    if (signInError) {
+                        throw new Error(`サインインエラー: ${signInError.message}`);
+                    }
+                    
+                    currentUser = signInData.user;
+                    log(`✅ テストユーザーでサインイン完了: ${currentUser.email}`);
+                } else {
+                    currentUser = user;
+                    log(`✅ 既存ユーザーで認証済み: ${user.email}`);
+                }
+                
+                // プロフィール情報も取得
+                const { data: profile, error: profileError } = await supabaseClient
+                    .from('profiles')
+                    .select('*')
+                    .eq('id', currentUser.id)
+                    .single();
+                
+                if (profileError) {
+                    log(`⚠️ プロフィール取得エラー: ${profileError.message}`);
+                } else if (profile) {
+                    log(`📋 プロフィール取得成功: ${profile.name || 'N/A'}`);
+                }
+                
+                log(`✅ 認証成功: ${currentUser.email}`);
+                log(`📋 ユーザーID: ${currentUser.id}`);
+                
+                let profileInfo = '';
+                if (profile) {
+                    profileInfo = `<br>プロフィール: ${profile.name || 'N/A'}`;
+                } else if (profileError) {
+                    profileInfo = `<br>プロフィールエラー: ${profileError.message}`;
+                }
+                
+                showResult('authResult', true, 
+                    `認証済み: ${currentUser.email}<br>` +
+                    `ユーザーID: ${currentUser.id}${profileInfo}`
+                );
+                
+                updateStatus('step1Status', 'success', '完了');
+                document.getElementById('testReadButton').disabled = false;
+                
+            } catch (error) {
+                log(`❌ 認証状態確認エラー: ${error.message}`);
+                showResult('authResult', false, `認証状態確認エラー: ${error.message}`);
+                updateStatus('step1Status', 'error', 'エラー');
+            }
+        }
+        
+        async function testReadAccess() {
+            if (!currentUser) {
+                log('❌ 認証されたユーザーが見つかりません');
+                return;
+            }
+            
+            updateStatus('step2Status', 'running', '実行中');
+            log('📖 家事データの読み取りテストを開始します...');
+            
+            try {
+                // 直接Supabaseクライアントで家事データを取得
+                const { data: chores, error } = await supabaseClient
+                    .from('chores')
+                    .select('*');
+                
+                if (error) {
+                    throw new Error(`読み取りエラー: ${error.message}`);
+                }
+                
+                // 現在のユーザーのデータのみが取得されているかチェック
+                const userChores = chores.filter(chore => chore.owner_id === currentUser.id);
+                const otherUserChores = chores.filter(chore => chore.owner_id !== currentUser.id);
+                
+                log(`📊 取得した家事データ: 合計${chores.length}件`);
+                log(`👤 自分の家事: ${userChores.length}件`);
+                log(`👥 他人の家事: ${otherUserChores.length}件`);
+                
+                if (otherUserChores.length > 0) {
+                    log('⚠️ 警告: 他のユーザーの家事データが取得されました（RLS設定要確認）');
+                    showResult('readResult', false, 
+                        `RLS制御不備: 他ユーザーのデータ${otherUserChores.length}件が取得されました`
+                    );
+                    updateStatus('step2Status', 'error', 'RLS不備');
+                } else {
+                    log('✅ RLS読み取り制御が正常に動作しています');
+                    showResult('readResult', true, 
+                        `正常: 自分のデータのみ${userChores.length}件取得`
+                    );
+                    updateStatus('step2Status', 'success', '完了');
+                    document.getElementById('testWriteButton').disabled = false;
+                }
+                
+            } catch (error) {
+                log(`❌ 読み取りテストエラー: ${error.message}`);
+                showResult('readResult', false, `読み取りテストエラー: ${error.message}`);
+                updateStatus('step2Status', 'error', 'エラー');
+            }
+        }
+        
+        async function testWriteAccess() {
+            if (!currentUser) {
+                log('❌ 認証されたユーザーが見つかりません');
+                return;
+            }
+            
+            updateStatus('step3Status', 'running', '実行中');
+            log('✏️ 家事データの書き込みテストを開始します...');
+            
+            try {
+                const testTitle = `RLSテスト_${Date.now()}`;
+                
+                // 家事を作成
+                log('📝 新しい家事を作成しています...');
+                const { data: newChore, error: createError } = await supabaseClient
+                    .from('chores')
+                    .insert({
+                        title: testTitle,
+                        description: 'RLSテスト用の家事',
+                        owner_id: currentUser.id
+                    })
+                    .select()
+                    .single();
+                
+                if (createError) {
+                    throw new Error(`作成エラー: ${createError.message}`);
+                }
+                
+                log(`✅ 家事作成成功: ${newChore.title} (ID: ${newChore.id})`);
+                testChoreId = newChore.id;
+                
+                // 作成した家事を更新
+                log('📝 作成した家事を更新しています...');
+                const { data: updatedChore, error: updateError } = await supabaseClient
+                    .from('chores')
+                    .update({ description: 'RLSテスト用の家事（更新済み）' })
+                    .eq('id', newChore.id)
+                    .select()
+                    .single();
+                
+                if (updateError) {
+                    throw new Error(`更新エラー: ${updateError.message}`);
+                }
+                
+                log(`✅ 家事更新成功: ${updatedChore.description}`);
+                
+                showResult('writeResult', true, 
+                    `書き込み成功: 家事「${testTitle}」を作成・更新しました`
+                );
+                updateStatus('step3Status', 'success', '完了');
+                document.getElementById('testUnauthorizedButton').disabled = false;
+                
+            } catch (error) {
+                log(`❌ 書き込みテストエラー: ${error.message}`);
+                showResult('writeResult', false, `書き込みエラー: ${error.message}`);
+                updateStatus('step3Status', 'error', 'エラー');
+            }
+        }
+        
+        async function testUnauthorizedAccess() {
+            if (!currentUser || !testChoreId) {
+                log('❌ 前提条件が満たされていません');
+                return;
+            }
+            
+            updateStatus('step4Status', 'running', '実行中');
+            log('🚫 不正アクセステストを開始します...');
+            
+            try {
+                // 偽のユーザーIDで他人のデータにアクセスを試行
+                const fakeUserId = '00000000-0000-0000-0000-000000000000';
+                const results = {};
+                
+                // 1. 他人のデータを直接指定して読み取り試行
+                log('🔍 他人のデータ読み取りを試行しています...');
+                try {
+                    const { data: otherChores, error: readError } = await supabaseClient
+                        .from('chores')
+                        .select('*')
+                        .eq('owner_id', fakeUserId);
+                    
+                    results.unauthorizedRead = {
+                        success: !readError,
+                        error: readError?.message,
+                        dataCount: otherChores?.length || 0
+                    };
+                    
+                    if (readError) {
+                        log(`✅ 他人のデータ読み取りが正しく拒否されました: ${readError.message}`);
+                    } else {
+                        log(`❌ 他人のデータ読み取りが許可されてしまいました (${otherChores?.length || 0}件)`);
+                    }
+                } catch (error) {
+                    results.unauthorizedRead = {
+                        success: false,
+                        error: error.message
+                    };
+                    log(`✅ 他人のデータ読み取りでエラー: ${error.message}`);
+                }
+                
+                // 2. 他人のowner_idで家事作成を試行
+                log('📝 他人のIDで家事作成を試行しています...');
+                try {
+                    const { data: newChore, error: createError } = await supabaseClient
+                        .from('chores')
+                        .insert({
+                            title: '不正作成テスト',
+                            description: '他人のIDで作成',
+                            owner_id: fakeUserId
+                        })
+                        .select();
+                    
+                    results.unauthorizedCreate = {
+                        success: !createError,
+                        error: createError?.message,
+                        created: !!newChore
+                    };
+                    
+                    if (createError) {
+                        log(`✅ 他人のIDでの家事作成が正しく拒否されました: ${createError.message}`);
+                    } else {
+                        log(`❌ 他人のIDでの家事作成が許可されてしまいました`);
+                    }
+                } catch (error) {
+                    results.unauthorizedCreate = {
+                        success: false,
+                        error: error.message
+                    };
+                    log(`✅ 他人のIDでの家事作成でエラー: ${error.message}`);
+                }
+                
+                // 3. 存在する自分の家事を他人のIDに変更試行
+                log('🔄 家事のowner_id変更を試行しています...');
+                try {
+                    const { data: updatedChore, error: updateError } = await supabaseClient
+                        .from('chores')
+                        .update({ owner_id: fakeUserId })
+                        .eq('id', testChoreId)
+                        .select();
+                    
+                    results.unauthorizedUpdate = {
+                        success: !updateError,
+                        error: updateError?.message,
+                        updated: !!updatedChore
+                    };
+                    
+                    if (updateError) {
+                        log(`✅ owner_id変更が正しく拒否されました: ${updateError.message}`);
+                    } else {
+                        log(`❌ owner_id変更が許可されてしまいました`);
+                    }
+                } catch (error) {
+                    results.unauthorizedUpdate = {
+                        success: false,
+                        error: error.message
+                    };
+                    log(`✅ owner_id変更でエラー: ${error.message}`);
+                }
+                
+                // 結果の評価
+                const isSecure = 
+                    !results.unauthorizedRead.success &&
+                    !results.unauthorizedCreate.success &&
+                    !results.unauthorizedUpdate.success;
+                
+                if (isSecure) {
+                    log('🎉 RLSが正しく動作しています！');
+                    showResult('unauthorizedResult', true, 
+                        'RLS正常動作: 不正アクセスがすべて拒否されました'
+                    );
+                    updateStatus('step4Status', 'success', '完了');
+                } else {
+                    log('⚠️ RLSに問題があります');
+                    showResult('unauthorizedResult', false, 
+                        'RLS問題: 一部の不正アクセスが許可されています'
+                    );
+                    updateStatus('step4Status', 'error', 'エラー');
+                }
+                
+            } catch (error) {
+                log(`❌ 不正アクセステストエラー: ${error.message}`);
+                showResult('unauthorizedResult', false, `テストエラー: ${error.message}`);
+                updateStatus('step4Status', 'error', 'エラー');
+            }
+    }
+        
+        function resetTest() {
+            log('🔄 テストをリセットします...');
+            
+            // 状態をリセット
+            currentUser = null;
+            testChoreId = null;
+            
+            // UI をリセット
+            updateStatus('step1Status', 'pending', '待機中');
+            updateStatus('step2Status', 'pending', '待機中');
+            updateStatus('step3Status', 'pending', '待機中');
+            updateStatus('step4Status', 'pending', '待機中');
+            
+            document.getElementById('startButton').disabled = false;
+            document.getElementById('checkAuthButton').disabled = false;
+            document.getElementById('testReadButton').disabled = true;
+            document.getElementById('testWriteButton').disabled = true;
+            document.getElementById('testUnauthorizedButton').disabled = true;
+            
+            // 結果をクリア
+            document.getElementById('authResult').innerHTML = '';
+            document.getElementById('readResult').innerHTML = '';
+            document.getElementById('writeResult').innerHTML = '';
+            document.getElementById('unauthorizedResult').innerHTML = '';
+            
+            // ログをクリア
+            document.getElementById('testLog').innerHTML = `
+                <div>🔒 RLSポリシーテストログ</div>
+                <div>テスト開始を待機中...</div>
+            `;
+            
+            log('✅ テストリセット完了');
+        }
+    </script>
+</body>
+</html>

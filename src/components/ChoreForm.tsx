@@ -83,6 +83,7 @@ export function ChoreForm({ onAdd, partnerId, isAdding }: ChoreFormProps) {
           </label>
           <input
             id="chore-title"
+            data-testid="chore-input"
             type="text"
             value={newChoreTitle}
             onChange={handleInputChange}
@@ -133,6 +134,7 @@ export function ChoreForm({ onAdd, partnerId, isAdding }: ChoreFormProps) {
         {/* 送信ボタン */}
         <button
           type="submit"
+          data-testid="add-chore-button"
           disabled={isAdding || !newChoreTitle.trim()}
           className={`
             w-full py-2 px-4 rounded-lg font-medium transition-all duration-200

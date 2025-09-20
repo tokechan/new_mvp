@@ -252,7 +252,7 @@ describe('useAuthState', () => {
       })
 
       expect(result.current.user).toEqual(expect.objectContaining({
-        id: 'test-user-id',
+        id: '550e8400-e29b-41d4-a716-446655440000',
         email: 'test@example.com'
       }))
       expect(result.current.session).toEqual(expect.objectContaining({
@@ -279,7 +279,7 @@ describe('useAuthState', () => {
       })
 
       expect(result.current.user).toEqual(expect.objectContaining({
-        id: 'test-user-id',
+        id: '550e8400-e29b-41d4-a716-446655440000',
         email: 'test@example.com'
       }))
       expect(result.current.session).toEqual(expect.objectContaining({

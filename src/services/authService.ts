@@ -78,6 +78,27 @@ export class AuthService {
    */
   async getSession() {
     const { data: { session } } = await this.supabase.auth.getSession()
+    
+    // テスト環境で認証がない場合、自動ログインを試行
+    if (!session && (process.env.NODE_ENV === 'test' || process.env.NEXT_PUBLIC_SKIP_AUTH === 'true')) {
+      console.log('テスト環境: 自動ログインを試行します')
+      try {
+        const { data, error } = await this.supabase.auth.signInWithPassword({
+          email: 'test@example.com',
+          password: 'testpassword123'
+        })
+        
+        if (error) {
+          console.warn('テスト用自動ログイン失敗:', error.message)
+        } else {
+          console.log('テスト用自動ログイン成功')
+          return data.session
+        }
+      } catch (err) {
+        console.warn('テスト用自動ログイン例外:', err)
+      }
+    }
+    
     return session
   }
 

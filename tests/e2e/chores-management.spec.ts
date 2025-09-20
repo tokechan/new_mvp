@@ -14,10 +14,23 @@ test.describe('家事管理機能', () => {
     // ホームページにアクセス
     await page.goto('/');
     
-    // 認証が必要な場合は、サインインページにリダイレクトされる
-    // 現在は認証をスキップしてテストを実行
-    // TODO: 実際の認証フローが完成したら、ここでログイン処理を追加
-  });
+    // ページが完全に読み込まれるまで待機
+    await page.waitForLoadState('networkidle');
+    
+    // 認証状態を確認し、必要に応じてログイン
+    const isSignInPage = await page.locator('text=サインイン').isVisible();
+    if (isSignInPage) {
+      // テスト用のメールアドレスでログイン
+      await page.fill('input[type="email"]', 'test@example.com');
+      await page.click('button:has-text("サインイン")');
+      
+      // ログイン後のページ読み込みを待機
+      await page.waitForLoadState('networkidle');
+    }
+    
+    // 家事一覧ページが表示されるまで待機
+     await expect(page.locator('h2:has-text("家事一覧")')).toBeVisible({ timeout: 10000 });
+   });
 
   /**
    * テスト1: 家事の追加と表示
