@@ -43,12 +43,7 @@ const config = {
     '<rootDir>/.next/',
     '<rootDir>/node_modules/',
     '<rootDir>/tests/e2e/' // E2Eテストは除外
-  ],
-  
-  // モック設定
-  moduleNameMapping: {
-    '^@/(.*)$': '<rootDir>/src/$1'
-  }
+  ]
 }
 
 // Next.jsの設定を適用してエクスポート

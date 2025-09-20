@@ -13,6 +13,11 @@ export const supabase = createBrowserClient(supabaseUrl, supabaseAnonKey, {
   }
 })
 
+// デバッグ用にグローバルに公開
+if (typeof window !== 'undefined') {
+  (window as any).supabase = supabase
+}
+
 // 互換性維持のためのヘルパー（常に同じインスタンスを返す）
 export const createSupabaseBrowserClient = () => {
   return supabase

@@ -2,6 +2,7 @@ import { renderHook, act, waitFor } from '@testing-library/react'
 import { useAuthActions } from '../useAuthActions'
 import { authService } from '@/services/authService'
 import { profileService } from '@/services/profileService'
+import { AuthError } from '@supabase/supabase-js'
 
 // authServiceのモック
 jest.mock('@/services/authService', () => ({
@@ -342,7 +343,7 @@ describe('useAuthActions', () => {
      * エラークリア機能
      */
     it('should clear error state', async () => {
-      const mockError = { message: 'Test error' }
+      const mockError = new AuthError('Test error', 400, 'test_error')
       const mockResult = { error: mockError }
       mockAuthService.signIn.mockResolvedValue(mockResult)
 

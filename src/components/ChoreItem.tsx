@@ -98,17 +98,21 @@ export function ChoreItem({ chore, onToggle, onDelete, currentUserId }: ChoreIte
   }
 
   return (
-    <div className={`
-      p-4 border rounded-lg transition-all duration-200
-      ${chore.done 
-        ? 'bg-green-50 border-green-200 text-green-800' 
-        : 'bg-white border-gray-200 hover:border-gray-300'
-      }
-    `}>
+    <div 
+      data-testid="chore-item"
+      data-chore-id={chore.id}
+      className={`
+        p-4 border rounded-lg transition-all duration-200
+        ${chore.done 
+          ? 'bg-green-50 border-green-200 text-green-800' 
+          : 'bg-white border-gray-200 hover:border-gray-300'
+        }
+      `}>
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-3 flex-1">
           {/* 完了チェックボックス */}
           <button
+            data-testid="toggle-chore-button"
             onClick={handleToggle}
             disabled={isToggling}
             className={`
@@ -155,6 +159,7 @@ export function ChoreItem({ chore, onToggle, onDelete, currentUserId }: ChoreIte
 
         {/* 削除ボタン */}
         <button
+          data-testid="delete-chore-button"
           onClick={handleDelete}
           disabled={isDeleting}
           className={`
