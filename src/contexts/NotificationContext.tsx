@@ -38,9 +38,18 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
 
   // 新しい通知を追加する関数
   const addNotification = useCallback((notification: Omit<Notification, 'id' | 'timestamp' | 'read'>) => {
+    // より安全なUUID生成（crypto.randomUUIDが利用できない場合の代替）
+    const generateId = () => {
+      if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+        return crypto.randomUUID()
+      }
+      // フォールバック: 簡易的なランダムID生成
+      return 'notification-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9)
+    }
+    
     const newNotification: Notification = {
       ...notification,
-      id: crypto.randomUUID(),
+      id: generateId(),
       timestamp: new Date(),
       read: false,
     }

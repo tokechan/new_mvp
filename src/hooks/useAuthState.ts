@@ -36,11 +36,19 @@ export function useAuthState() {
         token_type: 'bearer',
       } as Session
       
-      // テスト用プロフィールを作成
+      // テスト用プロフィールを作成し、Supabaseクライアントにセッションを設定
       const createTestProfile = async () => {
         try {
-          const { createSupabaseBrowserClient } = await import('@/lib/supabase')
-          const supabase = createSupabaseBrowserClient()
+          const { supabase } = await import('@/lib/supabase')
+          
+          // テスト環境では認証セッションを設定
+          await supabase.auth.setSession({
+            access_token: mockSession.access_token,
+            refresh_token: mockSession.refresh_token
+          })
+          
+          // 少し待機してセッションが設定されるのを待つ
+          await new Promise(resolve => setTimeout(resolve, 100))
           
           // プロフィールが存在するかチェック
           const { data: existingProfile } = await supabase
@@ -50,12 +58,19 @@ export function useAuthState() {
             .single()
           
           if (!existingProfile) {
-            await supabase.from('profiles').insert({
+            const { error } = await supabase.from('profiles').insert({
               id: mockUser.id,
               display_name: 'テストユーザー',
             })
-            console.log('テスト用プロフィールを作成しました')
+            
+            if (error) {
+              console.error('プロフィール作成エラー:', error)
+            } else {
+              console.log('テスト用プロフィールを作成しました')
+            }
           }
+          
+          console.log('テスト用セッションをSupabaseクライアントに設定しました')
         } catch (error) {
           console.warn('テスト用プロフィール作成に失敗:', error)
         }
