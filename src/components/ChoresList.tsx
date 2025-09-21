@@ -9,6 +9,7 @@ import ThankYouMessage from './ThankYouMessage'
 import PartnerInvitation from './PartnerInvitation'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
+import { Skeleton } from '@/components/ui/skeleton'
 import { useScreenReader, useFocusManagement } from '@/hooks/useScreenReader'
 import { useKeyboardNavigation } from '@/hooks/useKeyboardNavigation'
 
@@ -741,8 +742,7 @@ export default function ChoresList() {
                  // handleReconnect関数が定義されていれば呼び出し
                  handleReconnect && handleReconnect()
                }}
-               variant="primary"
-               size="sm"
+               variant="default"
              >
                再接続を試みる
              </Button>
@@ -827,19 +827,34 @@ export default function ChoresList() {
             className="flex-1"
           />
           <Button
-            type="submit"
-            disabled={isAdding || !newChore.trim()}
-            loading={isAdding}
-            variant="primary"
-            size="md"
-          >
+              type="submit"
+              disabled={isAdding || !newChore.trim()}
+              variant="default"
+            >
             追加
           </Button>
         </div>
       </form>
 
       {/* 家事一覧 */}
-      {chores.length === 0 ? (
+      {loading ? (
+        <div className="space-y-4" role="status" aria-live="polite" aria-label="家事データを読み込み中">
+          {[...Array(3)].map((_, index) => (
+            <div key={index} className="p-4 border rounded-lg bg-white border-gray-200 dark:bg-zinc-900 dark:border-zinc-700">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <Skeleton className="w-6 h-6 rounded-full" />
+                  <div className="flex-1">
+                    <Skeleton className="h-5 w-32 mb-2" />
+                    <Skeleton className="h-4 w-24" />
+                  </div>
+                </div>
+                <Skeleton className="w-8 h-8 rounded" />
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : chores.length === 0 ? (
         <div className="text-center py-8 text-gray-500" role="status" aria-live="polite">
           まだ家事が登録されていません。<br />
           上のフォームから家事を追加してみましょう！
