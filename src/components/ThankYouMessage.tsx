@@ -3,7 +3,7 @@
 import React, { useState } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useNotifications } from '@/contexts/NotificationContext'
-import { sendThankYou, PREDEFINED_MESSAGES } from '@/services/thankYouService'
+import { sendThankYou, PREDEFINED_THANK_YOU_MESSAGES } from '@/services/thankYouService'
 import type { ThankYouMessage as ThankYouMessageType } from '@/services/thankYouService'
 
 interface ThankYouMessageProps {
@@ -107,7 +107,7 @@ export default function ThankYouMessage({
             定型メッセージから選択
           </legend>
           <div className="grid grid-cols-1 gap-2">
-            {PREDEFINED_MESSAGES.map((predefinedMessage, index) => (
+            {PREDEFINED_THANK_YOU_MESSAGES.map((predefinedMessage, index) => (
               <button
                 key={index}
                 type="button"
