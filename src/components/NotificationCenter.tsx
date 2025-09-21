@@ -145,6 +145,15 @@ export default function NotificationCenter() {
                   key={notification.id}
                   className={`p-4 border-b border-gray-100 cursor-pointer hover:bg-gray-50 ${getNotificationBgColor(notification.type, notification.read)}`}
                   onClick={() => handleNotificationClick(notification)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault()
+                      handleNotificationClick(notification)
+                    }
+                  }}
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`通知: ${notification.title}`}
                 >
                   <div className="flex items-start space-x-3">
                     {/* 通知タイプアイコン */}
@@ -217,6 +226,14 @@ export default function NotificationCenter() {
         <div
           className="fixed inset-0 z-40"
           onClick={() => setIsOpen(false)}
+          onKeyDown={(e) => {
+            if (e.key === 'Escape') {
+              setIsOpen(false)
+            }
+          }}
+          role="button"
+          tabIndex={0}
+          aria-label="通知パネルを閉じる"
         />
       )}
     </div>

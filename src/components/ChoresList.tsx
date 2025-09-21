@@ -1,12 +1,16 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useNotifications } from '@/contexts/NotificationContext'
 import { supabase } from '@/lib/supabase'
 import { Database } from '@/lib/supabase'
 import ThankYouMessage from './ThankYouMessage'
 import PartnerInvitation from './PartnerInvitation'
+import { Button } from '@/components/ui/Button'
+import { Input } from '@/components/ui/Input'
+import { useScreenReader, useFocusManagement } from '@/hooks/useScreenReader'
+import { useKeyboardNavigation } from '@/hooks/useKeyboardNavigation'
 
 // 統合された型定義（両方の機能をサポート）
 type Chore = Database['public']['Tables']['chores']['Row']
@@ -23,6 +27,21 @@ interface ExtendedChore extends Chore {
 export default function ChoresList() {
   const { user } = useAuth()
   const { addNotification } = useNotifications()
+  
+  // アクセシビリティ機能
+  const { announce, announceSuccess, announceError, announceFormError } = useScreenReader()
+  const { saveFocus, restoreFocus, focusFirstElement } = useFocusManagement()
+  const choreListRef = useKeyboardNavigation({
+    enabled: true,
+    loop: true,
+    onFocusChange: (element, index) => {
+      // フォーカス変更時の処理
+      const choreName = element.getAttribute('data-chore-name')
+      if (choreName) {
+        announce(`${choreName}にフォーカスしました`)
+      }
+    }
+  })
   const [chores, setChores] = useState<ExtendedChore[]>([])
   const [loading, setLoading] = useState(true)
   const [newChore, setNewChore] = useState('')
@@ -55,7 +74,7 @@ export default function ChoresList() {
   const [showRealtimeDetails, setShowRealtimeDetails] = useState(false)
 
   // 家事一覧を取得（完了記録も含む）
-  const fetchChores = async () => {
+  const fetchChores = useCallback(async () => {
     if (!user) return
 
     try {
@@ -81,7 +100,7 @@ export default function ChoresList() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [user])
 
 
 
@@ -89,7 +108,7 @@ export default function ChoresList() {
    * パートナー情報を取得する
    * - RLSポリシー修正後の簡素化版
    */
-  const fetchPartnerInfo = async (retryCount = 0) => {
+  const fetchPartnerInfo = useCallback(async (retryCount = 0) => {
     if (!user) {
       console.log('👤 ユーザーが未ログインのため、パートナー情報取得をスキップ')
       return
@@ -155,7 +174,7 @@ export default function ChoresList() {
     }
     
     console.log('🏁 パートナー情報取得完了')
-  }
+  }, [user])
 
   // リアルタイム接続の手動再接続
   const [reconnectTrigger, setReconnectTrigger] = useState(0)
@@ -257,8 +276,12 @@ export default function ChoresList() {
       setChores(prev => [data as ExtendedChore, ...prev])
       setNewChore('')
       
+      // スクリーンリーダーに成功を通知
+      announceSuccess(`家事「${data.title}」を追加しました`)
+      
     } catch (error: any) {
       console.error('💥 Error:', error)
+      announceError(`家事の追加に失敗しました: ${error.message}`)
       alert(`エラーが発生しました: ${error.message}`)
     } finally {
       setIsAdding(false)
@@ -292,9 +315,17 @@ export default function ChoresList() {
         )
       )
       console.log('✅ Chore toggled:', choreId)
+      
+      // スクリーンリーダーに状態変更を通知
+      const chore = chores.find(c => c.id === choreId)
+      if (chore) {
+        const status = !currentDone ? '完了' : '未完了'
+        announceSuccess(`家事「${chore.title}」を${status}にしました`)
+      }
 
     } catch (error: any) {
       console.error('💥 Error:', error)
+      announceError(`家事の状態更新に失敗しました: ${error.message}`)
       alert(`エラーが発生しました: ${error.message}`)
     }
   }
@@ -315,11 +346,19 @@ export default function ChoresList() {
         return
       }
 
+      // 削除前に家事名を取得
+      const deletedChore = chores.find(c => c.id === choreId)
       setChores(prev => prev.filter(chore => chore.id !== choreId))
       console.log('✅ Chore deleted:', choreId)
+      
+      // スクリーンリーダーに削除を通知
+      if (deletedChore) {
+        announceSuccess(`家事「${deletedChore.title}」を削除しました`)
+      }
 
     } catch (error: any) {
       console.error('💥 Error:', error)
+      announceError(`家事の削除に失敗しました: ${error.message}`)
       alert(`エラーが発生しました: ${error.message}`)
     }
   }
@@ -327,11 +366,11 @@ export default function ChoresList() {
   // 家事の完了状態を切り替え
 
   /**
-   * 効fficientなリアルタイム更新処理
+   * 家事データの変更処理
    * - 全データ再取得ではなく、増分更新を実装
    * - パフォーマンスを向上させ、ネットワーク負荷を軽減
    */
-  const handleChoreChange = (payload: any) => {
+  const handleChoreChange = useCallback((payload: any) => {
     const { eventType, new: newRecord, old: oldRecord } = payload
     
     console.log('🔄 handleChoreChange called:', {
@@ -386,13 +425,13 @@ export default function ChoresList() {
           return prev
       }
     })
-  }
+  }, [])
 
   /**
    * 完了記録の変更処理
    * - 完了記録が変更された場合、関連する家事データを再取得
    */
-  const handleCompletionChange = async (payload: any) => {
+  const handleCompletionChange = useCallback(async (payload: any) => {
     const { eventType, new: newRecord, old: oldRecord } = payload
     
     setRealtimeEvents(prev => ({
@@ -433,7 +472,7 @@ export default function ChoresList() {
         console.error('完了記録変更後の家事データ更新に失敗:', error)
       }
     }
-  }
+  }, [])
 
   /**
    * 初期データ取得＋Supabase Realtime購読を設定する。
@@ -615,7 +654,7 @@ export default function ChoresList() {
       console.log('🧹 Cleaning up Realtime subscription')
       supabase.removeChannel(channel)
     }
-  }, [user?.id, reconnectTrigger])
+  }, [user?.id, user, reconnectTrigger, fetchChores, fetchPartnerInfo, handleChoreChange, handleCompletionChange])
 
   if (loading) {
     return (
@@ -696,17 +735,18 @@ export default function ChoresList() {
            )}
            
            <div className="flex gap-2 mt-2">
-             <button 
+             <Button 
                onClick={() => {
                  console.log('🔄 手動再接続を試行')
                  // handleReconnect関数が定義されていれば呼び出し
                  handleReconnect && handleReconnect()
                }}
-               className="px-3 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600"
+               variant="primary"
+               size="sm"
              >
                再接続を試みる
-             </button>
-             <button 
+             </Button>
+             <Button 
                onClick={() => {
                  console.log('🔔 テスト通知を送信')
                  addNotification({
@@ -716,16 +756,18 @@ export default function ChoresList() {
                    userId: user?.id
                  })
                }}
-               className="px-3 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600"
+               variant="secondary"
+               size="sm"
              >
                テスト通知
-             </button>
-             <button 
+             </Button>
+             <Button 
                onClick={() => setRealtimeEvents(prev => ({...prev, inserts: 0, updates: 0, deletes: 0}))}
-               className="px-3 py-1 bg-gray-500 text-white text-xs rounded hover:bg-gray-600"
+               variant="ghost"
+               size="sm"
              >
                カウンターリセット
-             </button>
+             </Button>
            </div>
          </div>
       </div>
@@ -775,33 +817,39 @@ export default function ChoresList() {
       {/* 家事追加フォーム */}
       <form onSubmit={(e) => addChore(e)} className="mb-6">
         <div className="flex gap-2">
-          <input
+          <Input
             type="text"
             value={newChore}
             onChange={(e) => setNewChore(e.target.value)}
             placeholder="新しい家事を入力..."
             aria-label="新しい家事"
-            className="flex-1 px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 border border-gray-300 bg-white text-gray-900 placeholder-gray-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:placeholder-zinc-400"
             disabled={isAdding}
+            className="flex-1"
           />
-          <button
+          <Button
             type="submit"
             disabled={isAdding || !newChore.trim()}
-            className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
+            loading={isAdding}
+            variant="primary"
+            size="md"
           >
-            {isAdding ? '追加中...' : '追加'}
-          </button>
+            追加
+          </Button>
         </div>
       </form>
 
       {/* 家事一覧 */}
       {chores.length === 0 ? (
-        <div className="text-center py-8 text-gray-500">
+        <div className="text-center py-8 text-gray-500" role="status" aria-live="polite">
           まだ家事が登録されていません。<br />
           上のフォームから家事を追加してみましょう！
         </div>
       ) : (
-        <div className="space-y-4">
+        <div 
+          className="space-y-4" 
+          role="list" 
+          aria-label="家事一覧"
+        >
           {chores.map((chore) => {
             const isCompleted = chore.done
             const latestCompletion = chore.completions?.[0]
@@ -817,6 +865,9 @@ export default function ChoresList() {
                     ? 'bg-green-50 border-green-200'
                     : 'bg-white border-gray-200 dark:bg-zinc-900 dark:border-zinc-700'
                 }`}
+                role="listitem"
+                data-chore-name={chore.title}
+                aria-label={`家事: ${chore.title}, ${isCompleted ? '完了済み' : '未完了'}, ${chore.owner_id === user?.id ? '自分が作成' : 'パートナーが作成'}`}
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
@@ -827,6 +878,9 @@ export default function ChoresList() {
                           ? 'bg-green-500 border-green-500 text-white'
                           : 'border-gray-300 hover:border-green-500 dark:border-zinc-600'
                       }`}
+                      aria-label={`${chore.title}を${isCompleted ? '未完了' : '完了'}にする`}
+                      aria-checked={isCompleted ? 'true' : 'false'}
+                      role="switch"
                     >
                       {isCompleted && (
                         <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
@@ -852,19 +906,25 @@ export default function ChoresList() {
                   <div className="flex items-center gap-2">
                     {/* ありがとうボタン（完了済みで自分以外が完了した場合のみ表示） */}
                     {isCompleted && latestCompletion && latestCompletion.user_id !== user?.id && !hasThankYou && (
-                      <button
+                      <Button
                         onClick={() => setShowThankYou(chore.id)}
-                        className="px-3 py-1 text-pink-600 hover:bg-pink-50 rounded transition-colors dark:hover:bg-pink-950/30"
+                        variant="ghost"
+                        size="sm"
+                        className="text-pink-600 hover:bg-pink-50 dark:hover:bg-pink-950/30"
+                        aria-label={`${chore.title}の完了にありがとうメッセージを送る`}
                       >
                         ありがとう
-                      </button>
+                      </Button>
                     )}
-                    <button
+                    <Button
                       onClick={() => deleteChore(chore.id)}
-                      className="px-3 py-1 text-red-600 hover:bg-red-50 rounded transition-colors dark:hover:bg-red-950/30"
+                      variant="ghost"
+                      size="sm"
+                      className="text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30"
+                      aria-label={`家事「${chore.title}」を削除する`}
                     >
                       削除
-                    </button>
+                    </Button>
                   </div>
                 </div>
 

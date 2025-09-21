@@ -1,0 +1,476 @@
+/**
+ * レスポンシブデザイン用のCSSユーティリティ
+ * モバイルファーストアプローチ
+ */
+
+/* ==========================================================================
+   レスポンシブコンテナ
+   ========================================================================== */
+
+.container-responsive {
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+/* タブレット以上 */
+@media (min-width: 768px) {
+  .container-responsive {
+    max-width: 768px;
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
+}
+
+/* デスクトップ以上 */
+@media (min-width: 1024px) {
+  .container-responsive {
+    max-width: 1024px;
+  }
+}
+
+/* 大画面デスクトップ以上 */
+@media (min-width: 1280px) {
+  .container-responsive {
+    max-width: 1200px;
+  }
+}
+
+/* ==========================================================================
+   レスポンシブグリッド
+   ========================================================================== */
+
+.grid-responsive {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: 1fr;
+}
+
+/* タブレット以上: 2カラム */
+@media (min-width: 768px) {
+  .grid-responsive {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+  }
+}
+
+/* デスクトップ以上: 3カラム */
+@media (min-width: 1024px) {
+  .grid-responsive {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+  }
+}
+
+/* フォーム用グリッド */
+.form-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 768px) {
+  .form-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+  }
+}
+
+.form-grid .full-width {
+  grid-column: 1 / -1;
+}
+
+/* ==========================================================================
+   レスポンシブタイポグラフィ
+   ========================================================================== */
+
+.text-responsive-xs {
+  font-size: 0.75rem;
+  line-height: 1rem;
+}
+
+.text-responsive-sm {
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+}
+
+.text-responsive-base {
+  font-size: 1rem;
+  line-height: 1.5rem;
+}
+
+.text-responsive-lg {
+  font-size: 1.125rem;
+  line-height: 1.75rem;
+}
+
+.text-responsive-xl {
+  font-size: 1.25rem;
+  line-height: 1.75rem;
+}
+
+.text-responsive-2xl {
+  font-size: 1.5rem;
+  line-height: 2rem;
+}
+
+.text-responsive-3xl {
+  font-size: 1.875rem;
+  line-height: 2.25rem;
+}
+
+/* タブレット以上でのタイポグラフィ調整 */
+@media (min-width: 768px) {
+  .text-responsive-lg {
+    font-size: 1.25rem;
+    line-height: 1.75rem;
+  }
+  
+  .text-responsive-xl {
+    font-size: 1.5rem;
+    line-height: 2rem;
+  }
+  
+  .text-responsive-2xl {
+    font-size: 1.875rem;
+    line-height: 2.25rem;
+  }
+  
+  .text-responsive-3xl {
+    font-size: 2.25rem;
+    line-height: 2.5rem;
+  }
+}
+
+/* デスクトップ以上でのタイポグラフィ調整 */
+@media (min-width: 1024px) {
+  .text-responsive-2xl {
+    font-size: 2rem;
+    line-height: 2.5rem;
+  }
+  
+  .text-responsive-3xl {
+    font-size: 2.5rem;
+    line-height: 3rem;
+  }
+}
+
+/* ==========================================================================
+   レスポンシブスペーシング
+   ========================================================================== */
+
+.spacing-responsive-xs {
+  padding: 0.5rem;
+}
+
+.spacing-responsive-sm {
+  padding: 0.75rem;
+}
+
+.spacing-responsive-md {
+  padding: 1rem;
+}
+
+.spacing-responsive-lg {
+  padding: 1.5rem;
+}
+
+.spacing-responsive-xl {
+  padding: 2rem;
+}
+
+/* タブレット以上でのスペーシング調整 */
+@media (min-width: 768px) {
+  .spacing-responsive-md {
+    padding: 1.5rem;
+  }
+  
+  .spacing-responsive-lg {
+    padding: 2rem;
+  }
+  
+  .spacing-responsive-xl {
+    padding: 3rem;
+  }
+}
+
+/* デスクトップ以上でのスペーシング調整 */
+@media (min-width: 1024px) {
+  .spacing-responsive-lg {
+    padding: 2.5rem;
+  }
+  
+  .spacing-responsive-xl {
+    padding: 4rem;
+  }
+}
+
+/* ==========================================================================
+   レスポンシブ表示/非表示
+   ========================================================================== */
+
+/* モバイルのみ表示 */
+.show-mobile {
+  display: block;
+}
+
+@media (min-width: 768px) {
+  .show-mobile {
+    display: none;
+  }
+}
+
+/* タブレット以上で表示 */
+.show-tablet {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .show-tablet {
+    display: block;
+  }
+}
+
+/* デスクトップ以上で表示 */
+.show-desktop {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .show-desktop {
+    display: block;
+  }
+}
+
+/* モバイルで非表示 */
+.hide-mobile {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .hide-mobile {
+    display: block;
+  }
+}
+
+/* ==========================================================================
+   レスポンシブフレックスボックス
+   ========================================================================== */
+
+.flex-responsive {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+@media (min-width: 768px) {
+  .flex-responsive {
+    flex-direction: row;
+    gap: 1.5rem;
+  }
+}
+
+.flex-responsive-reverse {
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 1rem;
+}
+
+@media (min-width: 768px) {
+  .flex-responsive-reverse {
+    flex-direction: row-reverse;
+    gap: 1.5rem;
+  }
+}
+
+/* ==========================================================================
+   レスポンシブカード
+   ========================================================================== */
+
+.card-responsive {
+  background: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+@media (min-width: 768px) {
+  .card-responsive {
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .card-responsive {
+    padding: 2rem;
+    margin-bottom: 2rem;
+  }
+}
+
+/* ==========================================================================
+   レスポンシブナビゲーション
+   ========================================================================== */
+
+.nav-responsive {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+@media (min-width: 768px) {
+  .nav-responsive {
+    flex-direction: row;
+    gap: 2rem;
+  }
+}
+
+.nav-responsive a {
+  padding: 0.75rem 1rem;
+  text-decoration: none;
+  border-radius: 0.375rem;
+  transition: background-color 0.2s ease-in-out;
+}
+
+.nav-responsive a:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+@media (min-width: 768px) {
+  .nav-responsive a {
+    padding: 0.5rem 1rem;
+  }
+}
+
+/* ==========================================================================
+   レスポンシブフォーム
+   ========================================================================== */
+
+.form-responsive {
+  width: 100%;
+}
+
+.form-responsive .form-group {
+  margin-bottom: 1rem;
+}
+
+@media (min-width: 768px) {
+  .form-responsive .form-group {
+    margin-bottom: 1.5rem;
+  }
+}
+
+.form-responsive .form-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .form-responsive .form-actions {
+    flex-direction: row;
+    justify-content: flex-end;
+    gap: 1rem;
+  }
+}
+
+/* ==========================================================================
+   レスポンシブモーダル
+   ========================================================================== */
+
+.modal-responsive {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.modal-responsive .modal-content {
+  background: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  width: 100%;
+  max-width: 28rem;
+  max-height: calc(100vh - 2rem);
+  overflow-y: auto;
+  padding: 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .modal-responsive .modal-content {
+    max-width: 32rem;
+    padding: 2rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .modal-responsive .modal-content {
+    max-width: 42rem;
+  }
+}
+
+/* ==========================================================================
+   レスポンシブテーブル
+   ========================================================================== */
+
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.table-responsive table {
+  width: 100%;
+  min-width: 600px;
+  border-collapse: collapse;
+}
+
+.table-responsive th,
+.table-responsive td {
+  padding: 0.75rem;
+  text-align: left;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+@media (min-width: 768px) {
+  .table-responsive th,
+  .table-responsive td {
+    padding: 1rem;
+  }
+}
+
+/* ==========================================================================
+   アクセシビリティ対応
+   ========================================================================== */
+
+/* 高コントラストモード対応 */
+@media (prefers-contrast: high) {
+  .card-responsive {
+    border: 2px solid #000;
+  }
+  
+  .nav-responsive a:hover {
+    background-color: rgba(0, 0, 0, 0.2);
+  }
+}
+
+/* 動きを減らす設定 */
+@media (prefers-reduced-motion: reduce) {
+  .nav-responsive a {
+    transition: none;
+  }
+}
+
+/* フォーカス表示の改善 */
+@media (prefers-reduced-motion: no-preference) {
+  .nav-responsive a:focus {
+    outline: 2px solid #3b82f6;
+    outline-offset: 2px;
+  }
+}

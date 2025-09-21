@@ -3,7 +3,8 @@
 // パートナー招待コンポーネント
 // 作成日: 2025-09-07
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
+import Image from 'next/image'
 import { useAuth } from '@/contexts/AuthContext'
 import { 
   createInvitation,
@@ -34,7 +35,7 @@ export default function PartnerInvitation({ onPartnerLinked }: PartnerInvitation
   const [inviteeEmail, setInviteeEmail] = useState('')
 
   // 招待一覧を取得
-  const fetchInvitations = async () => {
+  const fetchInvitations = useCallback(async () => {
     if (!user) return
     
     try {
@@ -56,7 +57,7 @@ export default function PartnerInvitation({ onPartnerLinked }: PartnerInvitation
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [user])
 
   // 招待リンク生成
   const handleCreateInvitation = async () => {
@@ -106,7 +107,7 @@ export default function PartnerInvitation({ onPartnerLinked }: PartnerInvitation
   // 初期データ取得
   useEffect(() => {
     fetchInvitations()
-  }, [user])
+  }, [user, fetchInvitations])
 
   if (!user) {
     return null
@@ -172,7 +173,7 @@ export default function PartnerInvitation({ onPartnerLinked }: PartnerInvitation
               
               {showQR && (
                 <div className="mt-3 text-center">
-                  <img
+                  <Image
                     src={generateQRCodeUrl(`${window.location.origin}/invite/${currentInvitation.invite_code}`)}
                     alt="招待QRコード"
                     className="mx-auto border border-gray-200 rounded"

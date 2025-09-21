@@ -339,7 +339,7 @@ export function useChores() {
       console.log('🧹 Cleaning up Realtime subscription for user:', user.id)
       supabase.removeChannel(channel)
     }
-  }, [user?.id, fetchChores])
+  }, [user?.id, user, fetchChores])
 
   return {
     chores,
