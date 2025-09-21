@@ -665,14 +665,14 @@ export default function ChoresList() {
 
   if (loading) {
     return (
-      <div className="max-w-2xl mx-auto p-6">
+      <div className="max-w-2xl mx-auto p-6 sm:px-6 px-2">
         <div className="text-center">読み込み中...</div>
       </div>
     )
   }
 
   return (
-    <div className="max-w-2xl mx-auto p-6">
+    <div className="max-w-2xl mx-auto p-6 sm:px-6 px-2">
       <h2 className="text-2xl font-bold mb-6">家事一覧</h2>
 
       {/* デバッグ・管理機能 */}

@@ -5,17 +5,21 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { useAuth } from '@/contexts/AuthContext'
 import { Button } from '@/components/ui/Button'
-import { Input } from '@/components/ui/Input'
+import { ValidatedInput } from '@/components/ui/ValidatedInput'
+import { useFormValidation, validationRules } from '@/hooks/useFormValidation'
 
 /**
  * サインインページ
  * メール認証とGoogle認証に対応
  */
 function SignInContent() {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [localError, setLocalError] = useState('')
+  
+  const { formState, updateField, touchField, validateAll, resetForm } = useFormValidation({
+    email: '',
+    password: ''
+  })
   const router = useRouter()
   const searchParams = useSearchParams()
   const { signIn, signInWithGoogle, error: authError, clearError } = useAuth()
@@ -43,16 +47,46 @@ function SignInContent() {
     setLoading(true)
     clearAllErrors()
 
+    // バリデーション実行
+    const validationErrors = validateAll({
+      email: validationRules.email,
+      password: validationRules.password
+    })
+
+    if (Object.values(validationErrors).some(error => error)) {
+      setLoading(false)
+      return
+    }
+
     try {
-      const { error } = await signIn(email, password)
+      const { error } = await signIn(formState.email.value, formState.password.value)
       
       if (error) {
-        setLocalError(error.message || 'サインインに失敗しました')
+        // エラーメッセージをより具体的に表示
+        let errorMessage = 'サインインに失敗しました'
+        
+        if (error.message) {
+          // Supabaseの認証エラーメッセージを日本語に変換
+          if (error.message.includes('Invalid login credentials') || 
+              error.message.includes('invalid_credentials') ||
+              error.message.includes('Email not confirmed') ||
+              error.message.includes('Invalid email or password')) {
+            errorMessage = 'メールアドレスまたはパスワードが正しくありません。入力内容をご確認ください。'
+          } else if (error.message.includes('Email not confirmed')) {
+            errorMessage = 'メールアドレスの確認が完了していません。送信されたメールをご確認ください。'
+          } else if (error.message.includes('Too many requests')) {
+            errorMessage = 'ログイン試行回数が上限に達しました。しばらく時間をおいてから再度お試しください。'
+          } else {
+            errorMessage = `サインインに失敗しました: ${error.message}`
+          }
+        }
+        
+        setLocalError(errorMessage)
       } else {
         router.push('/')
       }
     } catch (err) {
-      setLocalError('予期しないエラーが発生しました')
+      setLocalError('予期しないエラーが発生しました。ネットワーク接続をご確認の上、再度お試しください。')
     } finally {
       setLoading(false)
     }
@@ -62,6 +96,7 @@ function SignInContent() {
   const handleGoogleSignIn = async () => {
     setLoading(true)
     clearAllErrors()
+    resetForm()
 
     try {
       console.log('Google認証を開始します...')
@@ -83,7 +118,7 @@ function SignInContent() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-2 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
         <div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
@@ -117,42 +152,40 @@ function SignInContent() {
           </div>
         )}
 
-        <form className="mt-8 space-y-6" onSubmit={handleEmailSignIn}>
+        <form className="mt-8 space-y-6" onSubmit={handleEmailSignIn} noValidate>
           <div className="space-y-4">
-            <Input
-              id="email"
-              name="email"
-              type="email"
-              autoComplete="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+            <ValidatedInput
               label="メールアドレス"
-              placeholder="メールアドレスを入力"
-              fullWidth
-            />
-            <Input
-              id="password"
-              name="password"
-              type="password"
-              autoComplete="current-password"
+              type="email"
+              value={formState.email.value}
+              error={formState.email.error}
+              touched={formState.email.touched}
+              placeholder="example@example.com"
               required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(value) => updateField('email', value, validationRules.email)}
+              onBlur={() => touchField('email', validationRules.email)}
+            />
+
+            <ValidatedInput
               label="パスワード"
+              type="password"
+              value={formState.password.value}
+              error={formState.password.error}
+              touched={formState.password.touched}
               placeholder="パスワードを入力"
-              fullWidth
+              required
+              onChange={(value) => updateField('password', value, validationRules.password)}
+              onBlur={() => touchField('password', validationRules.password)}
             />
           </div>
 
           <div>
             <Button
               type="submit"
+              variant="default"
+              size="default"
               disabled={loading}
-              loading={loading}
-              variant="primary"
-              size="md"
-              fullWidth
+              className="w-full"
             >
               サインイン
             </Button>
@@ -169,14 +202,13 @@ function SignInContent() {
 
           <div>
             <Button
-              type="button"
               onClick={handleGoogleSignIn}
-              disabled={loading}
-              loading={loading}
               variant="outline"
-              size="md"
-              fullWidth
-              leftIcon={
+              size="default"
+              disabled={loading}
+              className="w-full flex items-center justify-center gap-2"
+            >
+              <div className="flex items-center gap-2">
                 <svg className="w-5 h-5" viewBox="0 0 24 24">
                   <path
                     fill="#4285F4"
@@ -195,9 +227,8 @@ function SignInContent() {
                     d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
                   />
                 </svg>
-              }
-            >
-              Googleでサインイン
+                <span>Googleでサインイン</span>
+              </div>
             </Button>
           </div>
         </form>
