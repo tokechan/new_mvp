@@ -42,16 +42,13 @@ export default function PartnerInvitation({ onPartnerLinked }: PartnerInvitation
       setIsLoading(true)
       const invitations: PartnerInvitation[] = await getInvitations()
       
-      if (invitations && invitations.length > 0) {
-        setInvitations(invitations)
-        // 有効な招待があるかチェック
-        const activeInvitation = invitations.find(
-          inv => inv.status === 'pending' && new Date(inv.expires_at) > new Date()
-        )
-        setCurrentInvitation(activeInvitation || null)
-      } else {
-        setError('招待一覧の取得に失敗しました')
-      }
+      setInvitations(invitations || [])
+      // 有効な招待があるかチェック
+      const activeInvitation = invitations?.find(
+        inv => inv.status === 'pending' && new Date(inv.expires_at) > new Date()
+      )
+      setCurrentInvitation(activeInvitation || null)
+      setError(null) // 成功時はエラーをクリア
     } catch (err) {
       setError(getErrorMessage(err))
     } finally {

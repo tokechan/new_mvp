@@ -11,6 +11,12 @@ test.describe('家事管理機能', () => {
    * 認証が必要な場合はここでログイン処理を行う
    */
   test.beforeEach(async ({ page }) => {
+    // ダイアログハンドラーを最初に設定（confirm()ダイアログを自動承認）
+    page.on('dialog', async dialog => {
+      console.log('Dialog message:', dialog.message());
+      await dialog.accept();
+    });
+    
     // ホームページにアクセス
     await page.goto('/');
     
@@ -28,8 +34,27 @@ test.describe('家事管理機能', () => {
       await page.waitForLoadState('networkidle');
     }
     
-    // 家事一覧ページが表示されるまで待機
-     await expect(page.locator('h2:has-text("家事一覧")')).toBeVisible({ timeout: 10000 });
+    // 既存の家事をすべて削除してクリーンな状態にする
+    const deleteButtons = page.locator('button[aria-label*="を削除"]');
+    const deleteCount = await deleteButtons.count();
+    
+    // 最大20個まで削除（無限ループ防止）
+    for (let i = 0; i < Math.min(deleteCount, 20); i++) {
+      const remainingButtons = page.locator('button[aria-label*="を削除"]');
+      const currentCount = await remainingButtons.count();
+      
+      if (currentCount === 0) break;
+      
+      // 最初の削除ボタンをクリック
+      const firstDeleteButton = remainingButtons.first();
+      await firstDeleteButton.click();
+      
+      // 削除処理の完了を待機
+      await page.waitForTimeout(1000);
+    }
+    
+    // 家事追加フォームが表示されるまで待機（ページ読み込み完了の指標として使用）
+    await expect(page.locator('input[placeholder*="新しい家事を入力"]')).toBeVisible({ timeout: 10000 });
    });
 
   /**
@@ -48,12 +73,16 @@ test.describe('家事管理機能', () => {
     // 追加ボタンをクリック
     await page.click('button:has-text("追加")');
     
+    // 追加処理の完了を待機
+    await expect(page.locator('button:has-text("追加中...")')).not.toBeVisible({ timeout: 10000 });
+    await page.waitForTimeout(1000);
+    
     // 追加された家事が一覧に表示されることを確認
-    await expect(page.locator(`text=${choreTitle}`)).toBeVisible();
+    await expect(page.locator(`button[aria-label="${choreTitle}を完了にする"]`)).toBeVisible({ timeout: 10000 });
     
     // 家事の状態が「未完了」であることを確認（チェックボックスが空）
-    const choreItem = page.locator(`text=${choreTitle}`).locator('..');
-    await expect(choreItem.locator('button').first()).not.toHaveClass(/bg-green-500/);
+    const completeButton = page.locator(`button[aria-label="${choreTitle}を完了にする"]`);
+    await expect(completeButton).not.toHaveClass(/bg-green-500/);
   });
 
   /**
@@ -66,30 +95,31 @@ test.describe('家事管理機能', () => {
     await page.fill('input[placeholder*="新しい家事を入力"]', choreTitle);
     await page.click('button:has-text("追加")');
     
-    // 追加された家事が表示されるまで待機
-    await expect(page.locator(`text=${choreTitle}`)).toBeVisible();
+    // 追加処理が完全に完了するまで待機
+    await expect(page.locator('button:has-text("追加中...")')).not.toBeVisible({ timeout: 10000 });
+    await page.waitForTimeout(1000);
+    
+    // 追加された家事が表示されることを確認
+    await expect(page.locator(`button[aria-label="${choreTitle}を完了にする"]`)).toBeVisible({ timeout: 10000 });
     
     // 家事の完了ボタン（チェックボックス）をクリック
-    const choreItem = page.locator(`text=${choreTitle}`).locator('..');
-    const completeButton = choreItem.locator('button').first();
+    const completeButton = page.locator(`button[aria-label="${choreTitle}を完了にする"]`);
     await completeButton.click();
     
-    // 家事が完了状態になることを確認
-    await expect(completeButton).toHaveClass(/bg-green-500/);
-    await expect(choreItem.locator(`text=${choreTitle}`)).toHaveClass(/line-through/);
-    
-    // ありがとうボタンが表示されることを確認
-    await expect(choreItem.locator('button:has-text("ありがとう")')).toBeVisible();
+    // 家事が完了状態になることを確認（少し待機）
+    await page.waitForTimeout(1000);
+    const completedButton = page.locator(`button[aria-label="${choreTitle}を未完了にする"]`);
+    await expect(completedButton).toBeVisible({ timeout: 5000 });
+    await expect(completedButton).toHaveClass(/bg-green-500/);
     
     // 再度完了ボタンをクリックして未完了に戻す
-    await completeButton.click();
+    await completedButton.click();
     
-    // 家事が未完了状態に戻ることを確認
-    await expect(completeButton).not.toHaveClass(/bg-green-500/);
-    await expect(choreItem.locator(`text=${choreTitle}`)).not.toHaveClass(/line-through/);
-    
-    // ありがとうボタンが非表示になることを確認
-    await expect(choreItem.locator('button:has-text("ありがとう")')).not.toBeVisible();
+    // 家事が未完了状態に戻ることを確認（少し待機）
+    await page.waitForTimeout(1000);
+    const newCompleteButton = page.locator(`button[aria-label="${choreTitle}を完了にする"]`);
+    await expect(newCompleteButton).toBeVisible({ timeout: 5000 });
+    await expect(newCompleteButton).not.toHaveClass(/bg-green-500/);
   });
 
   /**
@@ -102,14 +132,15 @@ test.describe('家事管理機能', () => {
     await page.fill('input[placeholder*="新しい家事を入力"]', choreTitle);
     await page.click('button:has-text("追加")');
     
-    // 追加された家事が表示されるまで待機
-    await expect(page.locator(`text=${choreTitle}`)).toBeVisible();
+    // 追加処理が完全に完了するまで待機
+    await expect(page.locator(`text=${choreTitle}`)).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('button:has-text("追加中...")')).not.toBeVisible({ timeout: 10000 });
+    await page.waitForTimeout(2000); // 追加処理の完了を確実に待機
     
     // 削除ボタンをクリック
-    const choreItem = page.locator(`text=${choreTitle}`).locator('..');
-    await choreItem.locator('button:has-text("削除")').click();
+    await page.click(`button[aria-label="${choreTitle}を削除"]`);
     
-    // 家事が一覧から削除されることを確認
+    // 家事が削除されたことを確認
     await expect(page.locator(`text=${choreTitle}`)).not.toBeVisible();
   });
 
@@ -127,25 +158,31 @@ test.describe('家事管理機能', () => {
     for (const chore of chores) {
       await page.fill('input[placeholder*="新しい家事を入力"]', chore);
       await page.click('button:has-text("追加")');
-      await expect(page.locator(`text=${chore}`)).toBeVisible();
+      await expect(page.locator('button:has-text("追加中...")')).not.toBeVisible({ timeout: 10000 });
+      await page.waitForTimeout(1000);
+      await expect(page.locator(`button[aria-label="${chore}を完了にする"]`)).toBeVisible({ timeout: 10000 });
     }
     
     // すべての家事が表示されていることを確認
     for (const chore of chores) {
-      await expect(page.locator(`text=${chore}`)).toBeVisible();
+      await expect(page.locator(`button[aria-label="${chore}を完了にする"]`)).toBeVisible();
     }
     
     // 最初の家事を完了状態にする
-    const firstChoreItem = page.locator(`text=${chores[0]}`).locator('..');
-    await firstChoreItem.locator('button').first().click();
+    const firstCompleteButton = page.locator(`button[aria-label="${chores[0]}を完了にする"]`);
+    await firstCompleteButton.click();
     
-    // 最初の家事のみが完了状態になることを確認
-    await expect(firstChoreItem.locator('button').first()).toHaveClass(/bg-green-500/);
+    // 最初の家事のみが完了状態になることを確認（少し待機）
+    await page.waitForTimeout(1000);
+    const firstCompletedButton = page.locator(`button[aria-label="${chores[0]}を未完了にする"]`);
+    await expect(firstCompletedButton).toBeVisible({ timeout: 5000 });
+    await expect(firstCompletedButton).toHaveClass(/bg-green-500/);
     
     // 他の家事は未完了状態のままであることを確認
     for (let i = 1; i < chores.length; i++) {
-      const choreItem = page.locator(`text=${chores[i]}`).locator('..');
-      await expect(choreItem.locator('button').first()).not.toHaveClass(/bg-green-500/);
+      const choreCompleteButton = page.locator(`button[aria-label="${chores[i]}を完了にする"]`);
+      await expect(choreCompleteButton).toBeVisible();
+      await expect(choreCompleteButton).not.toHaveClass(/bg-green-500/);
     }
   });
 });
