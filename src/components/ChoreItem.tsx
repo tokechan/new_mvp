@@ -115,6 +115,9 @@ export function ChoreItem({ chore, onToggle, onDelete, currentUserId }: ChoreIte
             data-testid="toggle-chore-button"
             onClick={handleToggle}
             disabled={isToggling}
+            role="checkbox"
+            aria-checked={chore.done ?? false}
+            aria-label={`${chore.title}の完了状態を切り替え`}
             className={`
               w-6 h-6 rounded-full border-2 flex items-center justify-center
               transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500
@@ -162,6 +165,7 @@ export function ChoreItem({ chore, onToggle, onDelete, currentUserId }: ChoreIte
           data-testid="delete-chore-button"
           onClick={handleDelete}
           disabled={isDeleting}
+          aria-label={`${chore.title}を削除`}
           className={`
             ml-3 p-2 text-gray-400 hover:text-red-500 rounded-lg
             transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-red-500

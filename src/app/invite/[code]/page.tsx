@@ -3,7 +3,7 @@
 // 招待受諾ページ
 // 作成日: 2025-09-07
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
 import { 
@@ -44,7 +44,7 @@ export default function InvitePage({ params }: InvitePageProps) {
   }, [params])
 
   // 招待情報を取得
-  const fetchInvitationInfo = async () => {
+  const fetchInvitationInfo = useCallback(async () => {
     try {
       setIsLoading(true)
       setError(null)
@@ -67,7 +67,7 @@ export default function InvitePage({ params }: InvitePageProps) {
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [code])
 
   // 招待を受諾
   const handleAcceptInvitation = async () => {
@@ -103,7 +103,7 @@ export default function InvitePage({ params }: InvitePageProps) {
     if (code) {
       fetchInvitationInfo()
     }
-  }, [code])
+  }, [code, fetchInvitationInfo])
 
   // ローディング中
   if (isLoading) {

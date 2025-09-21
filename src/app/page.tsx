@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
 import ChoresList from '@/components/ChoresList'
 import NotificationCenter from '@/components/NotificationCenter'
+import { Button } from '@/components/ui/Button'
 
 export default function Home() {
   const { user, loading, signOut } = useAuth()
@@ -39,7 +40,7 @@ export default function Home() {
         </p>
         <div className="flex items-center gap-4">
           <span>こんにちは、{user.email}さん</span>
-          <button 
+          <Button 
             onClick={() => {
               addNotification({
                 title: 'テスト通知',
@@ -47,11 +48,12 @@ export default function Home() {
                 type: 'info'
               })
             }}
-            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+            variant="primary"
+            size="sm"
           >
             テスト通知
-          </button>
-          <button 
+          </Button>
+          <Button 
             onClick={async () => {
               try {
                 await signOut()
@@ -60,10 +62,11 @@ export default function Home() {
                 console.error('ログアウトに失敗しました:', error)
               }
             }}
-            className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+            variant="destructive"
+            size="sm"
           >
             ログアウト
-          </button>
+          </Button>
         </div>
       </div>
 

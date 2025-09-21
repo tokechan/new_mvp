@@ -73,7 +73,7 @@ export function useRealtime(callbacks: RealtimeCallbacks) {
     } catch (error) {
       console.error('❌ Error handling chore change:', error)
     }
-  }, [user, callbacks.onChoreChange])
+  }, [user, callbacks])
 
   /**
    * 完了記録変更イベントの処理
@@ -114,7 +114,7 @@ export function useRealtime(callbacks: RealtimeCallbacks) {
     } catch (error) {
       console.error('❌ Error handling completion change:', error)
     }
-  }, [user, callbacks.onChoreChange])
+  }, [user, callbacks])
 
   /**
    * プロフィール変更イベントの処理
@@ -161,7 +161,7 @@ export function useRealtime(callbacks: RealtimeCallbacks) {
         console.error('❌ Error handling profile change:', error)
       }
     }
-  }, [user, callbacks.onPartnerChange])
+  }, [user, callbacks])
 
   /**
    * リアルタイム接続を確立

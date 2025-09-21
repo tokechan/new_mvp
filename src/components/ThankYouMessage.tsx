@@ -118,10 +118,10 @@ export default function ThankYouMessage({
 
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* 定型メッセージ選択 */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+        <fieldset>
+          <legend className="block text-sm font-medium text-gray-700 mb-2">
             定型メッセージから選択
-          </label>
+          </legend>
           <div className="grid grid-cols-1 gap-2">
             {predefinedMessages.map((predefinedMessage, index) => (
               <button
@@ -134,7 +134,7 @@ export default function ThankYouMessage({
               </button>
             ))}
           </div>
-        </div>
+        </fieldset>
 
         {/* カスタムメッセージ入力 */}
         <div>

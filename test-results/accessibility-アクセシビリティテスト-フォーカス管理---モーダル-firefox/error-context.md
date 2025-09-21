@@ -1,0 +1,97 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e6] [cursor=pointer]:
+    - button "Open Next.js Dev Tools" [ref=e7] [cursor=pointer]:
+      - img [ref=e8] [cursor=pointer]
+    - generic [ref=e12] [cursor=pointer]:
+      - button "Open issues overlay" [ref=e13] [cursor=pointer]:
+        - generic [ref=e14] [cursor=pointer]:
+          - generic [ref=e15] [cursor=pointer]: "0"
+          - generic [ref=e16] [cursor=pointer]: "1"
+        - generic [ref=e17] [cursor=pointer]: Issue
+      - button "Collapse issues badge" [ref=e18] [cursor=pointer]:
+        - img [ref=e19] [cursor=pointer]
+  - alert [ref=e21]
+  - main [ref=e22]:
+    - generic [ref=e23]:
+      - paragraph [ref=e24]:
+        - text: ThankYou Chores
+        - code [ref=e25]: 家事管理アプリ
+      - generic [ref=e26]:
+        - generic [ref=e27]: こんにちは、test@example.comさん
+        - button "テスト通知" [ref=e28] [cursor=pointer]:
+          - generic [ref=e29] [cursor=pointer]: テスト通知
+        - button "ログアウト" [ref=e30] [cursor=pointer]:
+          - generic [ref=e31] [cursor=pointer]: ログアウト
+    - button "通知を開く" [ref=e34] [cursor=pointer]:
+      - img [ref=e35] [cursor=pointer]
+    - generic [ref=e38]:
+      - heading "家事一覧" [level=2] [ref=e39]
+      - generic [ref=e40]:
+        - heading "🔧 リアルタイム接続テスト" [level=3] [ref=e41]
+        - generic [ref=e42]:
+          - generic [ref=e43]:
+            - text: "現在の家事数:"
+            - generic [ref=e44]: "1"
+          - generic [ref=e45]:
+            - text: "ユーザーID:"
+            - generic [ref=e46]: 550e8400-e29b-41d4-a716-446655440000
+          - generic [ref=e47]:
+            - generic [ref=e48]: "接続状態:"
+            - generic [ref=e49]: 🟢 接続中
+          - generic [ref=e50]:
+            - generic [ref=e51]:
+              - generic [ref=e52]: "0"
+              - generic [ref=e53]: 追加
+            - generic [ref=e54]:
+              - generic [ref=e55]: "0"
+              - generic [ref=e56]: 更新
+            - generic [ref=e57]:
+              - generic [ref=e58]: "0"
+              - generic [ref=e59]: 削除
+          - button "詳細を表示" [ref=e61] [cursor=pointer]
+          - generic [ref=e62]:
+            - button "再接続を試みる" [ref=e63] [cursor=pointer]:
+              - generic [ref=e64] [cursor=pointer]: 再接続を試みる
+            - button "テスト通知" [ref=e65] [cursor=pointer]:
+              - generic [ref=e66] [cursor=pointer]: テスト通知
+            - button "カウンターリセット" [ref=e67] [cursor=pointer]:
+              - generic [ref=e68] [cursor=pointer]: カウンターリセット
+      - generic [ref=e69]:
+        - heading "🔧 パートナー状態デバッグ" [level=3] [ref=e70]
+        - generic [ref=e71]:
+          - generic [ref=e72]:
+            - text: "hasPartner:"
+            - generic [ref=e73]: "false"
+          - generic [ref=e74]:
+            - text: "partnerInfo:"
+            - generic [ref=e75]: "null"
+          - generic [ref=e76]:
+            - text: "ユーザーID:"
+            - generic [ref=e77]: 550e8400-e29b-41d4-a716-446655440000
+      - generic [ref=e79]:
+        - heading "🤝 パートナーを招待" [level=3] [ref=e80]
+        - generic [ref=e81]: 招待一覧の取得に失敗しました
+        - generic [ref=e82]:
+          - generic [ref=e83]:
+            - generic [ref=e84]: パートナーのメールアドレス（任意）
+            - textbox "パートナーのメールアドレス（任意）" [ref=e85]
+            - paragraph [ref=e86]: メールアドレスは記録用です。招待リンクは誰でも使用できます。
+          - button "招待リンクを生成" [ref=e87] [cursor=pointer]
+      - generic [ref=e89]:
+        - textbox "新しい家事" [ref=e92]
+        - button "追加" [disabled] [ref=e93]:
+          - generic [ref=e94]: 追加
+      - list "家事一覧" [ref=e95]:
+        - 'listitem "家事: テスト家事, 未完了, 自分が作成" [ref=e96]':
+          - generic [ref=e97]:
+            - generic [ref=e98]:
+              - switch "テスト家事を完了にする" [ref=e99] [cursor=pointer]
+              - generic [ref=e100]:
+                - generic [ref=e101]: テスト家事
+                - generic [ref=e102]: 自分が作成
+            - button "家事「テスト家事」を削除する" [ref=e104] [cursor=pointer]:
+              - generic [ref=e105] [cursor=pointer]: 削除
+```
