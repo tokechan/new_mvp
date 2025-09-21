@@ -53,8 +53,8 @@ export default function ThankYouMessage({
 
     try {
       // thankYouServiceを使用してメッセージを送信
-      const thankYou = await sendThankYou({
-        choreId,
+      const thankYou = await sendThankYou(user.id, {
+        choreId: parseInt(choreId),
         toUserId,
         message: message.trim()
       })
