@@ -1,15 +1,16 @@
 'use client'
 
 import React, { useState } from 'react'
-import { createSupabaseBrowserClient } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
 import { useNotifications } from '@/contexts/NotificationContext'
+import { sendThankYou, PREDEFINED_MESSAGES } from '@/services/thankYouService'
+import type { ThankYouMessage as ThankYouMessageType } from '@/services/thankYouService'
 
 interface ThankYouMessageProps {
-  completionId: string
+  choreId: string
   toUserId: string
   toUserName?: string
-  onSuccess?: () => void
+  onSuccess?: (thankYou: ThankYouMessageType) => void
   onCancel?: () => void
 }
 
@@ -18,7 +19,7 @@ interface ThankYouMessageProps {
  * 家事完了に対してありがとうメッセージを送信する
  */
 export default function ThankYouMessage({ 
-  completionId, 
+  choreId, 
   toUserId, 
   toUserName, 
   onSuccess, 
@@ -30,16 +31,6 @@ export default function ThankYouMessage({
   
   const { user } = useAuth()
   const { addNotification } = useNotifications()
-  const supabase = createSupabaseBrowserClient()
-
-  // 定型メッセージのオプション
-  const predefinedMessages = [
-    'ありがとうございます！',
-    'お疲れさまでした！',
-    'とても助かりました！',
-    'いつもありがとう！',
-    '素晴らしい仕事でした！'
-  ]
 
   /**
    * ありがとうメッセージを送信する
@@ -61,19 +52,12 @@ export default function ThankYouMessage({
     setError(null)
 
     try {
-      // ありがとうメッセージをデータベースに保存
-      const { error: insertError } = await supabase
-        .from('thanks')
-        .insert({
-          completion_id: completionId,
-          from_user: user.id,
-          to_user: toUserId,
-          message: message.trim()
-        })
-
-      if (insertError) {
-        throw insertError
-      }
+      // thankYouServiceを使用してメッセージを送信
+      const thankYou = await sendThankYou({
+        choreId,
+        toUserId,
+        message: message.trim()
+      })
 
       // 成功通知を表示
       addNotification({
@@ -83,14 +67,14 @@ export default function ThankYouMessage({
       })
 
       // 成功コールバックを実行
-      onSuccess?.()
+      onSuccess?.(thankYou)
       
       // フォームをリセット
       setMessage('')
       
     } catch (error) {
       console.error('ありがとうメッセージの送信に失敗しました:', error)
-      setError('メッセージの送信に失敗しました。もう一度お試しください。')
+      setError(error instanceof Error ? error.message : 'メッセージの送信に失敗しました。もう一度お試しください。')
     } finally {
       setIsSubmitting(false)
     }
@@ -123,12 +107,13 @@ export default function ThankYouMessage({
             定型メッセージから選択
           </legend>
           <div className="grid grid-cols-1 gap-2">
-            {predefinedMessages.map((predefinedMessage, index) => (
+            {PREDEFINED_MESSAGES.map((predefinedMessage, index) => (
               <button
                 key={index}
                 type="button"
                 onClick={() => selectPredefinedMessage(predefinedMessage)}
                 className="text-left p-2 text-sm bg-gray-50 hover:bg-gray-100 rounded border transition-colors"
+                aria-label={`定型メッセージを選択: ${predefinedMessage}`}
               >
                 {predefinedMessage}
               </button>

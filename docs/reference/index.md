@@ -11,6 +11,7 @@
 - パフォーマンス: [performance.md](./performance.md)
 - 監視/運用: [monitoring.md](./monitoring.md) / [operations-runbook.md](./operations-runbook.md)
 - UI/UX: [ui-wireframes.md](./ui-wireframes.md)
+- 感謝機能: [thank-you-feature.md](./thank-you-feature.md)
 - 用語集: [glossary.md](./glossary.md)
 - リリースチェック: [checklist-release.md](./checklist-release.md)
 - ADR（重要決定）: [adr/](./adr/)
