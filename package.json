@@ -5,6 +5,8 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "build:staging": "NODE_ENV=production next build",
+    "build:production": "NODE_ENV=production next build",
     "start": "next start",
     "lint": "next lint",
     "test": "jest",
@@ -14,9 +16,17 @@
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:headed": "playwright test --headed",
-    "test:e2e:debug": "playwright test --debug"
+    "test:e2e:debug": "playwright test --debug",
+    "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
+    "deploy": "opennextjs-cloudflare build && wrangler deploy",
+    "cf-typegen": "wrangler types",
+    "cf-logs": "wrangler tail",
+    "cf-analytics": "wrangler analytics",
+    "deploy:staging": "npm run build:staging && npx wrangler pages deploy .next --project-name=household-mvp-staging",
+    "deploy:production": "npm run build:production && npx wrangler pages deploy .next --project-name=household-mvp"
   },
   "dependencies": {
+    "@opennextjs/cloudflare": "^1.8.3",
     "@radix-ui/react-accordion": "^1.2.12",
     "@radix-ui/react-label": "^2.1.7",
     "@radix-ui/react-slot": "^1.2.3",
@@ -36,6 +46,7 @@
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.10.2",
+    "@cloudflare/next-on-pages": "^1.13.16",
     "@playwright/test": "^1.55.0",
     "@storybook/addon-a11y": "^9.1.7",
     "@testing-library/jest-dom": "^6.8.0",
@@ -52,6 +63,7 @@
     "jest-environment-jsdom": "^30.1.2",
     "postcss": "^8",
     "tailwindcss": "^3.4.1",
-    "typescript": "^5"
+    "typescript": "^5",
+    "wrangler": "^4.38.0"
   }
 }

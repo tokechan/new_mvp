@@ -2,13 +2,25 @@
 const nextConfig = {
   // Next.js 15では実験的なappDirは不要
   
-  // 開発環境でのクロスオリジンリクエストを許可
-  // スマホやタブレットからのアクセスを可能にする
-  allowedDevOrigins: [
-    '192.168.0.0/16',  // プライベートネットワーク全体
-    '10.0.0.0/8',      // プライベートネットワーク
-    '172.16.0.0/12'    // プライベートネットワーク
-  ]
+  // 開発環境でのCORS設定（複数のプライベートネットワークからのアクセスを許可）
+  async headers() {
+    return [
+      {
+        source: '/(.*)',
+        headers: [
+          {
+            key: 'Access-Control-Allow-Origin',
+            value: '*',
+          },
+        ],
+      },
+    ]
+  },
+  
+  // Cloudflare Pages対応
+  images: {
+    unoptimized: true
+  }
 }
 
 module.exports = nextConfig

@@ -1,0 +1,63 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e1]:
+  - generic [ref=e6] [cursor=pointer]:
+    - button "Open Next.js Dev Tools" [ref=e7] [cursor=pointer]:
+      - img [ref=e8] [cursor=pointer]
+    - generic [ref=e11] [cursor=pointer]:
+      - button "Open issues overlay" [ref=e12] [cursor=pointer]:
+        - generic [ref=e13] [cursor=pointer]:
+          - generic [ref=e14] [cursor=pointer]: "0"
+          - generic [ref=e15] [cursor=pointer]: "1"
+        - generic [ref=e16] [cursor=pointer]: Issue
+      - button "Collapse issues badge" [ref=e17] [cursor=pointer]:
+        - img [ref=e18] [cursor=pointer]
+  - alert [ref=e20]
+  - main [ref=e21]:
+    - generic [ref=e22]:
+      - paragraph [ref=e23]:
+        - text: ThankYou Chores
+        - code [ref=e24]: 家事管理アプリ
+      - generic [ref=e25]:
+        - generic [ref=e26]: こんにちは、test@example.comさん
+        - button "テスト通知" [ref=e27] [cursor=pointer]
+        - button "ログアウト" [ref=e28] [cursor=pointer]
+    - button "通知を開く" [ref=e31] [cursor=pointer]:
+      - img [ref=e32] [cursor=pointer]
+      - generic [ref=e34] [cursor=pointer]: "5"
+    - generic [ref=e36]:
+      - generic [ref=e37]:
+        - heading "🤝 パートナーを招待" [level=3] [ref=e38]
+        - generic [ref=e39]:
+          - generic [ref=e40]:
+            - generic [ref=e41]: パートナーのメールアドレス（任意）
+            - textbox "パートナーのメールアドレス（任意）" [ref=e42]
+            - paragraph [ref=e43]: メールアドレスは記録用です。招待リンクは誰でも使用できます。
+          - button "招待リンクを生成" [ref=e44] [cursor=pointer]
+      - generic [ref=e45]:
+        - textbox "新しい家事名" [ref=e46]
+        - button "追加" [disabled]
+      - list "家事一覧" [ref=e47]:
+        - generic [ref=e49]:
+          - generic [ref=e50]:
+            - button "テスト用家事3 - 風呂掃除を完了にする" [ref=e51] [cursor=pointer]
+            - generic [ref=e52]: テスト用家事3 - 風呂掃除
+          - button "テスト用家事3 - 風呂掃除を削除" [ref=e53] [cursor=pointer]: 削除
+        - generic [ref=e55]:
+          - generic [ref=e56]:
+            - button "テスト用家事2 - ゴミ出しを完了にする" [ref=e57] [cursor=pointer]
+            - generic [ref=e58]: テスト用家事2 - ゴミ出し
+          - button "テスト用家事2 - ゴミ出しを削除" [ref=e59] [cursor=pointer]: 削除
+        - generic [ref=e61]:
+          - generic [ref=e62]:
+            - button "ありがとうテスト用家事を完了にする" [ref=e63] [cursor=pointer]
+            - generic [ref=e64]: ありがとうテスト用家事
+          - button "ありがとうテスト用家事を削除" [ref=e65] [cursor=pointer]: 削除
+        - generic [ref=e67]:
+          - generic [ref=e68]:
+            - button "ありがとうテスト用家事を未完了にする" [active] [ref=e69] [cursor=pointer]:
+              - img [ref=e70] [cursor=pointer]
+            - generic [ref=e72]: ありがとうテスト用家事
+          - button "ありがとうテスト用家事を削除" [ref=e73] [cursor=pointer]: 削除
+```

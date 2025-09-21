@@ -32,14 +32,18 @@ export default function Home() {
   }
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24 sm:p-24 px-2">
-      <div className="z-10 max-w-5xl w-full items-center justify-between font-mono text-sm lg:flex">
-        <p className="fixed left-0 top-0 flex w-full justify-center border-b border-gray-300 bg-gradient-to-b from-zinc-200 pb-6 pt-8 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/30 dark:from-inherit lg:static lg:w-auto lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4 lg:dark:bg-zinc-800/30">
-          ThankYou Chores&nbsp;
-          <code className="font-mono font-bold">家事管理アプリ</code>
-        </p>
-        <div className="flex items-center gap-4">
-          <span>こんにちは、{user.email}さん</span>
+    <main className="flex min-h-screen flex-col p-4 sm:p-6 lg:p-24">
+      {/* モバイル対応ヘッダー */}
+      <header className="w-full mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="text-center sm:text-left">
+            <h1 className="text-xl sm:text-2xl font-bold text-blue-600">
+              ThankYou Chores
+            </h1>
+            <p className="text-sm text-gray-600">家事管理アプリ</p>
+          </div>
+          <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4">
+            <span className="text-sm truncate">こんにちは、{user.email}さん</span>
           <Button 
             onClick={() => {
               addNotification({
@@ -67,8 +71,9 @@ export default function Home() {
           >
             ログアウト
           </Button>
+          </div>
         </div>
-      </div>
+      </header>
 
       {/* 通知センター */}
       <div className="w-full max-w-4xl mb-8">

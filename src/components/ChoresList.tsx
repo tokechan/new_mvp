@@ -347,17 +347,22 @@ export default function ChoresList() {
   return (
     <div className="space-y-6">
       {/* 家事追加フォーム */}
-      <form onSubmit={handleAddChore} className="flex gap-2">
+      {/* 家事追加フォーム */}
+      <form onSubmit={handleAddChore} className="flex flex-col sm:flex-row gap-2 sm:gap-3">
         <Input
           type="text"
           placeholder="新しい家事を入力"
           value={newChore}
           onChange={(e) => setNewChore(e.target.value)}
           disabled={isAdding}
-          className="flex-1"
+          className="flex-1 text-sm sm:text-base"
           aria-label="新しい家事名"
         />
-        <Button type="submit" disabled={isAdding || !newChore.trim()}>
+        <Button 
+          type="submit" 
+          disabled={isAdding || !newChore.trim()}
+          className="w-full sm:w-auto px-4 py-2 text-sm sm:text-base"
+        >
           {isAdding ? '追加中...' : '追加'}
         </Button>
       </form>
@@ -377,15 +382,17 @@ export default function ChoresList() {
               <div
                 key={chore.id}
                 data-chore-name={chore.title}
-                className={`p-4 border rounded-lg ${
+                className={`p-3 sm:p-4 border rounded-lg ${
                   isCompleted ? 'bg-green-50 border-green-200' : 'bg-white border-gray-200'
                 }`}
               >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
+                {/* モバイル対応レイアウト */}
+                <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                  {/* 家事タイトルとチェックボックス */}
+                  <div className="flex items-center gap-3 flex-1 min-w-0">
                     <button
                       onClick={() => handleToggleChore(chore.id)}
-                      className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
+                      className={`w-6 h-6 sm:w-7 sm:h-7 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
                         isCompleted
                           ? 'bg-green-500 border-green-500 text-white'
                           : 'border-gray-300 hover:border-green-400'
@@ -398,24 +405,29 @@ export default function ChoresList() {
                         </svg>
                       )}
                     </button>
-                    <div>
-                      <span className={isCompleted ? 'line-through text-gray-500' : ''}>
+                    <div className="min-w-0 flex-1">
+                      <div className={`text-sm sm:text-base break-words ${
+                        isCompleted ? 'line-through text-gray-500' : ''
+                      }`}>
                         {chore.title}
-                      </span>
+                      </div>
                       {!isOwnChore && (
-                        <span className="ml-2 text-sm text-blue-600">
+                        <div className="text-xs sm:text-sm text-blue-600 mt-1">
                           ({partnerInfo?.name || 'パートナー'}の家事)
-                        </span>
+                        </div>
                       )}
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
+                  
+                  {/* アクションボタン */}
+                  <div className="flex items-center gap-2 flex-shrink-0">
                     {isCompleted && !isOwnChore && (
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={() => setShowThankYou(parseInt(chore.id))}
                         aria-label={`${chore.title}にありがとうメッセージを送る`}
+                        className="text-xs sm:text-sm px-2 sm:px-3"
                       >
                         ありがとう
                       </Button>
@@ -425,6 +437,7 @@ export default function ChoresList() {
                       size="sm"
                       onClick={() => handleDeleteChore(chore.id)}
                       aria-label={`${chore.title}を削除`}
+                      className="text-xs sm:text-sm px-2 sm:px-3"
                     >
                       削除
                     </Button>
