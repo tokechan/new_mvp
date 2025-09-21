@@ -2,16 +2,24 @@ import { createBrowserClient } from '@supabase/ssr'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
-// ブラウザ用の単一インスタンスのSupabaseクライアント（全アプリ共通で使用）
-// Realtime機能を明示的に有効化
-export const supabase = createBrowserClient(supabaseUrl, supabaseAnonKey, {
-  realtime: {
-    params: {
-      eventsPerSecond: 10
+// テスト環境かどうかを判定
+const isTestEnvironment = process.env.NODE_ENV === 'test' || process.env.NEXT_PUBLIC_SKIP_AUTH === 'true'
+
+// ブラウザ環境ではService Role Keyは使用できないため、常にAnon Keyを使用
+// テスト環境では認証状態をモックで管理
+export const supabase = createBrowserClient(
+  supabaseUrl, 
+  supabaseAnonKey,
+  {
+    realtime: {
+      params: {
+        eventsPerSecond: 10
+      }
     }
   }
-})
+)
 
 // デバッグ用にグローバルに公開
 if (typeof window !== 'undefined') {
