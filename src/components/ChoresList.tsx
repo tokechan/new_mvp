@@ -9,7 +9,7 @@ import { supabase } from '@/lib/supabase'
 import { Database } from '@/lib/supabase'
 import ThankYouMessage from './ThankYouMessage'
 import PartnerInvitation from './PartnerInvitation'
-import { Button } from '@/components/ui/Button'
+import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/Input'
 import { Skeleton } from '@/components/ui/skeleton'
 import {
@@ -133,7 +133,7 @@ export default function ChoresList() {
     e.preventDefault()
     
     if (!newChore.trim()) {
-      announceFormError('家事名を入力してください')
+      announceFormError('家事名', '家事名を入力してください')
       return
     }
 
@@ -435,7 +435,7 @@ export default function ChoresList() {
                 {showThankYou === parseInt(chore.id) && (
                   <div className="mt-4 pt-4 border-t">
                     <ThankYouMessage
-                      completionId={showThankYou?.toString() || ''}
+                      choreId={showThankYou?.toString() || ''}
                       toUserId={partnerInfo?.id || ''}
                       toUserName={partnerInfo?.name || 'パートナー'}
                       onSuccess={() => setShowThankYou(null)}
