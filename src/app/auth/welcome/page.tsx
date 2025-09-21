@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
-import { Button } from '@/components/ui/Button'
+import { Button } from '@/components/ui/button'
 import { ValidatedInput } from '@/components/ui/ValidatedInput'
 import { useFormValidation, validationRules } from '@/hooks/useFormValidation'
 
@@ -221,7 +221,7 @@ export default function WelcomePage() {
           {/* サインアップリンク */}
           <div className="text-center">
             <span className="text-sm text-gray-600">
-              Don't have an account?{' '}
+              Don&apos;t have an account?{' '}
               <button
                 type="button"
                 onClick={() => router.push('/auth/signup')}

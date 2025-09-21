@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
 import ChoresList from '@/components/ChoresList'
 import NotificationCenter from '@/components/NotificationCenter'
-import { Button } from '@/components/ui/Button'
+import { Button } from '@/components/ui/button'
 
 export default function Home() {
   const { user, loading, signOut } = useAuth()

@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { getThankYouHistory, sendThankYouForChore } from '@/services/thankYouService'
 import type { ThankYouMessage } from '@/services/thankYouService'
@@ -35,7 +35,7 @@ export default function ThankYouHistory({
   /**
    * 感謝メッセージ履歴を取得する
    */
-  const fetchThankYouHistory = async () => {
+  const fetchThankYouHistory = useCallback(async () => {
     if (!user) {
       setIsLoading(false)
       return
@@ -64,11 +64,11 @@ export default function ThankYouHistory({
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [user, choreId, limit])
 
   useEffect(() => {
     fetchThankYouHistory()
-  }, [user, choreId, limit])
+  }, [fetchThankYouHistory])
 
   /**
    * 日時をフォーマットする
