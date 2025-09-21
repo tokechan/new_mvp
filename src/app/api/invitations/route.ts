@@ -11,6 +11,9 @@ import {
   InvitationError 
 } from '@/lib/types/partner-invitation'
 
+// 動的API用の設定
+export const dynamic = 'force-dynamic'
+
 // 招待リンク生成 (POST)
 export async function POST(request: NextRequest) {
   try {

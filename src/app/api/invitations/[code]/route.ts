@@ -10,6 +10,9 @@ import {
   isValidInviteCode 
 } from '@/lib/types/partner-invitation'
 
+// 動的API用の設定
+export const dynamic = 'force-dynamic'
+
 // 招待情報取得 (GET)
 export async function GET(
   request: NextRequest,

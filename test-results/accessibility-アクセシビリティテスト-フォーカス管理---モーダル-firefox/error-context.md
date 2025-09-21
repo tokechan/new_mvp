@@ -16,7 +16,7 @@
         - button "ログアウト" [ref=e20] [cursor=pointer]
     - button "通知を開く" [ref=e23] [cursor=pointer]:
       - img [ref=e24] [cursor=pointer]
-      - generic [ref=e26] [cursor=pointer]: "2"
+      - generic [ref=e26] [cursor=pointer]: "17"
     - generic [ref=e28]:
       - generic [ref=e29]:
         - heading "🤝 パートナーを招待" [level=3] [ref=e30]
@@ -32,48 +32,13 @@
       - list "家事一覧" [ref=e39]:
         - generic [ref=e41]:
           - generic [ref=e42]:
-            - button "テスト家事を完了にする" [ref=e43] [cursor=pointer]
-            - generic [ref=e44]: テスト家事
-          - button "テスト家事を削除" [ref=e45] [cursor=pointer]: 削除
-        - generic [ref=e47]:
-          - generic [ref=e48]:
-            - button "テスト家事を完了にする" [ref=e49] [cursor=pointer]
-            - generic [ref=e50]: テスト家事
-          - button "テスト家事を削除" [ref=e51] [cursor=pointer]: 削除
-        - generic [ref=e53]:
-          - generic [ref=e54]:
-            - button "テスト家事を完了にする" [ref=e55] [cursor=pointer]
-            - generic [ref=e56]: テスト家事
-          - button "テスト家事を削除" [ref=e57] [cursor=pointer]: 削除
-        - generic [ref=e59]:
-          - generic [ref=e60]:
-            - button "テスト家事を完了にする" [ref=e61] [cursor=pointer]
-            - generic [ref=e62]: テスト家事
-          - button "テスト家事を削除" [ref=e63] [cursor=pointer]: 削除
-        - generic [ref=e65]:
-          - generic [ref=e66]:
-            - button "テスト用家事3 - 風呂掃除を完了にする" [ref=e67] [cursor=pointer]
-            - generic [ref=e68]: テスト用家事3 - 風呂掃除
-          - button "テスト用家事3 - 風呂掃除を削除" [ref=e69] [cursor=pointer]: 削除
-        - generic [ref=e71]:
-          - generic [ref=e72]:
-            - button "テスト用家事2 - ゴミ出しを完了にする" [ref=e73] [cursor=pointer]
-            - generic [ref=e74]: テスト用家事2 - ゴミ出し
-          - button "テスト用家事2 - ゴミ出しを削除" [ref=e75] [cursor=pointer]: 削除
-        - generic [ref=e77]:
-          - generic [ref=e78]:
-            - button "テスト用家事1 - 食器洗いを未完了にする" [ref=e79] [cursor=pointer]:
-              - img [ref=e80] [cursor=pointer]
-            - generic [ref=e82]: テスト用家事1 - 食器洗い
-          - button "テスト用家事1 - 食器洗いを削除" [ref=e83] [cursor=pointer]: 削除
-        - generic [ref=e85]:
-          - generic [ref=e86]:
-            - button "ありがとうテスト用家事を完了にする" [ref=e87] [cursor=pointer]
-            - generic [ref=e88]: ありがとうテスト用家事
-          - button "ありがとうテスト用家事を削除" [ref=e89] [cursor=pointer]: 削除
-        - generic [ref=e91]:
-          - generic [ref=e92]:
-            - button "ありがとうテスト用家事を完了にする" [ref=e93] [cursor=pointer]
-            - generic [ref=e94]: ありがとうテスト用家事
-          - button "ありがとうテスト用家事を削除" [ref=e95] [cursor=pointer]: 削除
+            - button "ありがとうテスト用家事を未完了にする" [ref=e43] [cursor=pointer]:
+              - img [ref=e44] [cursor=pointer]
+            - generic [ref=e46]: ありがとうテスト用家事
+          - button "ありがとうテスト用家事を削除" [ref=e47] [cursor=pointer]: 削除
+        - generic [ref=e49]:
+          - generic [ref=e50]:
+            - button "テスト用家事 - 洗濯物を干すを完了にする" [ref=e51] [cursor=pointer]
+            - generic [ref=e52]: テスト用家事 - 洗濯物を干す
+          - button "テスト用家事 - 洗濯物を干すを削除" [ref=e53] [cursor=pointer]: 削除
 ```
