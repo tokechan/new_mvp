@@ -10,6 +10,12 @@ import PartnerInvitation from './PartnerInvitation'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Skeleton } from '@/components/ui/skeleton'
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion'
 import { useScreenReader, useFocusManagement } from '@/hooks/useScreenReader'
 import { useKeyboardNavigation } from '@/hooks/useKeyboardNavigation'
 
@@ -669,150 +675,168 @@ export default function ChoresList() {
     <div className="max-w-2xl mx-auto p-6">
       <h2 className="text-2xl font-bold mb-6">家事一覧</h2>
 
-      {/* リアルタイム接続テスト */}
-      <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-        <h3 className="text-lg font-semibold mb-2 text-blue-800">🔧 リアルタイム接続テスト</h3>
-        <div className="space-y-2 text-sm">
-           <div>現在の家事数: <span className="font-bold text-blue-600">{chores.length}</span></div>
-           <div>ユーザーID: <span className="font-mono text-xs">{user?.id}</span></div>
-           <div className="flex items-center gap-2">
-             <span>接続状態:</span>
-             <span className={`px-2 py-1 rounded text-xs font-bold ${
-               realtimeEvents.connectionStatus === 'connected' ? 'bg-green-100 text-green-800' :
-               realtimeEvents.connectionStatus === 'error' ? 'bg-red-100 text-red-800' :
-               realtimeEvents.connectionStatus === 'disconnected' ? 'bg-yellow-100 text-yellow-800' :
-               'bg-gray-100 text-gray-800'
-             }`}>
-               {realtimeEvents.connectionStatus === 'connected' ? '🟢 接続中' :
-                realtimeEvents.connectionStatus === 'error' ? '🔴 エラー' :
-                realtimeEvents.connectionStatus === 'disconnected' ? '🟡 切断' :
-                '⚪ 不明'}
-             </span>
-             {realtimeEvents.connectionStatus === 'error' && (
-               <span className="text-xs text-red-600">
-                 (自動再接続を試行中...)
-               </span>
-             )}
-           </div>
-           <div className="grid grid-cols-3 gap-2 mt-2">
-             <div className="text-center p-2 bg-green-100 rounded">
-               <div className="font-bold text-green-600">{realtimeEvents.inserts}</div>
-               <div className="text-xs">追加</div>
-             </div>
-             <div className="text-center p-2 bg-yellow-100 rounded">
-               <div className="font-bold text-yellow-600">{realtimeEvents.updates}</div>
-               <div className="text-xs">更新</div>
-             </div>
-             <div className="text-center p-2 bg-red-100 rounded">
-               <div className="font-bold text-red-600">{realtimeEvents.deletes}</div>
-               <div className="text-xs">削除</div>
-             </div>
-           </div>
-           <div className="mt-2">
-             <button
-               onClick={() => {
-                 console.log('🔍 詳細状態確認')
-                 console.log('リアルタイムイベント:', realtimeEvents)
-                 console.log('家事数:', chores.length)
-                 console.log('ユーザーID:', user?.id)
-                 console.log('Supabase接続状態:', supabase)
+      {/* デバッグ・管理機能 */}
+      <Accordion type="single" collapsible className="mb-6">
+        <AccordionItem value="realtime-test">
+          <AccordionTrigger className="text-lg font-semibold text-blue-800">
+            🔧 リアルタイム接続テスト
+          </AccordionTrigger>
+          <AccordionContent>
+            <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <div className="space-y-2 text-sm">
+                 <div>現在の家事数: <span className="font-bold text-blue-600">{chores.length}</span></div>
+                 <div>ユーザーID: <span className="font-mono text-xs">{user?.id}</span></div>
+                 <div className="flex items-center gap-2">
+                   <span>接続状態:</span>
+                   <span className={`px-2 py-1 rounded text-xs font-bold ${
+                     realtimeEvents.connectionStatus === 'connected' ? 'bg-green-100 text-green-800' :
+                     realtimeEvents.connectionStatus === 'error' ? 'bg-red-100 text-red-800' :
+                     realtimeEvents.connectionStatus === 'disconnected' ? 'bg-yellow-100 text-yellow-800' :
+                     'bg-gray-100 text-gray-800'
+                   }`}>
+                     {realtimeEvents.connectionStatus === 'connected' ? '🟢 接続中' :
+                      realtimeEvents.connectionStatus === 'error' ? '🔴 エラー' :
+                      realtimeEvents.connectionStatus === 'disconnected' ? '🟡 切断' :
+                      '⚪ 不明'}
+                   </span>
+                   {realtimeEvents.connectionStatus === 'error' && (
+                     <span className="text-xs text-red-600">
+                       (自動再接続を試行中...)
+                     </span>
+                   )}
+                 </div>
+                 <div className="grid grid-cols-3 gap-2 mt-2">
+                   <div className="text-center p-2 bg-green-100 rounded">
+                     <div className="font-bold text-green-600">{realtimeEvents.inserts}</div>
+                     <div className="text-xs">追加</div>
+                   </div>
+                   <div className="text-center p-2 bg-yellow-100 rounded">
+                     <div className="font-bold text-yellow-600">{realtimeEvents.updates}</div>
+                     <div className="text-xs">更新</div>
+                   </div>
+                   <div className="text-center p-2 bg-red-100 rounded">
+                     <div className="font-bold text-red-600">{realtimeEvents.deletes}</div>
+                     <div className="text-xs">削除</div>
+                   </div>
+                 </div>
+                 <div className="mt-2">
+                   <button
+                     onClick={() => {
+                       console.log('🔍 詳細状態確認')
+                       console.log('リアルタイムイベント:', realtimeEvents)
+                       console.log('家事数:', chores.length)
+                       console.log('ユーザーID:', user?.id)
+                       console.log('Supabase接続状態:', supabase)
+                       
+                       // 詳細表示を切り替え
+                       setShowRealtimeDetails && setShowRealtimeDetails(prev => !prev)
+                     }}
+                     className="px-3 py-1 bg-blue-500 text-white rounded text-sm hover:bg-blue-600"
+                   >
+                     {showRealtimeDetails ? '詳細を隠す' : '詳細を表示'}
+                   </button>
+                 </div>
                  
-                 // 詳細表示を切り替え
-                 setShowRealtimeDetails && setShowRealtimeDetails(prev => !prev)
-               }}
-               className="px-3 py-1 bg-blue-500 text-white rounded text-sm hover:bg-blue-600"
-             >
-               {showRealtimeDetails ? '詳細を隠す' : '詳細を表示'}
-             </button>
-           </div>
-           
-           {showRealtimeDetails && (
-             <div className="mt-2 p-2 bg-gray-100 rounded text-xs font-mono overflow-x-auto">
-               <div>最終イベント: {realtimeEvents.lastEvent || 'なし'}</div>
-               <div>最終エラー: {realtimeEvents.lastError || 'なし'}</div>
-               <div>接続試行回数: {realtimeEvents.reconnectAttempts || 0}</div>
-               <div>最終接続時刻: {realtimeEvents.lastConnectedAt ? new Date(realtimeEvents.lastConnectedAt).toLocaleString() : 'なし'}</div>
-             </div>
-           )}
-           
-           <div className="flex gap-2 mt-2">
-             <Button 
-               onClick={() => {
-                 console.log('🔄 手動再接続を試行')
-                 // handleReconnect関数が定義されていれば呼び出し
-                 handleReconnect && handleReconnect()
-               }}
-               variant="default"
-             >
-               再接続を試みる
-             </Button>
-             <Button 
-               onClick={() => {
-                 console.log('🔔 テスト通知を送信')
-                 addNotification({
-                   title: 'テスト通知',
-                   message: 'リアルタイム通知システムが正常に動作しています！',
-                   type: 'info',
-                   userId: user?.id
-                 })
-               }}
-               variant="secondary"
-               size="sm"
-             >
-               テスト通知
-             </Button>
-             <Button 
-               onClick={() => setRealtimeEvents(prev => ({...prev, inserts: 0, updates: 0, deletes: 0}))}
-               variant="ghost"
-               size="sm"
-             >
-               カウンターリセット
-             </Button>
-           </div>
-         </div>
-      </div>
+                 {showRealtimeDetails && (
+                   <div className="mt-2 p-2 bg-gray-100 rounded text-xs font-mono overflow-x-auto">
+                     <div>最終イベント: {realtimeEvents.lastEvent || 'なし'}</div>
+                     <div>最終エラー: {realtimeEvents.lastError || 'なし'}</div>
+                     <div>接続試行回数: {realtimeEvents.reconnectAttempts || 0}</div>
+                     <div>最終接続時刻: {realtimeEvents.lastConnectedAt ? new Date(realtimeEvents.lastConnectedAt).toLocaleString() : 'なし'}</div>
+                   </div>
+                 )}
+                 
+                 <div className="flex gap-2 mt-2">
+                   <Button 
+                     onClick={() => {
+                       console.log('🔄 手動再接続を試行')
+                       // handleReconnect関数が定義されていれば呼び出し
+                       handleReconnect && handleReconnect()
+                     }}
+                     variant="default"
+                   >
+                     再接続を試みる
+                   </Button>
+                   <Button 
+                     onClick={() => {
+                       console.log('🔔 テスト通知を送信')
+                       addNotification({
+                         title: 'テスト通知',
+                         message: 'リアルタイム通知システムが正常に動作しています！',
+                         type: 'info',
+                         userId: user?.id
+                       })
+                     }}
+                     variant="secondary"
+                     size="sm"
+                   >
+                     テスト通知
+                   </Button>
+                   <Button 
+                     onClick={() => setRealtimeEvents(prev => ({...prev, inserts: 0, updates: 0, deletes: 0}))}
+                     variant="ghost"
+                     size="sm"
+                   >
+                     カウンターリセット
+                   </Button>
+                 </div>
+               </div>
+            </div>
+          </AccordionContent>
+        </AccordionItem>
 
-      {/* パートナー状態デバッグ */}
-      <div className="mb-4 p-3 bg-purple-50 border border-purple-200 rounded-lg dark:bg-purple-950/30 dark:border-purple-800">
-        <h3 className="text-sm font-semibold mb-2 text-purple-800 dark:text-purple-400">
-          🔧 パートナー状態デバッグ
-        </h3>
-        <div className="text-xs text-purple-700 dark:text-purple-300 space-y-1">
-          <div>hasPartner: <span className="font-mono">{String(hasPartner)}</span></div>
-          <div>partnerInfo: <span className="font-mono">{partnerInfo ? JSON.stringify(partnerInfo) : 'null'}</span></div>
-          <div>ユーザーID: <span className="font-mono text-xs">{user?.id}</span></div>
-        </div>
-      </div>
+        <AccordionItem value="partner-debug">
+          <AccordionTrigger className="text-sm font-semibold text-purple-800 dark:text-purple-400">
+            🔧 パートナー状態デバッグ
+          </AccordionTrigger>
+          <AccordionContent>
+            <div className="p-3 bg-purple-50 border border-purple-200 rounded-lg dark:bg-purple-950/30 dark:border-purple-800">
+              <div className="text-xs text-purple-700 dark:text-purple-300 space-y-1">
+                <div>hasPartner: <span className="font-mono">{String(hasPartner)}</span></div>
+                <div>partnerInfo: <span className="font-mono">{partnerInfo ? JSON.stringify(partnerInfo) : 'null'}</span></div>
+                <div>ユーザーID: <span className="font-mono text-xs">{user?.id}</span></div>
+              </div>
+            </div>
+          </AccordionContent>
+        </AccordionItem>
 
-      {/* パートナー招待UI */}
-      {hasPartner === false && (
-        <div className="mb-6">
-          <PartnerInvitation onPartnerLinked={handlePartnerLinked} />
-        </div>
-      )}
+        <AccordionItem value="partner-invitation">
+          <AccordionTrigger className="text-lg font-semibold text-orange-800">
+            😊 パートナーを招待
+          </AccordionTrigger>
+          <AccordionContent>
+            {/* パートナー招待UI */}
+            {hasPartner === false && (
+              <div className="mb-4">
+                <PartnerInvitation onPartnerLinked={handlePartnerLinked} />
+              </div>
+            )}
 
-      {hasPartner === true && partnerInfo && (
-        <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg dark:bg-green-950/30 dark:border-green-800">
-          <h3 className="text-lg font-semibold mb-2 text-green-800 dark:text-green-400">
-            👫 パートナー連携済み
-          </h3>
-          <div className="text-green-700 dark:text-green-300">
-            <p><span className="font-medium">パートナー:</span> {partnerInfo.name}</p>
-            <p className="text-sm mt-1">家事の追加・完了・削除がリアルタイムで共有されます</p>
-          </div>
-        </div>
-      )}
+            {hasPartner === true && partnerInfo && (
+              <div className="p-4 bg-green-50 border border-green-200 rounded-lg dark:bg-green-950/30 dark:border-green-800">
+                <h3 className="text-lg font-semibold mb-2 text-green-800 dark:text-green-400">
+                  👫 パートナー連携済み
+                </h3>
+                <div className="text-green-700 dark:text-green-300">
+                  <p><span className="font-medium">パートナー:</span> {partnerInfo.name}</p>
+                  <p className="text-sm mt-1">家事の追加・完了・削除がリアルタイムで共有されます</p>
+                </div>
+              </div>
+            )}
 
-      {hasPartner === null && (
-        <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg dark:bg-yellow-950/30 dark:border-yellow-800">
-          <h3 className="text-lg font-semibold mb-2 text-yellow-800 dark:text-yellow-400">
-            ⏳ パートナー情報を確認中...
-          </h3>
-          <p className="text-yellow-700 dark:text-yellow-300 text-sm">
-            パートナー情報を取得しています。しばらくお待ちください。
-          </p>
-        </div>
-      )}
+            {hasPartner === null && (
+              <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg dark:bg-yellow-950/30 dark:border-yellow-800">
+                <h3 className="text-lg font-semibold mb-2 text-yellow-800 dark:text-yellow-400">
+                  ⏳ パートナー情報を確認中...
+                </h3>
+                <p className="text-yellow-700 dark:text-yellow-300 text-sm">
+                  パートナー情報を取得しています。しばらくお待ちください。
+                </p>
+              </div>
+            )}
+          </AccordionContent>
+        </AccordionItem>
+      </Accordion>
 
       {/* 家事追加フォーム */}
       <form onSubmit={(e) => addChore(e)} className="mb-6">
