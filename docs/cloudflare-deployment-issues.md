@@ -1,4 +1,4 @@
-# Cloudflare Workers デプロイ後の認証問題と解決方法
+# Cloudflare Pages デプロイ後の認証問題と解決方法
 
 ## 発生した問題
 
@@ -34,7 +34,7 @@ redirectTo: `${window.location.origin}/auth/callback`
 
 ## 解決方法
 
-### 1. Cloudflare Workers環境変数の修正
+### 1. Cloudflare Pages環境変数の修正
 
 **手順**:
 1. [Cloudflareダッシュボード](https://dash.cloudflare.com) にアクセス
@@ -120,10 +120,11 @@ npm run test:a11y
 ## 関連ドキュメント
 
 - [Google OAuth設定ガイド](./google-oauth-setup.md)
-- [Cloudflare Workers デプロイ戦略](./adr/ADR-0002-cloudflare-workers-deployment.md)
+- [Cloudflare Pages デプロイ戦略](./adr/ADR-0002-cloudflare-workers-deployment.md)
 - [運用ランブック](./reference/operations-runbook.md)
 - [リリースチェックリスト](./reference/checklist-release.md)
 
 ## 更新履歴
 
-- 2025-01-22: 初版作成（Cloudflare Workers認証問題の調査・解決）
+- 2024-12-22: 初版作成（Cloudflare Workers認証問題の調査・解決）
+- 2025-01-22: Cloudflare Pages移行に伴う更新

@@ -1,41 +1,42 @@
-# ADR-0002: Cloudflare Workers デプロイメント戦略
+# ADR-0002: Cloudflare Pages デプロイメント戦略
 
 ## ステータス
 
-承認済み
+承認済み（2025-01-22更新: WorkersからPagesへ移行完了）
 
 ## 日付
 
-2024-12-22
+2024-12-22（初版）
+2025-01-22（Pages移行対応）
 
 ## 背景
 
-家事管理MVPアプリケーションのデプロイメント環境として、Cloudflare Workersを選択し、実装を完了した。Next.js 15アプリケーションをCloudflare Workers上で動作させるための設定と最適化を行った。
+家事管理MVPアプリケーションのデプロイメント環境として、当初Cloudflare Workersを選択していたが、運用面での利便性とNext.jsアプリケーションの特性を考慮し、Cloudflare Pagesへの移行を実施した。
 
 ## 決定事項
 
 ### デプロイメント戦略
 
-1. **プラットフォーム**: Cloudflare Workers + Pages
-2. **ビルドツール**: @opennextjs/cloudflare を使用
+1. **プラットフォーム**: Cloudflare Pages（Workersから移行）
+2. **ビルドツール**: Next.js標準ビルド + Cloudflare Pages
 3. **環境分離**: staging と production の2環境
-4. **設定管理**: wrangler.jsonc と wrangler.toml の併用
+4. **設定管理**: wrangler.toml による統一管理
 
 ### 技術実装
 
 #### デプロイスクリプト
 ```json
 {
-  "deploy:staging": "npm run build:staging && npx wrangler pages deploy .next --project-name=household-mvp-staging",
-  "deploy:production": "npm run build:production && npx wrangler pages deploy .next --project-name=household-mvp",
-  "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview"
+  "deploy:staging": "npm run build && npx wrangler pages deploy out --project-name=household-mvp-staging",
+  "deploy:production": "npm run build && npx wrangler pages deploy out --project-name=household-mvp-production",
+  "preview": "npm run build && npx wrangler pages dev out"
 }
 ```
 
 #### 設定ファイル構成
-- `wrangler.jsonc`: OpenNext用の設定（worker.js、assets、limits）
-- `wrangler.toml`: Pages用の設定（環境別プロジェクト名、ビルド設定）
-- `open-next.config.ts`: Next.js → Cloudflare Workers変換設定
+- `wrangler.toml`: Pages用の統一設定（環境別プロジェクト名、ビルド設定）
+- `next.config.js`: Next.js静的エクスポート設定
+- 削除済み: `wrangler.jsonc`, `open-next.config.ts`（Pages移行により不要）
 
 #### 環境変数管理
 - Cloudflare Dashboard経由で設定
@@ -48,26 +49,27 @@
 
 ### パフォーマンス最適化
 
-1. **CPU制限**: 50ms（wrangler.jsonc）
-2. **アセット最適化**: 静的ファイルの分離配信
-3. **Node.js互換性**: nodejs_compat フラグ有効化
-4. **監視**: observability 有効化
+1. **静的サイト生成**: Next.js静的エクスポートによる高速配信
+2. **アセット最適化**: Cloudflare CDNによる自動最適化
+3. **キャッシュ戦略**: エッジキャッシュによる高速レスポンス
+4. **監視**: Cloudflare Analytics による詳細な分析
 
 ## 理由
 
-### Cloudflare Workers選択理由
+### Cloudflare Pages選択理由
 
 1. **グローバル配信**: エッジでの高速レスポンス
-2. **コスト効率**: 従量課金モデル
+2. **コスト効率**: 静的サイトホスティングによる低コスト
 3. **スケーラビリティ**: 自動スケーリング
-4. **Next.js対応**: @opennextjs/cloudflare による良好なサポート
-5. **Supabase連携**: 地理的に近いエッジからのAPI呼び出し
+4. **Next.js対応**: 標準的な静的エクスポートによる安定性
+5. **運用簡素化**: Workersの複雑な設定が不要
+6. **Supabase連携**: クライアントサイドからの直接API呼び出し
 
-### 設定ファイル分離理由
+### Pages移行理由
 
-- `wrangler.jsonc`: OpenNext preview用（開発時）
-- `wrangler.toml`: Pages deploy用（本番デプロイ）
-- 用途に応じた設定の最適化
+- **運用簡素化**: 複雑なWorkers設定からシンプルなPages設定へ
+- **安定性向上**: Next.js標準機能による予測可能な動作
+- **デバッグ容易性**: 静的サイトによる問題の特定しやすさ
 
 ## 影響
 
@@ -80,28 +82,29 @@
 
 ### 考慮事項
 
-1. **CPU制限**: 50ms制限内での処理最適化が必要
-2. **Cold Start**: 初回リクエスト時の遅延
-3. **デバッグ**: ローカル環境との差異
-4. **依存関係**: Node.js互換性の制約
+1. **静的サイト制約**: サーバーサイド処理の制限
+2. **ビルド時間**: 静的生成による若干のビルド時間増加
+3. **動的機能**: リアルタイム機能はクライアントサイドで実装
+4. **API制限**: Supabaseクライアントの直接利用による制約
 
-## 実装状況
+## 実装状況（2025-01-22更新）
 
-- ✅ 基本デプロイ設定完了
+- ✅ Pages移行完了
 - ✅ staging/production環境分離
-- ✅ プレビュー環境構築
-- ✅ 環境変数設定
-- ⏳ 本番デプロイ実行中
+- ✅ 静的エクスポート設定完了
+- ✅ 環境変数設定完了
+- ✅ 本番デプロイ完了
+- ✅ 認証問題解決
 
 ## 今後の課題
 
-1. **監視・ログ**: Cloudflare Analytics/Logs の活用
+1. **監視・ログ**: Cloudflare Analytics の活用
 2. **パフォーマンス**: Web Vitals の継続監視
 3. **セキュリティ**: CSP/CORS設定の最適化
-4. **BFF移行**: Phase 2でのHono BFF実装準備
+4. **BFF移行**: Phase 2でのHono BFF実装準備（Workers活用）
 
 ## 参考資料
 
-- [OpenNext Cloudflare Documentation](https://opennext.js.org/cloudflare)
-- [Cloudflare Workers Documentation](https://developers.cloudflare.com/workers/)
+- [Cloudflare Pages Documentation](https://developers.cloudflare.com/pages/)
+- [Next.js Static Export](https://nextjs.org/docs/app/building-your-application/deploying/static-exports)
 - [Next.js Deployment Guide](https://nextjs.org/docs/deployment)

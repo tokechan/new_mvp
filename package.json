@@ -17,13 +17,13 @@
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:headed": "playwright test --headed",
     "test:e2e:debug": "playwright test --debug",
-    "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
-    "deploy": "opennextjs-cloudflare build && wrangler deploy",
+    "preview": "npm run build && npx wrangler pages dev out",
+    "deploy": "npm run build && npx wrangler pages deploy out",
     "cf-typegen": "wrangler types",
-    "cf-logs": "wrangler tail",
+    "cf-logs": "wrangler pages deployment tail",
     "cf-analytics": "wrangler analytics",
-    "deploy:staging": "npm run build:staging && npx wrangler pages deploy .next --project-name=household-mvp-staging",
-    "deploy:production": "npm run build:production && npx wrangler pages deploy .next --project-name=household-mvp"
+    "deploy:staging": "npm run build && npx wrangler pages deploy out --project-name=household-mvp-staging",
+    "deploy:production": "npm run build && npx wrangler pages deploy out --project-name=household-mvp-production"
   },
   "dependencies": {
     "@opennextjs/cloudflare": "^1.8.3",
