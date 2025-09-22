@@ -1,6 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Next.js 15では実験的なappDirは不要
+  // Cloudflare Pages対応 - 静的エクスポート
+  output: 'export',
+  trailingSlash: true,
   
   // 開発環境でのCORS設定（複数のプライベートネットワークからのアクセスを許可）
   async headers() {
