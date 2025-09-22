@@ -1,10 +1,10 @@
-# 家事管理MVP - Cloudflare Workers デプロイ済み
+# 家事管理MVP - Cloudflare Pages デプロイ済み
 
 ## 🚀 デプロイ状況
 
-- **プラットフォーム**: Cloudflare Workers + Pages
-- **Staging**: `household-mvp-staging` (デプロイ中)
-- **Production**: `household-mvp` (準備完了)
+- **プラットフォーム**: Cloudflare Pages
+- **Staging**: `household-mvp-staging` (デプロイ完了)
+- **Production**: `household-mvp-production` (デプロイ完了)
 - **技術スタック**: Next.js 15 + Supabase + TypeScript
 
 ## 📋 クイックスタート
@@ -52,7 +52,7 @@ docs/
 
 - **フロントエンド**: Next.js 15.5.2 (App Router)
 - **バックエンド**: Supabase (Auth/Postgres/RLS/Realtime)
-- **デプロイ**: Cloudflare Workers (@opennextjs/cloudflare)
+- **デプロイ**: Cloudflare Pages (静的エクスポート)
 - **UI**: Radix UI + Tailwind CSS + shadcn/ui
 - **テスト**: Playwright (E2E) + Jest (Unit) + axe-core (a11y)
 - **型安全性**: TypeScript + Zod
@@ -66,11 +66,11 @@ docs/
 - パートナー招待システム
 - アクセシビリティ対応 (WCAG 2.1 AA)
 - E2E/Unit/a11y テスト
-- Cloudflare Workers デプロイ設定
+- Cloudflare Pages デプロイ設定
 
 ### 🔄 進行中
-- Staging環境デプロイ
-- 本番環境準備
+- 監視・ログ設定
+- パフォーマンス最適化
 
 ### 📋 今後の予定
 - 監視・ログ設定

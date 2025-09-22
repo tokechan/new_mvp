@@ -2,11 +2,11 @@
 
 ## デプロイメント
 
-### Cloudflare Workers デプロイ
+### Cloudflare Pages デプロイ
 
 #### 環境
 - **Staging**: `household-mvp-staging`
-- **Production**: `household-mvp`
+- **Production**: `household-mvp-production`
 
 #### デプロイコマンド
 ```bash
@@ -59,15 +59,15 @@ wrangler pages deployment promote <deployment-id> --project-name=household-mvp
 - 影響範囲・暫定対応・次報予定を明記
 
 ### 切り分け手順
-1) Cloudflare Workers ダッシュボードのメトリクス確認
+1) Cloudflare Pages ダッシュボードのメトリクス確認
 2) Supabase ステータス / ログ確認  
 3) フロントのデグレ（直近PR）確認
-4) CPU制限（50ms）超過の確認
+4) 静的ビルドエラーの確認
 
 ### 一時対応
 - 読み取り専用モード（一覧のみ表示）へ落とす
 - 直近デプロイのロールバック
-- Cloudflare Workers の一時停止
+- Cloudflare Pages の一時停止
 
 ### 事後
 - ポストモーテム（原因/対応/再発防止）
