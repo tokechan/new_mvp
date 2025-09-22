@@ -1,6 +1,8 @@
 'use client'
 
 import { Chore } from '@/types/chore'
+import { ChoreItem } from './ChoreItem'
+import { useAuthState } from '@/hooks/useAuthState'
 
 interface ChoreListProps {
   chores: Chore[]
@@ -14,6 +16,8 @@ interface ChoreListProps {
  * ChoresList.tsxから分離された家事リスト表示UI
  */
 export function ChoreList({ chores, isLoading, onToggleChore, onDeleteChore }: ChoreListProps) {
+  const { user } = useAuthState()
+  
   /**
    * 日付フォーマット関数
    */
@@ -77,57 +81,13 @@ export function ChoreList({ chores, isLoading, onToggleChore, onDeleteChore }: C
       
       <div className="divide-y divide-gray-100">
         {chores.map((chore) => (
-          <div
+          <ChoreItem
             key={chore.id}
-            className={`p-4 transition-colors ${
-              chore.done ? 'bg-green-50' : 'hover:bg-gray-50'
-            }`}
-          >
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3 flex-1">
-                <button
-                  onClick={() => onToggleChore(chore.id, chore.done)}
-                  className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${
-                    chore.done
-                      ? 'bg-green-500 border-green-500 text-white'
-                      : 'border-gray-300 hover:border-green-400'
-                  }`}
-                >
-                  {chore.done && '✓'}
-                </button>
-                
-                <div className="flex-1">
-                  <h3
-                    className={`font-medium transition-colors ${
-                      chore.done
-                        ? 'text-green-700 line-through'
-                        : 'text-gray-800'
-                    }`}
-                  >
-                    {chore.title}
-                  </h3>
-                  
-                  <div className="flex items-center gap-4 mt-1 text-sm text-gray-500">
-                    <span>👤 {chore.owner_name || '不明'}</span>
-                    <span>📅 {formatDate(chore.created_at)}</span>
-                    {chore.done && chore.completed_at && (
-                      <span className="text-green-600">
-                        ✅ {formatDate(chore.completed_at)}に完了
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </div>
-              
-              <button
-                onClick={() => onDeleteChore(chore.id)}
-                className="ml-4 p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors"
-                title="削除"
-              >
-                🗑️
-              </button>
-            </div>
-          </div>
+            chore={chore}
+            onToggle={onToggleChore}
+            onDelete={onDeleteChore}
+            currentUserId={user?.id}
+          />
         ))}
       </div>
     </div>
