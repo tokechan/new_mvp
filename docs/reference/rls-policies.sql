@@ -83,7 +83,7 @@ create policy "chores_delete_owner_or_partner"
 on public.chores for delete
 using (owner_id = auth.uid() or partner_id = auth.uid());
 
--- completions: 見えるのは関係者、insertは自分の分だけ
+-- completions: 見えるのは関係者、insertは自分の分だけ、update/deleteは関係者のみ
 create policy "completions_select_related"
 on public.completions for select
 using (
@@ -95,6 +95,27 @@ using (
 create policy "completions_insert_self"
 on public.completions for insert
 with check (user_id = auth.uid());
+
+create policy "completions_update_related"
+on public.completions for update
+using (
+  exists (select 1 from public.chores c
+          where c.id = completions.chore_id
+            and (c.owner_id = auth.uid() or c.partner_id = auth.uid()))
+)
+with check (
+  exists (select 1 from public.chores c
+          where c.id = completions.chore_id
+            and (c.owner_id = auth.uid() or c.partner_id = auth.uid()))
+);
+
+create policy "completions_delete_related"
+on public.completions for delete
+using (
+  exists (select 1 from public.chores c
+          where c.id = completions.chore_id
+            and (c.owner_id = auth.uid() or c.partner_id = auth.uid()))
+);
 
 -- thanks: 自分が当事者のもののみ、insertはfrom_id=自分
 create policy "thanks_select_related"

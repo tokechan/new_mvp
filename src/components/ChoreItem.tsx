@@ -1,13 +1,14 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { Chore } from '@/types/chore'
 
 interface ChoreItemProps {
   chore: Chore
-  onToggle: (choreId: string, currentDone: boolean) => Promise<boolean>
-  onDelete: (choreId: string) => Promise<boolean>
-  currentUserId: string
+  onToggle: (choreId: string, currentDone: boolean) => Promise<void>
+  onDelete: (choreId: string) => Promise<void>
+  currentUserId?: string
 }
 
 /**
@@ -17,6 +18,7 @@ interface ChoreItemProps {
 export function ChoreItem({ chore, onToggle, onDelete, currentUserId }: ChoreItemProps) {
   const [isToggling, setIsToggling] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
+  const router = useRouter()
 
   /**
    * 家事の完了状態を切り替える
@@ -27,6 +29,14 @@ export function ChoreItem({ chore, onToggle, onDelete, currentUserId }: ChoreIte
     setIsToggling(true)
     try {
       await onToggle(chore.id, chore.done ?? false)
+      
+      // 完了時にポップアップを表示し、完了ページに遷移
+      if (!chore.done) {
+        const shouldShowThankYou = confirm('家事が完了しました！\n\nありがとうメッセージを送りますか？')
+        if (shouldShowThankYou) {
+          router.push('/completed-chores')
+        }
+      }
     } catch (error) {
       console.error('家事の完了状態変更に失敗:', error)
       // エラーは親コンポーネントで処理される
@@ -67,6 +77,7 @@ export function ChoreItem({ chore, onToggle, onDelete, currentUserId }: ChoreIte
    */
   const getCompletedByText = () => {
     if (!chore.done) return ''
+    if (!currentUserId) return 'ユーザー'
     
     const isCompletedByCurrentUser = chore.owner_id === currentUserId
     return isCompletedByCurrentUser ? 'あなた' : 'パートナー'
@@ -95,6 +106,21 @@ export function ChoreItem({ chore, onToggle, onDelete, currentUserId }: ChoreIte
         minute: '2-digit'
       })
     }
+  }
+
+  /**
+   * ありがとうページに遷移する
+   */
+  const handleThankYou = () => {
+    router.push(`/thank-you?choreId=${chore.id}`)
+  }
+
+  /**
+   * ありがとうボタンを表示するかどうか
+   * 完了済みの家事の場合に表示
+   */
+  const shouldShowThankYouButton = () => {
+    return chore.done
   }
 
   return (
@@ -160,27 +186,47 @@ export function ChoreItem({ chore, onToggle, onDelete, currentUserId }: ChoreIte
           </div>
         </div>
 
-        {/* 削除ボタン */}
-        <button
-          data-testid="delete-chore-button"
-          onClick={handleDelete}
-          disabled={isDeleting}
-          aria-label={`${chore.title}を削除`}
-          className={`
-            ml-3 p-2 text-gray-400 hover:text-red-500 rounded-lg
-            transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-red-500
-            ${isDeleting ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
-          `}
-          title="家事を削除"
-        >
-          {isDeleting ? (
-            <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-          ) : (
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-            </svg>
+        <div className="flex items-center space-x-2">
+          {/* ありがとうボタン */}
+          {shouldShowThankYouButton() && (
+            <button
+              data-testid="thank-you-button"
+              onClick={handleThankYou}
+              aria-label={`${chore.title}にありがとうを送る`}
+              className="
+                px-3 py-1 bg-pink-500 text-white text-sm rounded-lg
+                hover:bg-pink-600 transition-colors duration-200
+                focus:outline-none focus:ring-2 focus:ring-pink-500
+                cursor-pointer
+              "
+              title="ありがとうを送る"
+            >
+              ありがとう
+            </button>
           )}
-        </button>
+
+          {/* 削除ボタン */}
+          <button
+            data-testid="delete-chore-button"
+            onClick={handleDelete}
+            disabled={isDeleting}
+            aria-label={`${chore.title}を削除`}
+            className={`
+              p-2 text-gray-400 hover:text-red-500 rounded-lg
+              transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-red-500
+              ${isDeleting ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
+            `}
+            title="家事を削除"
+          >
+            {isDeleting ? (
+              <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+            ) : (
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+            )}
+          </button>
+        </div>
       </div>
     </div>
   )

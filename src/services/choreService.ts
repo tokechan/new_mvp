@@ -213,7 +213,7 @@ export class ChoreService {
       `)
       .or(`owner_id.eq.${userId},partner_id.eq.${userId}`)
       .eq('done', true)
-      .order('updated_at', { ascending: false })
+      .order('created_at', { ascending: false })
 
     if (limit) {
       query = query.limit(limit)

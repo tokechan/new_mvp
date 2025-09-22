@@ -44,6 +44,13 @@ export default function Home() {
           </div>
           <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4">
             <span className="text-sm truncate">こんにちは、{user.email}さん</span>
+            <Button 
+              variant="outline"
+              size="sm"
+              onClick={() => router.push('/completed-chores')}
+            >
+              完了した家事
+            </Button>
           <Button 
             onClick={() => {
               addNotification({
