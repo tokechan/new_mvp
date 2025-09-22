@@ -1,14 +1,21 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { invitationService } from '@/services/invitationService'
+import {
+  createInvitation,
+  getInvitations,
+  getInvitation,
+  acceptInvitation,
+} from '@/services/invitationService'
 import {
   PartnerInvitation,
   CreateInvitationRequest,
   CreateInvitationResponse,
   GetInvitationResponse,
+  GetInvitationsResponse,
   AcceptInvitationResponse,
-} from '@/lib/types/partner-invitation'
+  AcceptInvitationRequest,
+} from '@/types/invitation'
 import { getErrorMessage } from '@/utils/invitationUtils'
 
 /**
@@ -34,83 +41,70 @@ export function useInvitations() {
     try {
       setLoading(true)
       setError(null)
-      const data = await invitationService.getInvitations()
-      setInvitations(data)
+      const response: GetInvitationsResponse = await getInvitations()
+      if (response.success) {
+        setInvitations(response.invitations || [])
+      } else {
+        setError(response.error || '招待一覧の取得に失敗しました')
+      }
     } catch (err) {
-      const errorMessage = getErrorMessage(err)
-      setError(errorMessage)
-      console.error('招待一覧の取得に失敗:', err)
+      setError(getErrorMessage(err))
     } finally {
       setLoading(false)
     }
   }, [])
 
   /**
-   * 新しい招待を作成
+   * 招待を作成
    */
-  const createInvitation = useCallback(async (
-    request: CreateInvitationRequest
-  ): Promise<CreateInvitationResponse | null> => {
+  const createInvitationHandler = useCallback(async (request: CreateInvitationRequest): Promise<CreateInvitationResponse> => {
     try {
       setLoading(true)
       setError(null)
-      const response = await invitationService.createInvitation(request)
-      // 招待一覧を再取得
-      await fetchInvitations()
+      const response = await createInvitation(request)
+      if (response.success) {
+        // 招待一覧を再取得
+        await fetchInvitations()
+      } else {
+        setError(response.error || '招待の作成に失敗しました')
+      }
       return response
     } catch (err) {
       const errorMessage = getErrorMessage(err)
       setError(errorMessage)
-      console.error('招待の作成に失敗:', err)
-      return null
+      return { success: false, error: errorMessage }
     } finally {
       setLoading(false)
     }
   }, [fetchInvitations])
 
   /**
-   * 招待をキャンセル
+   * 招待を受諾
    */
-  const cancelInvitation = useCallback(async (invitationId: string): Promise<boolean> => {
+  const acceptInvitationHandler = useCallback(async (request: AcceptInvitationRequest): Promise<AcceptInvitationResponse> => {
     try {
       setLoading(true)
       setError(null)
-      await invitationService.cancelInvitation(invitationId)
-      // 招待一覧を再取得
-      await fetchInvitations()
-      return true
+      const response = await acceptInvitation(request)
+      if (response.success) {
+        // 招待一覧を再取得
+        await fetchInvitations()
+      } else {
+        setError(response.error || '招待の受諾に失敗しました')
+      }
+      return response
     } catch (err) {
       const errorMessage = getErrorMessage(err)
       setError(errorMessage)
-      console.error('招待のキャンセルに失敗:', err)
-      return false
+      return { success: false, error: errorMessage }
     } finally {
       setLoading(false)
     }
   }, [fetchInvitations])
 
   /**
-   * 期限切れの招待を削除
+   * 初期化時に招待一覧を取得
    */
-  const cleanupExpiredInvitations = useCallback(async (): Promise<boolean> => {
-    try {
-      setLoading(true)
-      setError(null)
-      await invitationService.cleanupExpiredInvitations()
-      // 招待一覧を再取得
-      await fetchInvitations()
-      return true
-    } catch (err) {
-      const errorMessage = getErrorMessage(err)
-      setError(errorMessage)
-      console.error('期限切れ招待の削除に失敗:', err)
-      return false
-    } finally {
-      setLoading(false)
-    }
-  }, [fetchInvitations])
-
-  // 初回マウント時に招待一覧を取得
   useEffect(() => {
     fetchInvitations()
   }, [fetchInvitations])
@@ -121,17 +115,16 @@ export function useInvitations() {
     error,
     clearError,
     fetchInvitations,
-    createInvitation,
-    cancelInvitation,
-    cleanupExpiredInvitations,
+    createInvitation: createInvitationHandler,
+    acceptInvitation: acceptInvitationHandler,
   }
 }
 
 /**
- * 単一の招待を管理するカスタムフック
+ * 単一の招待を取得するカスタムフック
  */
 export function useInvitation(inviteCode: string) {
-  const [invitation, setInvitation] = useState<GetInvitationResponse | null>(null)
+  const [invitation, setInvitation] = useState<PartnerInvitation | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -143,7 +136,7 @@ export function useInvitation(inviteCode: string) {
   }, [])
 
   /**
-   * 招待情報を取得
+   * 招待を取得
    */
   const fetchInvitation = useCallback(async () => {
     if (!inviteCode) return
@@ -151,12 +144,14 @@ export function useInvitation(inviteCode: string) {
     try {
       setLoading(true)
       setError(null)
-      const data = await invitationService.getInvitation(inviteCode)
-      setInvitation(data)
+      const response: GetInvitationResponse = await getInvitation(inviteCode)
+      if (response.success) {
+        setInvitation(response.invitation || null)
+      } else {
+        setError(response.error || '招待の取得に失敗しました')
+      }
     } catch (err) {
-      const errorMessage = getErrorMessage(err)
-      setError(errorMessage)
-      console.error('招待情報の取得に失敗:', err)
+      setError(getErrorMessage(err))
     } finally {
       setLoading(false)
     }
@@ -165,27 +160,30 @@ export function useInvitation(inviteCode: string) {
   /**
    * 招待を受諾
    */
-  const acceptInvitation = useCallback(async (): Promise<AcceptInvitationResponse | null> => {
-    if (!inviteCode) return null
-
+  const acceptInvitationHandler = useCallback(async (): Promise<AcceptInvitationResponse> => {
     try {
       setLoading(true)
       setError(null)
-      const response = await invitationService.acceptInvitation(inviteCode)
-      // 招待情報を再取得
-      await fetchInvitation()
+      const response = await acceptInvitation({ invite_code: inviteCode })
+      if (response.success) {
+        // 招待情報を再取得
+        await fetchInvitation()
+      } else {
+        setError(response.error || '招待の受諾に失敗しました')
+      }
       return response
     } catch (err) {
       const errorMessage = getErrorMessage(err)
       setError(errorMessage)
-      console.error('招待の受諾に失敗:', err)
-      return null
+      return { success: false, error: errorMessage }
     } finally {
       setLoading(false)
     }
   }, [inviteCode, fetchInvitation])
 
-  // 招待コードが変更されたら招待情報を取得
+  /**
+   * 初期化時に招待を取得
+   */
   useEffect(() => {
     fetchInvitation()
   }, [fetchInvitation])
@@ -196,6 +194,6 @@ export function useInvitation(inviteCode: string) {
     error,
     clearError,
     fetchInvitation,
-    acceptInvitation,
+    acceptInvitation: acceptInvitationHandler,
   }
 }

@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Cloudflare Pages対応 - 静的エクスポート
-  output: 'export',
+  // 動的ルート対応のため静的エクスポートを無効化
+  // output: 'export',
   trailingSlash: true,
   
   // 開発環境でのCORS設定（複数のプライベートネットワークからのアクセスを許可）

@@ -7,7 +7,12 @@
  */
 
 // 新しいサービス層とユーティリティをインポート
-import { invitationService } from '@/services/invitationService'
+import {
+  createInvitation as createInvitationService,
+  getInvitations as getInvitationsService,
+  getInvitation as getInvitationService,
+  acceptInvitation as acceptInvitationService,
+} from '@/services/invitationService'
 import {
   generateInviteUrl,
   generateQRCodeUrl,
@@ -27,8 +32,10 @@ import {
   CreateInvitationRequest,
   CreateInvitationResponse,
   GetInvitationResponse,
+  GetInvitationsResponse,
   AcceptInvitationResponse,
-} from './types/partner-invitation'
+  AcceptInvitationRequest,
+} from '@/types/invitation'
 
 // ===== API操作（新しいサービス層を使用） =====
 
@@ -38,14 +45,14 @@ import {
 export async function createInvitation(
   request: CreateInvitationRequest
 ): Promise<CreateInvitationResponse> {
-  return invitationService.createInvitation(request)
+  return createInvitationService(request)
 }
 
 /**
  * 招待一覧取得
  */
-export async function getInvitations(): Promise<PartnerInvitation[]> {
-  return invitationService.getInvitations()
+export async function getInvitations(): Promise<GetInvitationsResponse> {
+  return getInvitationsService()
 }
 
 /**
@@ -54,7 +61,7 @@ export async function getInvitations(): Promise<PartnerInvitation[]> {
 export async function getInvitation(
   inviteCode: string
 ): Promise<GetInvitationResponse> {
-  return invitationService.getInvitation(inviteCode)
+  return getInvitationService(inviteCode)
 }
 
 /**
@@ -63,7 +70,7 @@ export async function getInvitation(
 export async function acceptInvitation(
   inviteCode: string
 ): Promise<AcceptInvitationResponse> {
-  return invitationService.acceptInvitation(inviteCode)
+  return acceptInvitationService({ invite_code: inviteCode })
 }
 
 // ===== ユーティリティ関数（新しいユーティリティ層を使用） =====
