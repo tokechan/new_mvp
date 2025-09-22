@@ -16,7 +16,7 @@ import {
 import type { 
   GetInvitationResponse,
   AcceptInvitationResponse 
-} from '@/lib/types/partner-invitation'
+} from '@/types/invitation'
 
 interface InvitePageProps {
   params: Promise<{
@@ -57,8 +57,8 @@ export default function InvitePage({ params }: InvitePageProps) {
 
       const response: GetInvitationResponse = await getInvitation(code)
       
-      if (response.success && response.data) {
-        setInvitationData(response.data)
+      if (response.success && response.invitation) {
+        setInvitationData(response.invitation)
       } else {
         setError(response.error || '招待情報の取得に失敗しました')
       }
@@ -82,8 +82,8 @@ export default function InvitePage({ params }: InvitePageProps) {
       
       const response: AcceptInvitationResponse = await acceptInvitation(code)
       
-      if (response.success && response.data) {
-        setAcceptanceResult(response.data)
+      if (response.success) {
+        setAcceptanceResult({ success: true })
         // 3秒後にホームページにリダイレクト
         setTimeout(() => {
           router.push('/')

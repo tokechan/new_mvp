@@ -19,7 +19,7 @@ import type {
   CreateInvitationResponse,
   GetInvitationsResponse,
   PartnerInvitation
-} from '@/lib/types/partner-invitation'
+} from '@/types/invitation'
 
 interface PartnerInvitationProps {
   onPartnerLinked?: () => void // パートナー連携完了時のコールバック
@@ -40,12 +40,13 @@ export default function PartnerInvitation({ onPartnerLinked }: PartnerInvitation
     
     try {
       setIsLoading(true)
-      const invitations: PartnerInvitation[] = await getInvitations()
+      const response: GetInvitationsResponse = await getInvitations()
+      const invitations = response.success ? response.invitations || [] : []
       
       setInvitations(invitations || [])
       // 有効な招待があるかチェック
       const activeInvitation = invitations?.find(
-        inv => inv.status === 'pending' && new Date(inv.expires_at) > new Date()
+        (inv: PartnerInvitation) => inv.status === 'pending' && new Date(inv.expires_at) > new Date()
       )
       setCurrentInvitation(activeInvitation || null)
       setError(null) // 成功時はエラーをクリア
@@ -68,7 +69,7 @@ export default function PartnerInvitation({ onPartnerLinked }: PartnerInvitation
         invitee_email: inviteeEmail || undefined
       })
       
-      if (response.success && response.data) {
+      if (response.success && response.invitation) {
         // 招待一覧を再取得
         await fetchInvitations()
         setInviteeEmail('') // フォームをクリア
