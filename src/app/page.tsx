@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
 import ChoresList from '@/components/ChoresList'
 import NotificationCenter from '@/components/NotificationCenter'
+import Navigation from '@/components/Navigation'
 import { Button } from '@/components/ui/Button'
 
 export default function Home() {
@@ -32,65 +33,64 @@ export default function Home() {
   }
 
   return (
-    <main className="flex min-h-screen flex-col p-4 sm:p-6 lg:p-24">
-      {/* モバイル対応ヘッダー */}
-      <header className="w-full mb-6">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div className="text-center sm:text-left">
-            <h1 className="text-xl sm:text-2xl font-bold text-blue-600">
-              ThankYou Chores
-            </h1>
-            <p className="text-sm text-gray-600">家事管理アプリ</p>
-          </div>
-          <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4">
-            <span className="text-sm truncate">こんにちは、{user.email}さん</span>
-            <Button 
-              variant="outline"
-              size="sm"
-              onClick={() => router.push('/completed-chores')}
-            >
-              完了した家事
-            </Button>
-          <Button 
-            onClick={() => {
-              addNotification({
-                title: 'テスト通知',
-                message: 'これはテスト用の通知です',
-                type: 'info'
-              })
-            }}
-            variant="default"
-            size="sm"
-          >
-            テスト通知
-          </Button>
-          <Button 
-            onClick={async () => {
-              try {
-                await signOut()
-                router.push('/auth/signin')
-              } catch (error) {
-                console.error('ログアウトに失敗しました:', error)
-              }
-            }}
-            variant="destructive"
-            size="sm"
-          >
-            ログアウト
-          </Button>
+    <div className="min-h-screen bg-gray-50">
+      {/* ナビゲーション */}
+      <Navigation />
+      
+      {/* メインコンテンツ */}
+      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* ユーザー情報とアクション */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <p className="text-sm text-gray-600">こんにちは</p>
+              <p className="font-medium text-gray-900 truncate">{user.email}さん</p>
+            </div>
+            <div className="flex flex-col sm:flex-row items-center gap-2">
+              <Button 
+                onClick={() => {
+                  addNotification({
+                    title: 'テスト通知',
+                    message: 'これはテスト用の通知です',
+                    type: 'info'
+                  })
+                }}
+                variant="outline"
+                size="sm"
+              >
+                テスト通知
+              </Button>
+              <Button 
+                onClick={async () => {
+                  try {
+                    await signOut()
+                    router.push('/auth/signin')
+                  } catch (error) {
+                    console.error('ログアウトに失敗しました:', error)
+                  }
+                }}
+                variant="destructive"
+                size="sm"
+              >
+                ログアウト
+              </Button>
+            </div>
           </div>
         </div>
-      </header>
 
-      {/* 通知センター */}
-      <div className="w-full max-w-4xl mb-8">
-        <NotificationCenter />
-      </div>
+        {/* 通知センター */}
+        <div className="mb-8">
+          <NotificationCenter />
+        </div>
 
-      {/* 家事管理メインコンテンツ */}
-      <div className="w-full max-w-4xl">
-        <ChoresList />
-      </div>
-    </main>
+        {/* 家事管理メインコンテンツ */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <ChoresList />
+        </div>
+      </main>
+      
+      {/* モバイル用の下部余白（ナビゲーションバーの分） */}
+      <div className="h-20 sm:h-0" />
+    </div>
   )
 }

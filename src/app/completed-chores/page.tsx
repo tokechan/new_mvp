@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { ChoreService, ExtendedChore } from '@/services/choreService'
 import { sendThankYou, PREDEFINED_THANK_YOU_MESSAGES } from '@/services/thankYouService'
 import { useAuthState } from '@/hooks/useAuthState'
+import Navigation from '@/components/Navigation'
 
 /**
  * 完了した家事一覧ページ
@@ -101,21 +102,15 @@ export default function CompletedChoresPage() {
   }
 
   return (
-    <div className="container mx-auto p-4 max-w-4xl">
-      <div className="mb-6">
-        <div className="flex items-center justify-between">
+    <div className="min-h-screen bg-gray-50">
+      <Navigation />
+      <div className="container mx-auto p-4 max-w-4xl pt-20">
+        <div className="mb-6">
           <h1 className="text-2xl font-bold text-gray-800">完了した家事</h1>
-          <button 
-            onClick={() => router.push('/')}
-            className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-50"
-          >
-            ← ホームに戻る
-          </button>
+          <p className="text-gray-600 mt-2">
+            完了した家事一覧です。ありがとうメッセージを送ることができます。
+          </p>
         </div>
-        <p className="text-gray-600 mt-2">
-          完了した家事一覧です。ありがとうメッセージを送ることができます。
-        </p>
-      </div>
 
       {isLoading ? (
         <div className="flex items-center justify-center py-8">
@@ -174,6 +169,7 @@ export default function CompletedChoresPage() {
           ))}
         </div>
       )}
+      </div>
     </div>
   )
 }
