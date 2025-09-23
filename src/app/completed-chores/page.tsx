@@ -3,9 +3,10 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { ChoreService, ExtendedChore } from '@/services/choreService'
-import { sendThankYou, PREDEFINED_THANK_YOU_MESSAGES } from '@/services/thankYouService'
+import { sendThankYou } from '@/services/thankYouService'
 import { useAuthState } from '@/hooks/useAuthState'
 import Navigation from '@/components/Navigation'
+import { ThankYouModal } from '@/components/ThankYouModal'
 
 /**
  * 完了した家事一覧ページ
@@ -16,9 +17,10 @@ export default function CompletedChoresPage() {
   const router = useRouter()
   const [completedChores, setCompletedChores] = useState<ExtendedChore[]>([])
   const [isLoading, setIsLoading] = useState(true)
-  const [thankYouMessage, setThankYouMessage] = useState('')
   const [selectedChore, setSelectedChore] = useState<ExtendedChore | null>(null)
   const [isSending, setIsSending] = useState(false)
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [selectedIcon, setSelectedIcon] = useState<string>('')
 
   /**
    * 完了した家事を取得
@@ -38,22 +40,34 @@ export default function CompletedChoresPage() {
   }
 
   /**
+   * アイコンボタンクリック時の処理
+   */
+  const handleIconClick = (chore: ExtendedChore, icon: string) => {
+    setSelectedChore(chore)
+    setSelectedIcon(icon)
+    setIsModalOpen(true)
+  }
+
+  /**
    * ありがとうメッセージを送信
    */
-  const handleSendThankYou = async (chore: ExtendedChore, message: string) => {
-    if (!user || !message.trim()) return
+  const handleSendThankYou = async (message: string) => {
+    if (!user || !selectedChore || !message.trim()) return
 
     try {
       setIsSending(true)
-      const toUserId = chore.owner_id === user.id ? chore.partner_id : chore.owner_id
+      const toUserId = selectedChore.owner_id === user.id ? selectedChore.partner_id : selectedChore.owner_id
       if (!toUserId) {
         throw new Error('送信先ユーザーが見つかりません')
       }
       
+      // アイコンとメッセージを組み合わせて送信
+      const fullMessage = `${selectedIcon} ${message}`
+      
       await sendThankYou(user.id, {
         toUserId,
-        choreId: chore.id,
-        message: message.trim()
+        choreId: selectedChore.id,
+        message: fullMessage
       })
       
       // 完了した家事一覧を再取得
@@ -63,6 +77,15 @@ export default function CompletedChoresPage() {
     } finally {
       setIsSending(false)
     }
+  }
+
+  /**
+   * モーダルを閉じる処理
+   */
+  const handleCloseModal = () => {
+    setIsModalOpen(false)
+    setSelectedChore(null)
+    setSelectedIcon('')
   }
 
   /**
@@ -134,21 +157,54 @@ export default function CompletedChoresPage() {
           {completedChores.map((chore) => (
             <div key={chore.id} className="bg-green-50 border-green-200 rounded-lg border shadow-sm">
               <div className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold text-green-800">{chore.title}</h3>
-                  <div className="flex gap-2">
-                    {PREDEFINED_THANK_YOU_MESSAGES.map((msg, index) => (
-                      <button
-                        key={index}
-                        onClick={() => handleSendThankYou(chore, msg)}
-                        disabled={isSending}
-                        className="px-3 py-1 text-sm bg-pink-100 text-pink-700 rounded-full hover:bg-pink-200 disabled:opacity-50"
-                      >
-                        {msg}
-                      </button>
-                    ))}
-                  </div>
+                {/* H1タイトル */}
+                <h1 className="text-2xl font-bold text-green-800 mb-6 text-center">{chore.title}</h1>
+                
+                {/* アイコンボタン */}
+                <div className="flex gap-3 justify-center mb-6">
+                  <button
+                    onClick={() => handleIconClick(chore, '😊')}
+                    disabled={isSending}
+                    className="w-12 h-12 bg-yellow-100 hover:bg-yellow-200 rounded-lg flex items-center justify-center text-2xl transition-colors disabled:opacity-50"
+                    title="嬉しい"
+                  >
+                    😊
+                  </button>
+                  <button
+                    onClick={() => handleIconClick(chore, '👍')}
+                    disabled={isSending}
+                    className="w-12 h-12 bg-blue-100 hover:bg-blue-200 rounded-lg flex items-center justify-center text-2xl transition-colors disabled:opacity-50"
+                    title="いいね"
+                  >
+                    👍
+                  </button>
+                  <button
+                    onClick={() => handleIconClick(chore, '❤️')}
+                    disabled={isSending}
+                    className="w-12 h-12 bg-red-100 hover:bg-red-200 rounded-lg flex items-center justify-center text-2xl transition-colors disabled:opacity-50"
+                    title="愛してる"
+                  >
+                    ❤️
+                  </button>
+                  <button
+                    onClick={() => handleIconClick(chore, '🙏')}
+                    disabled={isSending}
+                    className="w-12 h-12 bg-purple-100 hover:bg-purple-200 rounded-lg flex items-center justify-center text-2xl transition-colors disabled:opacity-50"
+                    title="お疲れさま"
+                  >
+                    🙏
+                  </button>
+                  <button
+                    onClick={() => handleIconClick(chore, '🔥')}
+                    disabled={isSending}
+                    className="w-12 h-12 bg-orange-100 hover:bg-orange-200 rounded-lg flex items-center justify-center text-2xl transition-colors disabled:opacity-50"
+                    title="すごい"
+                  >
+                    🔥
+                  </button>
                 </div>
+                
+                {/* 詳細情報 */}
                 <div className="space-y-2 text-sm text-gray-600">
                     <div className="flex items-center gap-2">
                       <span>📝</span>
@@ -170,6 +226,15 @@ export default function CompletedChoresPage() {
         </div>
       )}
       </div>
+
+      {/* ありがとうメッセージモーダル */}
+      <ThankYouModal
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        onSend={handleSendThankYou}
+        choreTitle={selectedChore?.title || ''}
+        isSending={isSending}
+      />
     </div>
   )
 }
