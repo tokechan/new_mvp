@@ -1,10 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // 動的ルート対応のため静的エクスポートを無効化
-  // output: 'export',
+  output: 'standalone',
   trailingSlash: true,
-  
-  // 開発環境でのCORS設定（複数のプライベートネットワークからのアクセスを許可）
   async headers() {
     return [
       {
@@ -14,15 +11,21 @@ const nextConfig = {
             key: 'Access-Control-Allow-Origin',
             value: '*',
           },
+          {
+            key: 'Access-Control-Allow-Methods',
+            value: 'GET, POST, PUT, DELETE, OPTIONS',
+          },
+          {
+            key: 'Access-Control-Allow-Headers',
+            value: 'Content-Type, Authorization',
+          },
         ],
       },
-    ]
+    ];
   },
-  
-  // Cloudflare Pages対応
   images: {
-    unoptimized: true
-  }
-}
+    unoptimized: true,
+  },
+};
 
-module.exports = nextConfig
+module.exports = nextConfig;

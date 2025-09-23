@@ -1,19 +1,21 @@
 name = "household-mvp-staging"
-compatibility_date = "2024-01-15"
-pages_build_output_dir = "out"
+main = ".open-next/worker.js"
+compatibility_date = "2025-03-25"
+compatibility_flags = ["nodejs_compat"]
+
+[assets]
+directory = ".open-next/assets"
+binding = "ASSETS"
 
 [env.staging]
 name = "household-mvp-staging"
-compatibility_date = "2024-01-15"
+compatibility_date = "2025-03-25"
+compatibility_flags = ["nodejs_compat"]
 
 [env.production]
 name = "household-mvp-production"
-compatibility_date = "2024-01-15"
-
-# Build configuration
-[build]
-command = "npm run build"
-destination = "out"
+compatibility_date = "2025-03-25"
+compatibility_flags = ["nodejs_compat"]
 
 # Environment variables (set these in Cloudflare dashboard)
 # NEXT_PUBLIC_SUPABASE_URL
