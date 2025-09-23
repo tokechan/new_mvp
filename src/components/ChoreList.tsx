@@ -87,6 +87,12 @@ export function ChoreList({ chores, isLoading, onToggleChore, onDeleteChore }: C
             onToggle={onToggleChore}
             onDelete={onDeleteChore}
             currentUserId={user?.id}
+            isOwnChore={chore.owner_id === user?.id}
+            partnerName="パートナー"
+            showThankYou={false}
+            onShowThankYou={() => {}}
+            onHideThankYou={() => {}}
+            partnerInfo={null}
           />
         ))}
       </div>

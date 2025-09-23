@@ -80,9 +80,9 @@ test.describe('家事管理機能', () => {
     // 追加された家事が一覧に表示されることを確認
     await expect(page.locator(`button[aria-label="${choreTitle}を完了にする"]`)).toBeVisible({ timeout: 10000 });
     
-    // 家事の状態が「未完了」であることを確認（チェックボックスが空）
+    // 家事の状態が「未完了」であることを確認（完了ボタンが青色）
     const completeButton = page.locator(`button[aria-label="${choreTitle}を完了にする"]`);
-    await expect(completeButton).not.toHaveClass(/bg-green-500/);
+    await expect(completeButton).toHaveClass(/bg-blue-600/);
   });
 
   /**
@@ -102,7 +102,7 @@ test.describe('家事管理機能', () => {
     // 追加された家事が表示されることを確認
     await expect(page.locator(`button[aria-label="${choreTitle}を完了にする"]`)).toBeVisible({ timeout: 10000 });
     
-    // 家事の完了ボタン（チェックボックス）をクリック
+    // 家事の完了ボタンをクリック
     const completeButton = page.locator(`button[aria-label="${choreTitle}を完了にする"]`);
     await completeButton.click();
     
@@ -110,7 +110,7 @@ test.describe('家事管理機能', () => {
     await page.waitForTimeout(1000);
     const completedButton = page.locator(`button[aria-label="${choreTitle}を未完了にする"]`);
     await expect(completedButton).toBeVisible({ timeout: 5000 });
-    await expect(completedButton).toHaveClass(/bg-green-500/);
+    await expect(completedButton).toHaveClass(/bg-green-50/);
     
     // 再度完了ボタンをクリックして未完了に戻す
     await completedButton.click();
@@ -119,7 +119,7 @@ test.describe('家事管理機能', () => {
     await page.waitForTimeout(1000);
     const newCompleteButton = page.locator(`button[aria-label="${choreTitle}を完了にする"]`);
     await expect(newCompleteButton).toBeVisible({ timeout: 5000 });
-    await expect(newCompleteButton).not.toHaveClass(/bg-green-500/);
+    await expect(newCompleteButton).toHaveClass(/bg-blue-600/);
   });
 
   /**
@@ -176,13 +176,13 @@ test.describe('家事管理機能', () => {
     await page.waitForTimeout(1000);
     const firstCompletedButton = page.locator(`button[aria-label="${chores[0]}を未完了にする"]`);
     await expect(firstCompletedButton).toBeVisible({ timeout: 5000 });
-    await expect(firstCompletedButton).toHaveClass(/bg-green-500/);
+    await expect(firstCompletedButton).toHaveClass(/bg-green-50/);
     
     // 他の家事は未完了状態のままであることを確認
     for (let i = 1; i < chores.length; i++) {
       const choreCompleteButton = page.locator(`button[aria-label="${chores[i]}を完了にする"]`);
       await expect(choreCompleteButton).toBeVisible();
-      await expect(choreCompleteButton).not.toHaveClass(/bg-green-500/);
+      await expect(choreCompleteButton).toHaveClass(/bg-blue-600/);
     }
   });
 });

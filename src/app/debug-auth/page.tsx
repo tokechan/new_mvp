@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { createSupabaseBrowserClient } from '@/lib/supabase'
-import { Button } from '@/components/ui/button'
+import { Button } from '@/components/ui/Button'
 
 /**
  * 認証デバッグページ
