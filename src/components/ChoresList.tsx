@@ -8,7 +8,6 @@ import { Chore, PartnerInfo } from '@/types/chore'
 import { supabase } from '@/lib/supabase'
 import { Database } from '@/lib/supabase'
 import ThankYouMessage from './ThankYouMessage'
-import PartnerInvitation from './PartnerInvitation'
 import { ChoreItem } from './ChoreItem'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
@@ -270,7 +269,21 @@ export default function ChoresList() {
   if (hasPartner === false) {
     return (
       <div className="space-y-6">
-        <PartnerInvitation onPartnerLinked={handlePartnerLinked} />
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 text-center">
+          <div className="text-4xl mb-4">👥</div>
+          <h3 className="text-lg font-semibold text-blue-800 mb-2">
+            パートナーを招待しましょう
+          </h3>
+          <p className="text-blue-600 mb-4">
+            パートナーと一緒に家事を管理して、より効率的に家事を分担しましょう。
+          </p>
+          <a 
+            href="/share"
+            className="inline-block px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+          >
+            パートナーを招待する
+          </a>
+        </div>
         
         {/* 家事追加フォーム */}
         <form onSubmit={handleAddChore} className="flex gap-2">

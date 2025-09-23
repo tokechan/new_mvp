@@ -218,12 +218,7 @@ export const PREDEFINED_THANK_YOU_MESSAGES = [
   'お疲れさまでした！',
   'いつもありがとう ❤️',
   'とても助かります！',
-  'ありがとう！愛してる 💕',
-  'お疲れさま！感謝してます',
-  'ありがとう！嬉しいです',
-  'いつも本当にありがとう',
-  'お疲れさま！大好き',
-  'ありがとう！頼りになります'
+  'ありがとう！愛してる 💕'
 ] as const
 
 export type PredefinedThankYouMessage = typeof PREDEFINED_THANK_YOU_MESSAGES[number]
