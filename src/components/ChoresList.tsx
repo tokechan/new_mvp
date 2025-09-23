@@ -9,6 +9,7 @@ import { supabase } from '@/lib/supabase'
 import { Database } from '@/lib/supabase'
 import ThankYouMessage from './ThankYouMessage'
 import PartnerInvitation from './PartnerInvitation'
+import { ChoreItem } from './ChoreItem'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/Input'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -375,88 +376,19 @@ export default function ChoresList() {
           </p>
         ) : (
           chores.map((chore) => {
-            const isCompleted = chore.done
-            const isOwnChore = chore.owner_id === user?.id
-            
             return (
-              <div
+              <ChoreItem
                 key={chore.id}
-                data-chore-name={chore.title}
-                className={`p-3 sm:p-4 border rounded-lg ${
-                  isCompleted ? 'bg-green-50 border-green-200' : 'bg-white border-gray-200'
-                }`}
-              >
-                {/* モバイル対応レイアウト */}
-                <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-                  {/* 家事タイトルとチェックボックス */}
-                  <div className="flex items-center gap-3 flex-1 min-w-0">
-                    <button
-                      onClick={() => handleToggleChore(chore.id)}
-                      className={`w-6 h-6 sm:w-7 sm:h-7 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
-                        isCompleted
-                          ? 'bg-green-500 border-green-500 text-white'
-                          : 'border-gray-300 hover:border-green-400'
-                      }`}
-                      aria-label={`${chore.title}を${isCompleted ? '未完了' : '完了'}にする`}
-                    >
-                      {isCompleted && (
-                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                        </svg>
-                      )}
-                    </button>
-                    <div className="min-w-0 flex-1">
-                      <div className={`text-sm sm:text-base break-words ${
-                        isCompleted ? 'line-through text-gray-500' : ''
-                      }`}>
-                        {chore.title}
-                      </div>
-                      {!isOwnChore && (
-                        <div className="text-xs sm:text-sm text-blue-600 mt-1">
-                          ({partnerInfo?.name || 'パートナー'}の家事)
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                  
-                  {/* アクションボタン */}
-                  <div className="flex items-center gap-2 flex-shrink-0">
-                    {isCompleted && !isOwnChore && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setShowThankYou(parseInt(chore.id))}
-                        aria-label={`${chore.title}にありがとうメッセージを送る`}
-                        className="text-xs sm:text-sm px-2 sm:px-3"
-                      >
-                        ありがとう
-                      </Button>
-                    )}
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleDeleteChore(chore.id)}
-                      aria-label={`${chore.title}を削除`}
-                      className="text-xs sm:text-sm px-2 sm:px-3"
-                    >
-                      削除
-                    </Button>
-                  </div>
-                </div>
-                
-                {/* ありがとうメッセージフォーム */}
-                {showThankYou === parseInt(chore.id) && (
-                  <div className="mt-4 pt-4 border-t">
-                    <ThankYouMessage
-                      choreId={showThankYou?.toString() || ''}
-                      toUserId={partnerInfo?.id || ''}
-                      toUserName={partnerInfo?.name || 'パートナー'}
-                      onSuccess={() => setShowThankYou(null)}
-                      onCancel={() => setShowThankYou(null)}
-                    />
-                  </div>
-                )}
-              </div>
+                chore={chore}
+                onToggle={handleToggleChore}
+                onDelete={handleDeleteChore}
+                isOwnChore={chore.owner_id === user?.id}
+                partnerName={partnerInfo?.name || 'パートナー'}
+                showThankYou={showThankYou === parseInt(chore.id)}
+                onShowThankYou={() => setShowThankYou(parseInt(chore.id))}
+                onHideThankYou={() => setShowThankYou(null)}
+                partnerInfo={partnerInfo}
+              />
             )
           })
         )}
