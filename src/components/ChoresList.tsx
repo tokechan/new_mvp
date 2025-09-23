@@ -10,7 +10,7 @@ import { Database } from '@/lib/supabase'
 import ThankYouMessage from './ThankYouMessage'
 import PartnerInvitation from './PartnerInvitation'
 import { ChoreItem } from './ChoreItem'
-import { Button } from '@/components/ui/button'
+import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Skeleton } from '@/components/ui/skeleton'
 import {
@@ -306,34 +306,57 @@ export default function ChoresList() {
                   }`}
                 >
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <button
-                      onClick={() => handleToggleChore(chore.id)}
-                      className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
-                        isCompleted
-                          ? 'bg-green-500 border-green-500 text-white'
-                          : 'border-gray-300 hover:border-green-400'
-                      }`}
-                      aria-label={`${chore.title}を${isCompleted ? '未完了' : '完了'}にする`}
-                      >
-                        {isCompleted && (
-                          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                          </svg>
-                        )}
-                      </button>
-                      <span className={isCompleted ? 'line-through text-gray-500' : ''}>
+                    <div className="flex-1">
+                      <span className={isCompleted ? 'line-through text-gray-500' : 'text-gray-900'}>
                         {chore.title}
                       </span>
                     </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleDeleteChore(chore.id)}
-                      aria-label={`${chore.title}を削除`}
-                    >
-                      削除
-                    </Button>
+                    <div className="flex items-center space-x-2">
+                      {/* 完了/未完了ボタン */}
+                      <Button
+                        onClick={() => handleToggleChore(chore.id)}
+                        variant={isCompleted ? "outline" : "default"}
+                        size="sm"
+                        className={`
+                          text-xs sm:text-sm px-3 sm:px-4 py-2 font-medium transition-all duration-200
+                          ${isCompleted 
+                            ? 'bg-green-50 border-green-300 text-green-700 hover:bg-green-100 hover:border-green-400' 
+                            : 'bg-blue-600 text-white hover:bg-blue-700 shadow-md hover:shadow-lg'
+                          }
+                          hover:transform hover:scale-105 focus:ring-2 focus:ring-offset-2 ${isCompleted ? 'focus:ring-green-500' : 'focus:ring-blue-500'}
+                        `}
+                        aria-label={`${chore.title}を${isCompleted ? '未完了' : '完了'}にする`}
+                      >
+                        {isCompleted ? (
+                          <>
+                            <span className="mr-1">↩️</span>
+                            未完了に戻す
+                          </>
+                        ) : (
+                          <>
+                            <span className="mr-1">✅</span>
+                            完了する
+                          </>
+                        )}
+                      </Button>
+                      
+                      {/* 削除ボタン */}
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleDeleteChore(chore.id)}
+                        className="
+                          text-xs sm:text-sm px-3 sm:px-4 py-2 font-medium transition-all duration-200
+                          border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300
+                          hover:transform hover:scale-105 focus:ring-2 focus:ring-offset-2 focus:ring-red-500
+                          shadow-sm hover:shadow-md
+                        "
+                        aria-label={`${chore.title}を削除`}
+                      >
+                        <span className="mr-1">🗑️</span>
+                        削除
+                      </Button>
+                    </div>
                   </div>
                 </div>
               )

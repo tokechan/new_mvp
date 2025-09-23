@@ -10,7 +10,7 @@ import { Chore } from '@/types/chore'
 
 interface ChoreItemProps {
   chore: Chore
-  onToggle: (choreId: string) => Promise<void>
+  onToggle: (choreId: string, currentDone: boolean) => Promise<void>
   onDelete: (choreId: string) => Promise<void>
   isOwnChore: boolean
   partnerName: string
@@ -18,6 +18,7 @@ interface ChoreItemProps {
   onShowThankYou: () => void
   onHideThankYou: () => void
   partnerInfo: any
+  currentUserId?: string
 }
 
 export function ChoreItem({ 
@@ -29,7 +30,8 @@ export function ChoreItem({
   showThankYou, 
   onShowThankYou, 
   onHideThankYou, 
-  partnerInfo 
+  partnerInfo,
+  currentUserId 
 }: ChoreItemProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [showCompletionModal, setShowCompletionModal] = useState(false)
@@ -48,7 +50,7 @@ export function ChoreItem({
       // 完了済みの場合は直接未完了に戻す
       setIsLoading(true)
       try {
-        await onToggle(chore.id)
+        await onToggle(chore.id, chore.done)
       } catch (error) {
         console.error('家事の状態更新に失敗しました:', error)
       } finally {
@@ -63,7 +65,7 @@ export function ChoreItem({
   const handleConfirm = async () => {
     setIsLoading(true)
     try {
-      await onToggle(chore.id)
+      await onToggle(chore.id, chore.done)
       setShowCompletionModal(false)
       
       // 完了後に完了済み家事ページに遷移
