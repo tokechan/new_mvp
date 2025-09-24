@@ -127,20 +127,29 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
           
           switch (payload.eventType) {
             case 'INSERT':
+              // 追加者が自分かパートナーかを判定
+              const isAddedByMe = payload.new.created_by === user.id
+              const addedByText = isAddedByMe ? 'あなたが追加しました' : '相手が追加しました'
+              
               addNotification({
                 title: '新しい家事が追加されました',
-                message: `${payload.new.title}が追加されました`,
+                message: `家事「${payload.new.title}」を${addedByText}`,
                 type: 'info',
                 userId: user.id,
               })
               break
             case 'UPDATE':
               if (payload.new.completed && !payload.old.completed) {
+                // 完了者が自分かパートナーかを判定
+                const isCompletedByMe = payload.new.completed_by === user.id
+                const completedByText = isCompletedByMe ? 'あなたが完了しました' : '相手が完了しました'
+                
                 addNotification({
                   title: '家事が完了しました',
-                  message: `${payload.new.title}が完了されました`,
+                  message: `家事「${payload.new.title}」を${completedByText}`,
                   type: 'success',
                   userId: user.id,
+                  actionUrl: '/completed-chores',
                 })
               }
               break

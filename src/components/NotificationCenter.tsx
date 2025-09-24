@@ -1,7 +1,9 @@
 'use client'
 
 import React, { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { useNotifications, Notification } from '@/contexts/NotificationContext'
+import { CommentModal } from './CommentModal'
 
 /**
  * 通知センターコンポーネント
@@ -9,6 +11,10 @@ import { useNotifications, Notification } from '@/contexts/NotificationContext'
  */
 export default function NotificationCenter() {
   const [isOpen, setIsOpen] = useState(false)
+  const [commentModalOpen, setCommentModalOpen] = useState(false)
+  const [selectedChoreTitle, setSelectedChoreTitle] = useState('')
+  const [isSendingComment, setIsSendingComment] = useState(false)
+  const router = useRouter()
   const {
     notifications,
     unreadCount,
@@ -55,9 +61,44 @@ export default function NotificationCenter() {
       markAsRead(notification.id)
     }
     
+    // 完了通知の場合はコメントモーダルを表示
+    if (notification.title === '家事を完了しました') {
+      // 通知メッセージから家事名を抽出
+      const choreMatch = notification.message.match(/家事「(.+?)」を完了しました/)
+      const choreTitle = choreMatch ? choreMatch[1] : '家事'
+      setSelectedChoreTitle(choreTitle)
+      setCommentModalOpen(true)
+      return
+    }
+    
     // アクションURLがある場合はページ遷移
     if (notification.actionUrl) {
-      window.location.href = notification.actionUrl
+      setIsOpen(false) // モーダルを閉じる
+      router.push(notification.actionUrl)
+    }
+  }
+
+  // コメント送信処理
+  const handleCommentSend = async (message: string) => {
+    setIsSendingComment(true)
+    try {
+      // TODO: ここでコメントをサーバーに送信する処理を実装
+      console.log('コメント送信:', { choreTitle: selectedChoreTitle, message })
+      
+      // 送信完了後の処理
+      await new Promise(resolve => setTimeout(resolve, 1000)) // 仮の遅延
+      
+      // 成功通知を表示（オプション）
+      // addNotification({
+      //   title: 'コメントを送信しました',
+      //   message: `「${selectedChoreTitle}」にコメントを追加しました`,
+      //   type: 'success'
+      // })
+    } catch (error) {
+      console.error('コメント送信エラー:', error)
+      // エラー通知を表示（オプション）
+    } finally {
+      setIsSendingComment(false)
     }
   }
 
@@ -109,7 +150,22 @@ export default function NotificationCenter() {
 
       {/* 通知パネル */}
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50"
+          onClick={() => setIsOpen(false)}
+          onKeyDown={(e) => {
+            if (e.key === 'Escape') {
+              setIsOpen(false)
+            }
+          }}
+          role="button"
+          tabIndex={0}
+          aria-label="通知パネルを閉じる"
+        >
+          <div 
+            className="bg-white rounded-lg shadow-xl border border-gray-200 w-full max-w-2xl max-h-[80vh] overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
           {/* ヘッダー */}
           <div className="flex items-center justify-between p-4 border-b border-gray-200">
             <h3 className="text-lg font-semibold text-gray-900">通知</h3>
@@ -134,7 +190,7 @@ export default function NotificationCenter() {
           </div>
 
           {/* 通知リスト */}
-          <div className="max-h-96 overflow-y-auto">
+          <div className="max-h-[60vh] overflow-y-auto">
             {notifications.length === 0 ? (
               <div className="p-4 text-center text-gray-500">
                 通知はありません
@@ -218,24 +274,18 @@ export default function NotificationCenter() {
               ))
             )}
           </div>
+          </div>
         </div>
       )}
-
-      {/* オーバーレイ（パネルを閉じるため） */}
-      {isOpen && (
-        <div
-          className="fixed inset-0 z-40"
-          onClick={() => setIsOpen(false)}
-          onKeyDown={(e) => {
-            if (e.key === 'Escape') {
-              setIsOpen(false)
-            }
-          }}
-          role="button"
-          tabIndex={0}
-          aria-label="通知パネルを閉じる"
-        />
-      )}
+      
+      {/* コメントモーダル */}
+      <CommentModal
+        isOpen={commentModalOpen}
+        onClose={() => setCommentModalOpen(false)}
+        onSend={handleCommentSend}
+        choreTitle={selectedChoreTitle}
+        isSending={isSendingComment}
+      />
     </div>
   )
 }
