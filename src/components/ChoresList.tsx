@@ -119,7 +119,8 @@ export default function ChoresList() {
         addNotification({
           title: '家事を完了しました',
           type: 'success',
-          message: `家事「${chore.title}」を完了しました`
+          message: `家事「${chore.title}」を完了しました`,
+          actionUrl: '/completed-chores'
         })
       } else {
         announce(`家事「${chore.title}」を未完了に戻しました`)

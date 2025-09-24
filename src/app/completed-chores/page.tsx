@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { ChoreService, ExtendedChore } from '@/services/choreService'
 import { sendThankYou } from '@/services/thankYouService'
@@ -25,7 +25,7 @@ export default function CompletedChoresPage() {
   /**
    * 完了した家事を取得
    */
-  const fetchCompletedChores = async () => {
+  const fetchCompletedChores = useCallback(async () => {
     if (!user) return
 
     try {
@@ -37,7 +37,7 @@ export default function CompletedChoresPage() {
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [user])
 
   /**
    * アイコンボタンクリック時の処理
@@ -106,7 +106,7 @@ export default function CompletedChoresPage() {
     if (user) {
       fetchCompletedChores()
     }
-  }, [user])
+  }, [user, fetchCompletedChores])
 
   if (!user) {
     return (

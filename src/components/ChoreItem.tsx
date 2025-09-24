@@ -67,9 +67,6 @@ export function ChoreItem({
     try {
       await onToggle(chore.id, chore.done)
       setShowCompletionModal(false)
-      
-      // 完了後に完了済み家事ページに遷移
-      router.push('/completed-chores')
     } catch (error) {
       console.error('家事の完了に失敗しました:', error)
     } finally {
