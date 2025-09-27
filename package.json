@@ -25,7 +25,11 @@
     "cf-logs": "wrangler tail",
     "cf-analytics": "wrangler analytics",
     "deploy:staging": "opennextjs-cloudflare build && opennextjs-cloudflare deploy --env staging",
-    "deploy:production": "opennextjs-cloudflare build && opennextjs-cloudflare deploy --env production"
+    "deploy:production": "opennextjs-cloudflare build && opennextjs-cloudflare deploy --env production",
+    "env:check": "node scripts/check-env.js",
+    "env:setup:staging": "./scripts/setup-env.sh staging",
+    "env:setup:production": "./scripts/setup-env.sh production",
+    "security:check": "npm run env:check && git status --ignored | grep -E '\\.env|\\.open-next'"
   },
   "dependencies": {
     "@opennextjs/cloudflare": "^1.8.3",
