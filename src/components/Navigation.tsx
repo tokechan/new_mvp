@@ -2,7 +2,8 @@
 
 import { useRouter, usePathname } from 'next/navigation'
 import { Button } from '@/components/ui/Button'
-import { Home, CheckSquare, Share2 } from 'lucide-react'
+import { Home, CheckSquare, Share2, Bell } from 'lucide-react'
+import { useNotifications } from '@/contexts/NotificationContext'
 
 /**
  * ナビゲーションコンポーネント
@@ -11,6 +12,7 @@ import { Home, CheckSquare, Share2 } from 'lucide-react'
 export default function Navigation() {
   const router = useRouter()
   const pathname = usePathname()
+  const { addNotification } = useNotifications()
 
   // ナビゲーション項目の定義
   const navigationItems = [
@@ -70,35 +72,62 @@ export default function Navigation() {
           </div>
 
           {/* ナビゲーション項目 */}
-          <div className="flex space-x-1 sm:space-x-2">
-            {navigationItems.map((item) => {
-              const Icon = item.icon
-              const active = isActive(item.path)
-              
-              return (
-                <Button
-                  key={item.id}
-                  variant={active ? "default" : "ghost"}
-                  size="sm"
-                  onClick={() => handleNavigation(item.path)}
-                  className={`
-                    flex items-center space-x-1 sm:space-x-2 px-3 sm:px-4 py-2
-                    transition-all duration-200 hover:scale-105
-                    ${active 
-                      ? 'bg-blue-600 text-white shadow-md' 
-                      : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50'
-                    }
-                  `}
-                  aria-label={item.description}
-                  aria-current={active ? 'page' : undefined}
-                >
-                  <Icon className="w-4 h-4" />
-                  <span className="hidden sm:inline text-sm font-medium">
-                    {item.label}
-                  </span>
-                </Button>
-              )
-            })}
+          <div className="flex items-center space-x-1 sm:space-x-2">
+            {/* メインナビゲーション項目 */}
+            <div className="flex space-x-1 sm:space-x-2">
+              {navigationItems.map((item) => {
+                const Icon = item.icon
+                const active = isActive(item.path)
+                
+                return (
+                  <Button
+                    key={item.id}
+                    variant={active ? "default" : "ghost"}
+                    size="sm"
+                    onClick={() => handleNavigation(item.path)}
+                    className={`
+                      flex items-center space-x-1 sm:space-x-2 px-3 sm:px-4 py-2
+                      transition-all duration-200 hover:scale-105
+                      ${active 
+                        ? 'bg-blue-600 text-white shadow-md' 
+                        : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50'
+                      }
+                    `}
+                    aria-label={item.description}
+                    aria-current={active ? 'page' : undefined}
+                  >
+                    <Icon className="w-4 h-4" />
+                    <span className="hidden sm:inline text-sm font-medium">
+                      {item.label}
+                    </span>
+                  </Button>
+                )
+              })}
+            </div>
+
+            {/* 通知アイコン */}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                addNotification({
+                  title: 'リマインダー',
+                  message: '家事をチェックしてみましょう！',
+                  type: 'info'
+                })
+              }}
+              className="
+                flex items-center space-x-1 sm:space-x-2 px-3 sm:px-4 py-2
+                transition-all duration-200 hover:scale-105
+                text-gray-600 hover:text-blue-600 hover:bg-blue-50
+              "
+              aria-label="リマインダー通知を送信"
+            >
+              <Bell className="w-4 h-4" />
+              <span className="hidden sm:inline text-sm font-medium">
+                通知
+              </span>
+            </Button>
           </div>
         </div>
       </div>
@@ -132,6 +161,28 @@ export default function Navigation() {
               </button>
             )
           })}
+          
+          {/* モバイル用通知アイコン */}
+          <button
+            onClick={() => {
+              addNotification({
+                title: 'リマインダー',
+                message: '家事をチェックしてみましょう！',
+                type: 'info'
+              })
+            }}
+            className="
+              flex flex-col items-center space-y-1 px-3 py-2 rounded-lg
+              transition-all duration-200
+              text-gray-500 hover:text-blue-600
+            "
+            aria-label="リマインダー通知を送信"
+          >
+            <Bell className="w-5 h-5" />
+            <span className="text-xs font-medium">
+              通知
+            </span>
+          </button>
         </div>
       </div>
     </nav>
