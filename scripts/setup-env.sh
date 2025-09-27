@@ -22,8 +22,8 @@ check_env_var() {
 # 環境変数の存在確認
 echo "📋 環境変数をチェックしています..."
 check_env_var "NEXT_PUBLIC_SUPABASE_URL"
-check_env_var "NEXT_PUBLIC_SUPABASE_ANON_KEY"
-check_env_var "SUPABASE_SERVICE_ROLE_KEY"
+check_env_var "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY"
+check_env_var "SUPABASE_SECRET_KEY"
 check_env_var "NEXTAUTH_SECRET"
 
 # 環境に応じたNEXTAUTH_URLの設定
@@ -37,8 +37,8 @@ echo "🔧 Cloudflareに環境変数を設定しています..."
 
 # wranglerコマンドで環境変数を設定
 wrangler secret put NEXT_PUBLIC_SUPABASE_URL --env $ENVIRONMENT <<< "$NEXT_PUBLIC_SUPABASE_URL"
-wrangler secret put NEXT_PUBLIC_SUPABASE_ANON_KEY --env $ENVIRONMENT <<< "$NEXT_PUBLIC_SUPABASE_ANON_KEY"
-wrangler secret put SUPABASE_SERVICE_ROLE_KEY --env $ENVIRONMENT <<< "$SUPABASE_SERVICE_ROLE_KEY"
+wrangler secret put NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY --env $ENVIRONMENT <<< "$NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY"
+wrangler secret put SUPABASE_SECRET_KEY --env $ENVIRONMENT <<< "$SUPABASE_SECRET_KEY"
 wrangler secret put NEXTAUTH_SECRET --env $ENVIRONMENT <<< "$NEXTAUTH_SECRET"
 wrangler secret put NEXTAUTH_URL --env $ENVIRONMENT <<< "$NEXTAUTH_URL_VALUE"
 
@@ -46,8 +46,8 @@ echo "✅ 環境変数の設定が完了しました！"
 echo ""
 echo "📝 設定された環境変数:"
 echo "   - NEXT_PUBLIC_SUPABASE_URL"
-echo "   - NEXT_PUBLIC_SUPABASE_ANON_KEY"
-echo "   - SUPABASE_SERVICE_ROLE_KEY"
+echo "   - NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY"
+echo "   - SUPABASE_SECRET_KEY"
 echo "   - NEXTAUTH_SECRET"
 echo "   - NEXTAUTH_URL: $NEXTAUTH_URL_VALUE"
 echo ""

@@ -36,12 +36,26 @@ npx husky add .husky/pre-commit "npm run security-check"
 ```bash
 # 本番環境では必ずCloudflareダッシュボードで設定
 wrangler secret put NEXT_PUBLIC_SUPABASE_URL
-wrangler secret put NEXT_PUBLIC_SUPABASE_ANON_KEY
-wrangler secret put SUPABASE_SERVICE_ROLE_KEY
+wrangler secret put NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+wrangler secret put SUPABASE_SECRET_KEY
 wrangler secret put NEXTAUTH_SECRET
 ```
 
-#### 4. 定期的なセキュリティ監査
+#### 4. Supabaseキー移行履歴 (2025年1月)
+**✅ 完了済み: 新しいAPI仕様への移行**
+- 旧キー形式から新キー形式への移行完了
+  - `NEXT_PUBLIC_SUPABASE_ANON_KEY` → `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
+  - `SUPABASE_SERVICE_ROLE_KEY` → `SUPABASE_SECRET_KEY`
+- 更新対象ファイル:
+  - ✅ `.env` / `.env.example`
+  - ✅ `src/lib/supabase.ts`
+  - ✅ `scripts/check-env.js`
+  - ✅ `scripts/setup-env.sh`
+  - ✅ `jest.setup.js`
+  - ✅ `wrangler.toml`
+  - ✅ `.open-next/cloudflare/next-env.mjs` (ビルド再生成)
+
+#### 5. 定期的なセキュリティ監査
 - [ ] 月1回: `.gitignore`の設定確認
 - [ ] デプロイ前: 環境変数の漏洩チェック
 - [ ] 新メンバー参加時: セキュリティガイドラインの共有

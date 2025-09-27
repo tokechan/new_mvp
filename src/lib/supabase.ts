@@ -1,17 +1,17 @@
 import { createBrowserClient } from '@supabase/ssr'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+const supabasePublishableKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
+const supabaseSecretKey = process.env.SUPABASE_SECRET_KEY
 
 // テスト環境かどうかを判定
 const isTestEnvironment = process.env.NODE_ENV === 'test' || process.env.NEXT_PUBLIC_SKIP_AUTH === 'true'
 
-// ブラウザ環境ではService Role Keyは使用できないため、常にAnon Keyを使用
+// ブラウザ環境ではSecret Keyは使用できないため、常にPublishable Keyを使用
 // テスト環境では認証状態をモックで管理
 export const supabase = createBrowserClient(
   supabaseUrl, 
-  supabaseAnonKey,
+  supabasePublishableKey,
   {
     realtime: {
       params: {

@@ -5,10 +5,13 @@
  * 必要な環境変数が適切に設定されているかチェックします
  */
 
+// .envファイルを読み込み
+require('dotenv').config();
+
 const requiredEnvVars = [
   'NEXT_PUBLIC_SUPABASE_URL',
-  'NEXT_PUBLIC_SUPABASE_ANON_KEY',
-  'SUPABASE_SERVICE_ROLE_KEY',
+  'NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY',
+  'SUPABASE_SECRET_KEY',
   'NEXTAUTH_SECRET',
   'NEXTAUTH_URL'
 ];
