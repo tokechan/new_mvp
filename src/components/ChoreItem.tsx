@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/card'
 import { ChoreCompletionModal } from '@/components/ChoreCompletionModal'
+import { CongratulationsModal } from '@/components/CongratulationsModal'
 import ThankYouMessage from './ThankYouMessage'
 import { Chore } from '@/types/chore'
 
@@ -35,6 +36,7 @@ export function ChoreItem({
 }: ChoreItemProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [showCompletionModal, setShowCompletionModal] = useState(false)
+  const [showCongratulationsModal, setShowCongratulationsModal] = useState(false)
   const router = useRouter()
 
   /**
@@ -67,6 +69,8 @@ export function ChoreItem({
     try {
       await onToggle(chore.id, chore.done)
       setShowCompletionModal(false)
+      // 完了後に「お疲れ様でした！」モーダルを表示
+      setShowCongratulationsModal(true)
     } catch (error) {
       console.error('家事の完了に失敗しました:', error)
     } finally {
@@ -231,6 +235,13 @@ export function ChoreItem({
           chore={chore}
           onConfirm={handleConfirm}
         />
+
+      {/* お疲れ様でした！モーダル */}
+      <CongratulationsModal
+        isOpen={showCongratulationsModal}
+        onClose={() => setShowCongratulationsModal(false)}
+        chore={chore}
+      />
     </>
   )
 }
