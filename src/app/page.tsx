@@ -83,6 +83,13 @@ export default function Home() {
           <NotificationCenter />
         </div>
 
+        {/* CTAテキスト */}
+        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-6 mb-8 text-center dark:from-blue-950/30 dark:to-indigo-950/30 dark:border-blue-800">
+          <p className="text-lg font-medium text-gray-900 dark:text-white">
+            やることあった？？
+          </p>
+        </div>
+
         {/* 家事管理メインコンテンツ */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
           <ChoresList />

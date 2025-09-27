@@ -184,10 +184,10 @@ export default function ChoresList() {
   return (
     <div className="space-y-6">
       {/* パートナー設定セクション */}
-      <PartnerSetup 
+      {/* <PartnerSetup 
         hasPartner={!!partnerInfo}
         onPartnerLinked={fetchPartnerInfo}
-      />
+      /> */}
 
       {/* 家事追加フォーム */}
       <ChoreAddForm 
