@@ -9,6 +9,31 @@
 
 ## 📋 クイックスタート
 
+### 🔧 環境変数の設定
+
+1. `.env.example`をコピーして`.env`ファイルを作成：
+```bash
+cp .env.example .env
+```
+
+2. `.env`ファイルに実際の値を設定：
+```bash
+# Supabase Configuration
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_actual_anon_key
+SUPABASE_SERVICE_ROLE_KEY=your_actual_service_role_key
+
+# NextAuth Configuration
+NEXTAUTH_SECRET=your_secure_random_string
+NEXTAUTH_URL=http://localhost:3000
+
+# 開発環境設定
+NODE_ENV=development
+NEXT_PUBLIC_SKIP_AUTH=true
+```
+
+### 🚀 開発・デプロイコマンド
+
 ```bash
 # 開発環境
 npm run dev
@@ -24,6 +49,12 @@ npm run deploy:production
 # プレビュー
 npm run preview
 ```
+
+### ⚠️ セキュリティ注意事項
+
+- **絶対に** `.env`ファイルをGitにコミットしないでください
+- 本番環境では環境変数をCloudflareダッシュボードで設定してください
+- `NEXTAUTH_SECRET`は安全なランダム文字列を使用してください
 
 ## 📚 ドキュメント構成
 
