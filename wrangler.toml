@@ -5,7 +5,7 @@ compatibility_flags = ["nodejs_compat"]
 
 # ビルド設定
 [build]
-command = "npm run build"
+command = "npm run build:cloudflare"
 
 # 静的アセット設定
 [assets]
