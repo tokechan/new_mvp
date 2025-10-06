@@ -1,14 +1,13 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createSupabaseBrowserClient } from '@/lib/supabase'
 
 /**
- * 認証コールバックページ
- * OAuth認証後のリダイレクトを処理する
+ * 認証コールバック処理コンポーネント
  */
-export default function AuthCallback() {
+function AuthCallbackContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const supabase = createSupabaseBrowserClient()
@@ -67,5 +66,24 @@ export default function AuthCallback() {
         <p className="text-gray-600">認証処理中...</p>
       </div>
     </div>
+  )
+}
+
+/**
+ * 認証コールバックページ
+ * OAuth認証後のリダイレクトを処理する
+ */
+export default function AuthCallback() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">読み込み中...</p>
+        </div>
+      </div>
+    }>
+      <AuthCallbackContent />
+    </Suspense>
   )
 }
