@@ -1,0 +1,115 @@
+name: Test Coverage Monitoring
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  test-coverage:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Run tests with coverage
+      run: npm run test:coverage
+      env:
+        CI: true
+        
+    - name: Generate coverage report
+      run: npm run test:analyze
+      
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage/lcov.info
+        flags: unittests
+        name: codecov-umbrella
+        fail_ci_if_error: false
+        
+    - name: Comment PR with coverage
+      if: github.event_name == 'pull_request'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const fs = require('fs');
+          const path = require('path');
+          
+          // カバレッジサマリーを読み込み
+          let coverageSummary = '';
+          try {
+            const summaryPath = path.join(process.cwd(), 'coverage', 'coverage-summary.json');
+            if (fs.existsSync(summaryPath)) {
+              const summary = JSON.parse(fs.readFileSync(summaryPath, 'utf8'));
+              const total = summary.total;
+              
+              coverageSummary = `
+              ## 📊 テストカバレッジレポート
+              
+              | メトリック | カバレッジ | 閾値 | 状態 |
+              |-----------|-----------|------|------|
+              | Lines | ${total.lines.pct}% | 70% | ${total.lines.pct >= 70 ? '✅' : '❌'} |
+              | Functions | ${total.functions.pct}% | 70% | ${total.functions.pct >= 70 ? '✅' : '❌'} |
+              | Branches | ${total.branches.pct}% | 70% | ${total.branches.pct >= 70 ? '✅' : '❌'} |
+              | Statements | ${total.statements.pct}% | 70% | ${total.statements.pct >= 70 ? '✅' : '❌'} |
+              
+              詳細なレポートは[こちら](https://codecov.io/gh/${{ github.repository }})で確認できます。
+              `;
+            }
+          } catch (error) {
+            coverageSummary = '⚠️ カバレッジレポートの生成に失敗しました。';
+          }
+          
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: coverageSummary
+          });
+          
+    - name: Check coverage threshold
+      run: |
+        node -e "
+        const fs = require('fs');
+        const path = require('path');
+        
+        try {
+          const summaryPath = path.join(process.cwd(), 'coverage', 'coverage-summary.json');
+          if (fs.existsSync(summaryPath)) {
+            const summary = JSON.parse(fs.readFileSync(summaryPath, 'utf8'));
+            const total = summary.total;
+            
+            const threshold = 70;
+            const metrics = ['lines', 'functions', 'branches', 'statements'];
+            let failed = false;
+            
+            metrics.forEach(metric => {
+              if (total[metric].pct < threshold) {
+                console.error(\`❌ \${metric} カバレッジが閾値を下回っています: \${total[metric].pct}% < \${threshold}%\`);
+                failed = true;
+              } else {
+                console.log(\`✅ \${metric} カバレッジ: \${total[metric].pct}%\`);
+              }
+            });
+            
+            if (failed) {
+              process.exit(1);
+            }
+          }
+        } catch (error) {
+          console.error('カバレッジチェックに失敗しました:', error.message);
+          process.exit(1);
+        }
+        "

@@ -2,8 +2,8 @@
 
 import { useRouter, usePathname } from 'next/navigation'
 import { Button } from '@/components/ui/Button'
-import { Home, CheckSquare, Share2, Bell } from 'lucide-react'
-import { useNotifications } from '@/contexts/NotificationContext'
+import { Home, CheckSquare, Share2 } from 'lucide-react'
+import NotificationCenter from '@/components/NotificationCenter'
 
 /**
  * ナビゲーションコンポーネント
@@ -12,7 +12,6 @@ import { useNotifications } from '@/contexts/NotificationContext'
 export default function Navigation() {
   const router = useRouter()
   const pathname = usePathname()
-  const { addNotification } = useNotifications()
 
   // ナビゲーション項目の定義
   const navigationItems = [
@@ -105,29 +104,8 @@ export default function Navigation() {
               })}
             </div>
 
-            {/* 通知アイコン */}
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => {
-                addNotification({
-                  title: 'リマインダー',
-                  message: '家事をチェックしてみましょう！',
-                  type: 'info'
-                })
-              }}
-              className="
-                flex items-center space-x-1 sm:space-x-2 px-3 sm:px-4 py-2
-                transition-all duration-200 hover:scale-105
-                text-gray-600 hover:text-blue-600 hover:bg-blue-50
-              "
-              aria-label="リマインダー通知を送信"
-            >
-              <Bell className="w-4 h-4" />
-              <span className="hidden sm:inline text-sm font-medium">
-                通知
-              </span>
-            </Button>
+            {/* 通知センター */}
+            <NotificationCenter />
           </div>
         </div>
       </div>
@@ -162,27 +140,10 @@ export default function Navigation() {
             )
           })}
           
-          {/* モバイル用通知アイコン */}
-          <button
-            onClick={() => {
-              addNotification({
-                title: 'リマインダー',
-                message: '家事をチェックしてみましょう！',
-                type: 'info'
-              })
-            }}
-            className="
-              flex flex-col items-center space-y-1 px-3 py-2 rounded-lg
-              transition-all duration-200
-              text-gray-500 hover:text-blue-600
-            "
-            aria-label="リマインダー通知を送信"
-          >
-            <Bell className="w-5 h-5" />
-            <span className="text-xs font-medium">
-              通知
-            </span>
-          </button>
+          {/* モバイル用通知センター */}
+          <div className="flex flex-col items-center space-y-1 px-3 py-2">
+            <NotificationCenter />
+          </div>
         </div>
       </div>
     </nav>
