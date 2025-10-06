@@ -1,7 +1,8 @@
--- Fix Function Search Path Mutable security warnings
+-- Fix Function Search Path Mutable security warnings (CORRECTED VERSION)
 -- This migration addresses PostgreSQL security warnings by explicitly setting search_path for functions
--- Created: 2025-01-20
+-- Created: 2025-01-20 (Corrected)
 -- Security Issue: Function Search Path Mutable warnings for multiple functions
+-- Fix: Corrected parameter order in insert_chore_bypass_rls function
 
 -- ==========================================
 -- 1. cleanup_expired_invitations関数の修正
@@ -129,14 +130,15 @@ ALTER FUNCTION link_partners(TEXT, UUID) OWNER TO postgres;
 COMMENT ON FUNCTION link_partners(TEXT, UUID) IS 'セキュリティ修正済み: パートナー連携処理（search_path固定）';
 
 -- ==========================================
--- 4. insert_chore_bypass_rls関数の作成
+-- 4. insert_chore_bypass_rls関数の作成（修正版）
 -- ==========================================
 
 -- RLSをバイパスして家事を挿入する関数（テスト環境用）
+-- 修正: デフォルト値のない引数を先に配置
 CREATE OR REPLACE FUNCTION insert_chore_bypass_rls(
   p_owner_id UUID,
-  p_partner_id UUID DEFAULT NULL,
-  p_title TEXT
+  p_title TEXT,
+  p_partner_id UUID DEFAULT NULL
 )
 RETURNS TABLE(
   id bigint,
@@ -166,8 +168,8 @@ END;
 $$;
 
 -- 関数の所有者とコメントを設定
-ALTER FUNCTION insert_chore_bypass_rls(UUID, UUID, TEXT) OWNER TO postgres;
-COMMENT ON FUNCTION insert_chore_bypass_rls(UUID, UUID, TEXT) IS 'セキュリティ修正済み: RLSバイパス家事挿入（search_path固定）';
+ALTER FUNCTION insert_chore_bypass_rls(UUID, TEXT, UUID) OWNER TO postgres;
+COMMENT ON FUNCTION insert_chore_bypass_rls(UUID, TEXT, UUID) IS 'セキュリティ修正済み: RLSバイパス家事挿入（search_path固定、引数順序修正）';
 
 -- ==========================================
 -- 5. セキュリティ設定の確認
@@ -177,26 +179,27 @@ COMMENT ON FUNCTION insert_chore_bypass_rls(UUID, UUID, TEXT) IS 'セキュリ�
 -- REVOKE ALL ON FUNCTION cleanup_expired_invitations() FROM PUBLIC;
 -- REVOKE ALL ON FUNCTION generate_invite_code() FROM PUBLIC;
 -- REVOKE ALL ON FUNCTION link_partners(TEXT, UUID) FROM PUBLIC;
--- REVOKE ALL ON FUNCTION insert_chore_bypass_rls(UUID, UUID, TEXT) FROM PUBLIC;
+-- REVOKE ALL ON FUNCTION insert_chore_bypass_rls(UUID, TEXT, UUID) FROM PUBLIC;
 
 -- 必要なロールに実行権限を付与
 -- GRANT EXECUTE ON FUNCTION cleanup_expired_invitations() TO authenticated;
 -- GRANT EXECUTE ON FUNCTION generate_invite_code() TO authenticated;
 -- GRANT EXECUTE ON FUNCTION link_partners(TEXT, UUID) TO authenticated;
--- GRANT EXECUTE ON FUNCTION insert_chore_bypass_rls(UUID, UUID, TEXT) TO authenticated;
+-- GRANT EXECUTE ON FUNCTION insert_chore_bypass_rls(UUID, TEXT, UUID) TO authenticated;
 
 -- ==========================================
 -- 6. マイグレーション完了確認
 -- ==========================================
 
 -- マイグレーション実行確認用のコメント
-COMMENT ON SCHEMA public IS 'セキュリティ修正完了: Function Search Path Mutable warnings addressed - Migration 20250120000000';
+COMMENT ON SCHEMA public IS 'セキュリティ修正完了: Function Search Path Mutable warnings addressed - Migration 20250120000001 (CORRECTED)';
 
 -- マイグレーション完了ログ
 DO $$
 BEGIN
-  RAISE NOTICE 'Security Migration 20250120000000: Function search_path security fixes applied at %', NOW();
+  RAISE NOTICE 'Security Migration 20250120000001: Function search_path security fixes applied at % (CORRECTED VERSION)', NOW();
   RAISE NOTICE 'Fixed functions: cleanup_expired_invitations, generate_invite_code, link_partners, insert_chore_bypass_rls';
   RAISE NOTICE 'All functions now have explicit search_path=public setting for security';
+  RAISE NOTICE 'Parameter order corrected in insert_chore_bypass_rls function';
 END
 $$;
