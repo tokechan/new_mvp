@@ -23,9 +23,7 @@ NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_actual_anon_key
 SUPABASE_SERVICE_ROLE_KEY=your_actual_service_role_key
 
-# NextAuth Configuration
-NEXTAUTH_SECRET=your_secure_random_string
-NEXTAUTH_URL=http://localhost:3000
+
 
 # 開発環境設定
 NODE_ENV=development
@@ -60,7 +58,6 @@ npm run preview
 
 - **絶対に** `.env`ファイルをGitにコミットしないでください
 - 本番環境では環境変数をCloudflareダッシュボードで設定してください
-- `NEXTAUTH_SECRET`は安全なランダム文字列を使用してください
 
 ## 📚 ドキュメント構成
 

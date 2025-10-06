@@ -8,12 +8,10 @@
 // .envファイルを読み込み
 require('dotenv').config();
 
-const requiredEnvVars = [
+const requiredVars = [
   'NEXT_PUBLIC_SUPABASE_URL',
   'NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY',
-  'SUPABASE_SECRET_KEY',
-  'NEXTAUTH_SECRET',
-  'NEXTAUTH_URL'
+  'SUPABASE_SECRET_KEY'
 ];
 
 const optionalEnvVars = [
@@ -61,13 +59,7 @@ if (supabaseUrl && !supabaseUrl.match(/^https:\/\/[a-z0-9]+\.supabase\.co$/)) {
   hasErrors = true;
 }
 
-// NextAuth URL の形式チェック
-const nextAuthUrl = process.env.NEXTAUTH_URL;
-if (nextAuthUrl && !nextAuthUrl.match(/^https?:\/\/.+/)) {
-  console.log('\n⚠️  NEXTAUTH_URL の形式が正しくない可能性があります');
-  console.log('   期待される形式: https://your-domain.com または http://localhost:3000');
-  hasErrors = true;
-}
+
 
 console.log('\n' + '='.repeat(50));
 

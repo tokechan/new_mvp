@@ -24,9 +24,5 @@ name = "household-mvp-production"
 compatibility_date = "2024-11-21"
 compatibility_flags = ["nodejs_compat"]
 
-# Environment variables (set these in Cloudflare dashboard)
-# NEXT_PUBLIC_SUPABASE_URL
-# NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+# Environment variables (set via wrangler secret put)
 # SUPABASE_SECRET_KEY
-# NEXTAUTH_SECRET
-# NEXTAUTH_URL
