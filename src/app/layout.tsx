@@ -1,4 +1,4 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
 import { AuthProvider } from '@/contexts/AuthContext'
@@ -10,13 +10,6 @@ export const metadata: Metadata = {
   title: 'ThankYou Chores - 家事管理アプリ',
   description: 'パートナーと一緒に家事を管理し、感謝を伝えるアプリ',
   manifest: '/manifest.json',
-  themeColor: '#3b82f6',
-  viewport: {
-    width: 'device-width',
-    initialScale: 1,
-    maximumScale: 1,
-    userScalable: false,
-  },
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
@@ -26,6 +19,14 @@ export const metadata: Metadata = {
     icon: '/icon-192x192.svg',
     apple: '/icon-192x192.svg',
   },
+}
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  themeColor: '#3b82f6',
 }
 
 export default function RootLayout({

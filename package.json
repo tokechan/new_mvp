@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "build:cloudflare": "opennextjs-cloudflare build",
     "build:staging": "NODE_ENV=production next build",
     "build:production": "NODE_ENV=production next build",
     "start": "next start",
