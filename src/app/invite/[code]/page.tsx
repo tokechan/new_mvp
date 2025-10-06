@@ -3,7 +3,7 @@
 // 招待受諾ページ
 // 作成日: 2025-09-07
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
 import { 
@@ -16,16 +16,16 @@ import {
 import type { 
   GetInvitationResponse,
   AcceptInvitationResponse 
-} from '@/lib/types/partner-invitation'
+} from '@/types/invitation'
 
 interface InvitePageProps {
-  params: {
+  params: Promise<{
     code: string
-  }
+  }>
 }
 
 export default function InvitePage({ params }: InvitePageProps) {
-  const { code } = params
+  const [code, setCode] = useState<string>('')
   const router = useRouter()
   const { user, signIn } = useAuth()
   const [isLoading, setIsLoading] = useState(true)
@@ -34,8 +34,17 @@ export default function InvitePage({ params }: InvitePageProps) {
   const [invitationData, setInvitationData] = useState<any | null>(null)
   const [acceptanceResult, setAcceptanceResult] = useState<any | null>(null)
 
+  // paramsを非同期で取得
+  useEffect(() => {
+    const getParams = async () => {
+      const resolvedParams = await params
+      setCode(resolvedParams.code)
+    }
+    getParams()
+  }, [params])
+
   // 招待情報を取得
-  const fetchInvitationInfo = async () => {
+  const fetchInvitationInfo = useCallback(async () => {
     try {
       setIsLoading(true)
       setError(null)
@@ -48,8 +57,8 @@ export default function InvitePage({ params }: InvitePageProps) {
 
       const response: GetInvitationResponse = await getInvitation(code)
       
-      if (response.success && response.data) {
-        setInvitationData(response.data)
+      if (response.success && response.invitation) {
+        setInvitationData(response.invitation)
       } else {
         setError(response.error || '招待情報の取得に失敗しました')
       }
@@ -58,7 +67,7 @@ export default function InvitePage({ params }: InvitePageProps) {
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [code])
 
   // 招待を受諾
   const handleAcceptInvitation = async () => {
@@ -73,8 +82,8 @@ export default function InvitePage({ params }: InvitePageProps) {
       
       const response: AcceptInvitationResponse = await acceptInvitation(code)
       
-      if (response.success && response.data) {
-        setAcceptanceResult(response.data)
+      if (response.success) {
+        setAcceptanceResult({ success: true })
         // 3秒後にホームページにリダイレクト
         setTimeout(() => {
           router.push('/')
@@ -91,8 +100,10 @@ export default function InvitePage({ params }: InvitePageProps) {
 
   // 初期データ取得
   useEffect(() => {
-    fetchInvitationInfo()
-  }, [code])
+    if (code) {
+      fetchInvitationInfo()
+    }
+  }, [code, fetchInvitationInfo])
 
   // ローディング中
   if (isLoading) {

@@ -1,0 +1,25 @@
+name = "household-mvp-staging"
+main = ".open-next/worker.js"
+compatibility_date = "2025-03-25"
+compatibility_flags = ["nodejs_compat"]
+
+[assets]
+directory = ".open-next/assets"
+binding = "ASSETS"
+
+[env.staging]
+name = "household-mvp-staging"
+compatibility_date = "2025-03-25"
+compatibility_flags = ["nodejs_compat"]
+
+[env.production]
+name = "household-mvp-production"
+compatibility_date = "2025-03-25"
+compatibility_flags = ["nodejs_compat"]
+
+# Environment variables (set these in Cloudflare dashboard)
+# NEXT_PUBLIC_SUPABASE_URL
+# NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+# SUPABASE_SECRET_KEY
+# NEXTAUTH_SECRET
+# NEXTAUTH_URL

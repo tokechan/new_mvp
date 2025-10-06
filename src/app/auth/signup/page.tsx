@@ -4,22 +4,35 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useAuth } from '@/contexts/AuthContext'
+import { Button } from '@/components/ui/Button'
+import { ValidatedInput } from '@/components/ui/ValidatedInput'
+import { useFormValidation, validationRules } from '@/hooks/useFormValidation'
 
 /**
  * サインアップページ
  * 新規ユーザー登録機能
  */
 export default function SignUp() {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [confirmPassword, setConfirmPassword] = useState('')
-  const [name, setName] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
   
   const { signUp, signInWithGoogle } = useAuth()
   const router = useRouter()
+
+  // フォームバリデーション
+  const { formState, updateField, touchField, validateAll, clearAllErrors } = useFormValidation({
+    name: '',
+    email: '',
+    password: '',
+    confirmPassword: ''
+  })
+
+  // エラーをクリアする関数
+  const clearError = () => {
+    setError('')
+    clearAllErrors()
+  }
 
   // メール認証でのサインアップ処理
   const handleEmailSignUp = async (e: React.FormEvent) => {
@@ -28,22 +41,25 @@ export default function SignUp() {
     setError('')
     setSuccess('')
 
-    // パスワード確認
-    if (password !== confirmPassword) {
-      setError('パスワードが一致しません')
-      setLoading(false)
-      return
-    }
+    // バリデーション
+    const { isValid } = validateAll({
+      email: validationRules.email,
+      password: validationRules.password,
+      confirmPassword: validationRules.confirmPassword(formState.password.value),
+      name: validationRules.name
+    })
 
-    // パスワード強度チェック
-    if (password.length < 6) {
-      setError('パスワードは6文字以上で入力してください')
+    if (!isValid) {
       setLoading(false)
       return
     }
 
     try {
-      const { error } = await signUp(email, password, name)
+      const { error } = await signUp(
+        formState.email.value, 
+        formState.password.value, 
+        formState.name.value
+      )
       
       if (error) {
         setError(error.message || 'サインアップに失敗しました')
@@ -64,7 +80,7 @@ export default function SignUp() {
   // Google認証でのサインアップ処理
   const handleGoogleSignUp = async () => {
     setLoading(true)
-    setError('')
+    clearError()
 
     try {
       const { error } = await signInWithGoogle()
@@ -81,7 +97,7 @@ export default function SignUp() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-2 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
         <div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
@@ -112,81 +128,67 @@ export default function SignUp() {
           </div>
         )}
 
-        <form className="mt-8 space-y-6" onSubmit={handleEmailSignUp}>
+        <form className="mt-8 space-y-6" onSubmit={handleEmailSignUp} noValidate>
           <div className="space-y-4">
-            <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-                名前
-              </label>
-              <input
-                id="name"
-                name="name"
-                type="text"
-                autoComplete="name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                placeholder="名前を入力（任意）"
-              />
-            </div>
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                メールアドレス
-              </label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                autoComplete="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                placeholder="メールアドレスを入力"
-              />
-            </div>
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                パスワード
-              </label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                autoComplete="new-password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                placeholder="パスワードを入力（6文字以上）"
-              />
-            </div>
-            <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
-                パスワード確認
-              </label>
-              <input
-                id="confirmPassword"
-                name="confirmPassword"
-                type="password"
-                autoComplete="new-password"
-                required
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                placeholder="パスワードを再入力"
-              />
-            </div>
+            <ValidatedInput
+              label="お名前"
+              type="text"
+              value={formState.name.value}
+              error={formState.name.error}
+              touched={formState.name.touched}
+              placeholder="山田太郎"
+              required
+              onChange={(value) => updateField('name', value, validationRules.name)}
+              onBlur={() => touchField('name', validationRules.name)}
+            />
+
+            <ValidatedInput
+              label="メールアドレス"
+              type="email"
+              value={formState.email.value}
+              error={formState.email.error}
+              touched={formState.email.touched}
+              placeholder="example@example.com"
+              required
+              onChange={(value) => updateField('email', value, validationRules.email)}
+              onBlur={() => touchField('email', validationRules.email)}
+            />
+
+            <ValidatedInput
+              label="パスワード"
+              type="password"
+              value={formState.password.value}
+              error={formState.password.error}
+              touched={formState.password.touched}
+              placeholder="6文字以上"
+              required
+              onChange={(value) => updateField('password', value, validationRules.password)}
+              onBlur={() => touchField('password', validationRules.password)}
+            />
+
+            <ValidatedInput
+              label="パスワード（確認）"
+              type="password"
+              value={formState.confirmPassword.value}
+              error={formState.confirmPassword.error}
+              touched={formState.confirmPassword.touched}
+              placeholder="パスワードを再入力"
+              required
+              onChange={(value) => updateField('confirmPassword', value, validationRules.confirmPassword(formState.password.value))}
+              onBlur={() => touchField('confirmPassword', validationRules.confirmPassword(formState.password.value))}
+            />
           </div>
 
           <div>
-            <button
+            <Button
               type="submit"
               disabled={loading}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              variant="default"
+              size="default"
+              className="w-full"
             >
               {loading ? 'アカウント作成中...' : 'アカウントを作成'}
-            </button>
+            </Button>
           </div>
 
           <div className="relative">
@@ -199,11 +201,13 @@ export default function SignUp() {
           </div>
 
           <div>
-            <button
+            <Button
               type="button"
               onClick={handleGoogleSignUp}
               disabled={loading}
-              className="group relative w-full flex justify-center py-2 px-4 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              variant="outline"
+              size="default"
+              className="w-full"
             >
               <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
                 <path
@@ -224,7 +228,7 @@ export default function SignUp() {
                 />
               </svg>
               Googleでサインアップ
-            </button>
+            </Button>
           </div>
         </form>
       </div>

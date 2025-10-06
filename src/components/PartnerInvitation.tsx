@@ -3,7 +3,8 @@
 // パートナー招待コンポーネント
 // 作成日: 2025-09-07
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
+import Image from 'next/image'
 import { useAuth } from '@/contexts/AuthContext'
 import { 
   createInvitation,
@@ -16,8 +17,9 @@ import {
 } from '@/lib/invitation-api'
 import type { 
   CreateInvitationResponse,
-  GetInvitationsResponse 
-} from '@/lib/types/partner-invitation'
+  GetInvitationsResponse,
+  PartnerInvitation
+} from '@/types/invitation'
 
 interface PartnerInvitationProps {
   onPartnerLinked?: () => void // パートナー連携完了時のコールバック
@@ -33,29 +35,27 @@ export default function PartnerInvitation({ onPartnerLinked }: PartnerInvitation
   const [inviteeEmail, setInviteeEmail] = useState('')
 
   // 招待一覧を取得
-  const fetchInvitations = async () => {
+  const fetchInvitations = useCallback(async () => {
     if (!user) return
     
     try {
       setIsLoading(true)
       const response: GetInvitationsResponse = await getInvitations()
+      const invitations = response.success ? response.invitations || [] : []
       
-      if (response.success && response.data) {
-        setInvitations(response.data.invitations)
-        // 有効な招待があるかチェック
-        const activeInvitation = response.data.invitations.find(
-          inv => inv.status === 'pending' && new Date(inv.expires_at) > new Date()
-        )
-        setCurrentInvitation(activeInvitation || null)
-      } else {
-        setError(response.error || '招待一覧の取得に失敗しました')
-      }
+      setInvitations(invitations || [])
+      // 有効な招待があるかチェック
+      const activeInvitation = invitations?.find(
+        (inv: PartnerInvitation) => inv.status === 'pending' && new Date(inv.expires_at) > new Date()
+      )
+      setCurrentInvitation(activeInvitation || null)
+      setError(null) // 成功時はエラーをクリア
     } catch (err) {
       setError(getErrorMessage(err))
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [user])
 
   // 招待リンク生成
   const handleCreateInvitation = async () => {
@@ -69,7 +69,7 @@ export default function PartnerInvitation({ onPartnerLinked }: PartnerInvitation
         invitee_email: inviteeEmail || undefined
       })
       
-      if (response.success && response.data) {
+      if (response.success && response.invitation) {
         // 招待一覧を再取得
         await fetchInvitations()
         setInviteeEmail('') // フォームをクリア
@@ -105,7 +105,7 @@ export default function PartnerInvitation({ onPartnerLinked }: PartnerInvitation
   // 初期データ取得
   useEffect(() => {
     fetchInvitations()
-  }, [user])
+  }, [user, fetchInvitations])
 
   if (!user) {
     return null
@@ -171,7 +171,7 @@ export default function PartnerInvitation({ onPartnerLinked }: PartnerInvitation
               
               {showQR && (
                 <div className="mt-3 text-center">
-                  <img
+                  <Image
                     src={generateQRCodeUrl(`${window.location.origin}/invite/${currentInvitation.invite_code}`)}
                     alt="招待QRコード"
                     className="mx-auto border border-gray-200 rounded"

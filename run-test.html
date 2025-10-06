@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ビジネスロジックテスト実行</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px;
+            transition: background-color 0.2s;
+        }
+        .button:hover {
+            background: #0056b3;
+        }
+        .button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .instructions {
+            background: #e7f3ff;
+            border: 1px solid #b3d9ff;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .warning {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .code {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 4px;
+            padding: 10px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 14px;
+            white-space: pre-wrap;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 ビジネスロジックテスト実行ページ</h1>
+        
+        <div class="instructions">
+            <h3>📋 テスト実行手順</h3>
+            <ol>
+                <li>まず、アプリケーション（http://localhost:3003）にアクセスしてログインしてください</li>
+                <li>ログイン後、このページに戻ってテストを実行してください</li>
+                <li>テスト結果はブラウザのコンソールに表示されます（F12でデベロッパーツールを開いてください）</li>
+            </ol>
+        </div>
+        
+        <div class="warning">
+            <h3>⚠️ 注意事項</h3>
+            <ul>
+                <li>テスト実行前に必ずアプリケーションにログインしてください</li>
+                <li>テスト中はブラウザのタブを切り替えないでください</li>
+                <li>エラーが発生した場合は、コンソールログを確認してください</li>
+            </ul>
+        </div>
+        
+        <div style="text-align: center; margin: 30px 0;">
+            <button class="button" onclick="openApp()">📱 アプリを開く</button>
+            <button class="button" onclick="runTest()" id="testButton">🧪 テスト実行</button>
+            <button class="button" onclick="openConsole()">🔍 コンソールを開く</button>
+        </div>
+        
+        <div class="code" id="testScript" style="display: none;">
+            <!-- テストスクリプトがここに表示されます -->
+        </div>
+    </div>
+    
+    <script>
+        function openApp() {
+            window.open('http://localhost:3003', '_blank');
+        }
+        
+        function openConsole() {
+            alert('F12キーを押してデベロッパーツールを開き、Consoleタブを選択してください');
+        }
+        
+        async function runTest() {
+            const button = document.getElementById('testButton');
+            button.disabled = true;
+            button.textContent = '🔄 テスト実行中...';
+            
+            try {
+                // アプリのウィンドウを取得または開く
+                const appWindow = window.open('http://localhost:3003', 'choreApp');
+                
+                if (!appWindow) {
+                    alert('ポップアップがブロックされました。ポップアップを許可してから再試行してください。');
+                    return;
+                }
+                
+                // アプリが読み込まれるまで少し待機
+                await new Promise(resolve => setTimeout(resolve, 2000));
+                
+                // テストスクリプトをアプリのウィンドウで実行
+                const testScript = `
+                    // ビジネスロジックテストスクリプト
+                    // 家事追加・完了切り替え・削除機能のテスト
+                    
+                    // テスト用のユーティリティ関数
+                    function sleep(ms) {
+                      return new Promise(resolve => setTimeout(resolve, ms));
+                    }
+                    
+                    // DOM要素の取得ヘルパー
+                    function getElement(selector) {
+                      const element = document.querySelector(selector);
+                      if (!element) {
+                        throw new Error(\`要素が見つかりません: \${selector}\`);
+                      }
+                      return element;
+                    }
+                    
+                    // テスト実行関数
+                    async function runBusinessLogicTests() {
+                      console.log('🧪 ビジネスロジックテスト開始');
+                      
+                      try {
+                        // 1. 家事追加テスト
+                        console.log('\\n📝 家事追加テスト');
+                        const choreInput = getElement('[data-testid="chore-input"]');
+                        const addButton = getElement('[data-testid="add-chore-button"]');
+                        
+                        // テスト用の家事タイトル
+                        const testChoreTitle = \`テスト家事_\${Date.now()}\`;
+                        
+                        // 入力フィールドに値を設定
+                        choreInput.value = testChoreTitle;
+                        choreInput.dispatchEvent(new Event('input', { bubbles: true }));
+                        
+                        console.log(\`家事タイトル入力: \${testChoreTitle}\`);
+                        
+                        // 追加ボタンをクリック
+                        addButton.click();
+                        console.log('追加ボタンクリック');
+                        
+                        // 少し待機してDOM更新を確認
+                        await sleep(2000);
+                        
+                        // 追加された家事が一覧に表示されているか確認
+                        const choreItems = document.querySelectorAll('[data-testid="chore-item"]');
+                        const addedChore = Array.from(choreItems).find(item => 
+                          item.textContent.includes(testChoreTitle)
+                        );
+                        
+                        if (addedChore) {
+                          console.log('✅ 家事追加成功: 一覧に表示されました');
+                          console.log(\`追加された家事ID: \${addedChore.dataset.choreId}\`);
+                        } else {
+                          console.log('❌ 家事追加失敗: 一覧に表示されていません');
+                          console.log(\`現在の家事アイテム数: \${choreItems.length}\`);
+                          return;
+                        }
+                        
+                        // 2. 家事完了切り替えテスト
+                        console.log('\\n🔄 家事完了切り替えテスト');
+                        const toggleButton = addedChore.querySelector('[data-testid="toggle-chore-button"]');
+                        
+                        if (toggleButton) {
+                          console.log('完了ボタンが見つかりました');
+                          toggleButton.click();
+                          console.log('完了ボタンクリック');
+                          
+                          await sleep(2000);
+                          
+                          // 完了状態の確認（緑色のスタイルがあるかチェック）
+                          if (addedChore.className.includes('green') || 
+                              addedChore.textContent.includes('完了')) {
+                            console.log('✅ 家事完了切り替え成功');
+                          } else {
+                            console.log('❌ 家事完了切り替え失敗');
+                            console.log(\`現在のクラス名: \${addedChore.className}\`);
+                          }
+                        } else {
+                          console.log('❌ 完了ボタンが見つかりません');
+                        }
+                        
+                        // 3. 家事削除テスト
+                        console.log('\\n🗑️ 家事削除テスト');
+                        const deleteButton = addedChore.querySelector('[data-testid="delete-chore-button"]');
+                        
+                        if (deleteButton) {
+                          console.log('削除ボタンが見つかりました');
+                          deleteButton.click();
+                          console.log('削除ボタンクリック');
+                          
+                          await sleep(2000);
+                          
+                          // 削除された家事が一覧から消えているか確認
+                          const remainingChores = document.querySelectorAll('[data-testid="chore-item"]');
+                          const deletedChore = Array.from(remainingChores).find(item => 
+                            item.textContent.includes(testChoreTitle)
+                          );
+                          
+                          if (!deletedChore) {
+                            console.log('✅ 家事削除成功: 一覧から削除されました');
+                          } else {
+                            console.log('❌ 家事削除失敗: まだ一覧に残っています');
+                          }
+                          console.log(\`削除後の家事アイテム数: \${remainingChores.length}\`);
+                        } else {
+                          console.log('❌ 削除ボタンが見つかりません');
+                        }
+                        
+                        console.log('\\n🎉 ビジネスロジックテスト完了');
+                        
+                      } catch (error) {
+                        console.error('❌ テスト実行エラー:', error);
+                        console.error('スタックトレース:', error.stack);
+                      }
+                    }
+                    
+                    // テスト実行
+                    runBusinessLogicTests();
+                `;
+                
+                // スクリプトを実行
+                appWindow.eval(testScript);
+                
+                console.log('✅ テストスクリプトを実行しました。アプリのコンソールを確認してください。');
+                alert('テストを実行しました！\nアプリのウィンドウでF12を押してコンソールを確認してください。');
+                
+            } catch (error) {
+                console.error('❌ テスト実行エラー:', error);
+                alert('テスト実行中にエラーが発生しました: ' + error.message);
+            } finally {
+                button.disabled = false;
+                button.textContent = '🧪 テスト実行';
+            }
+        }
+    </script>
+</body>
+</html>

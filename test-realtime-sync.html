@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>リアルタイム同期テスト</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px;
+            transition: background-color 0.2s;
+        }
+        .button:hover {
+            background: #0056b3;
+        }
+        .button.success {
+            background: #28a745;
+        }
+        .button.warning {
+            background: #ffc107;
+            color: #212529;
+        }
+        .instructions {
+            background: #e7f3ff;
+            border: 1px solid #b3d9ff;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .test-step {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        .test-step h3 {
+            margin-top: 0;
+            color: #495057;
+        }
+        .status {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+        .status.pending {
+            background: #ffeaa7;
+            color: #2d3436;
+        }
+        .status.running {
+            background: #74b9ff;
+            color: white;
+        }
+        .status.success {
+            background: #00b894;
+            color: white;
+        }
+        .status.error {
+            background: #e17055;
+            color: white;
+        }
+        .log {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 6px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 14px;
+            max-height: 300px;
+            overflow-y: auto;
+            margin: 15px 0;
+        }
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        .tab-info {
+            background: #e9ecef;
+            padding: 10px;
+            border-radius: 6px;
+            flex: 1;
+            text-align: center;
+        }
+        .tab-info.active {
+            background: #007bff;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔄 リアルタイム同期テスト</h1>
+        
+        <div class="instructions">
+            <h3>📋 テスト概要</h3>
+            <p>このテストでは、Supabase Realtimeを使用した家事データの同期機能を検証します。</p>
+            <p>複数のブラウザタブ間で家事の追加・更新・削除がリアルタイムで同期されることを確認します。</p>
+        </div>
+        
+        <div class="tabs">
+            <div class="tab-info" id="tab1Info">
+                <strong>タブ1 (メイン)</strong><br>
+                <span id="tab1Status">未開始</span>
+            </div>
+            <div class="tab-info" id="tab2Info">
+                <strong>タブ2 (同期確認用)</strong><br>
+                <span id="tab2Status">未開始</span>
+            </div>
+        </div>
+        
+        <div style="text-align: center; margin: 30px 0;">
+            <button class="button" onclick="startRealtimeTest()" id="startButton">🚀 リアルタイムテスト開始</button>
+            <button class="button warning" onclick="resetTest()" id="resetButton">🔄 テストリセット</button>
+        </div>
+        
+        <div class="test-step">
+            <h3>ステップ 1: タブの準備 <span class="status pending" id="step1Status">待機中</span></h3>
+            <p>アプリケーションを2つのタブで開きます。両方のタブで同じユーザーでログインしてください。</p>
+            <button class="button" onclick="openTabs()" id="openTabsButton">📱 タブを開く</button>
+        </div>
+        
+        <div class="test-step">
+            <h3>ステップ 2: 家事追加の同期テスト <span class="status pending" id="step2Status">待機中</span></h3>
+            <p>タブ1で家事を追加し、タブ2で即座に表示されることを確認します。</p>
+            <button class="button" onclick="testAddSync()" id="testAddButton" disabled>➕ 追加同期テスト</button>
+        </div>
+        
+        <div class="test-step">
+            <h3>ステップ 3: 家事完了の同期テスト <span class="status pending" id="step3Status">待機中</span></h3>
+            <p>タブ1で家事を完了し、タブ2で完了状態が同期されることを確認します。</p>
+            <button class="button" onclick="testToggleSync()" id="testToggleButton" disabled>✅ 完了同期テスト</button>
+        </div>
+        
+        <div class="test-step">
+            <h3>ステップ 4: 家事削除の同期テスト <span class="status pending" id="step4Status">待機中</span></h3>
+            <p>タブ1で家事を削除し、タブ2から即座に削除されることを確認します。</p>
+            <button class="button" onclick="testDeleteSync()" id="testDeleteButton" disabled>🗑️ 削除同期テスト</button>
+        </div>
+        
+        <div class="log" id="testLog">
+            <div>🔄 リアルタイム同期テストログ</div>
+            <div>テスト開始を待機中...</div>
+        </div>
+    </div>
+    
+    <script>
+        let tab1Window = null;
+        let tab2Window = null;
+        let currentStep = 0;
+        let testChoreId = null;
+        
+        function log(message) {
+            const logElement = document.getElementById('testLog');
+            const timestamp = new Date().toLocaleTimeString();
+            logElement.innerHTML += `<div>[${timestamp}] ${message}</div>`;
+            logElement.scrollTop = logElement.scrollHeight;
+            console.log(`[Realtime Test] ${message}`);
+        }
+        
+        function updateStatus(stepId, status, text) {
+            const element = document.getElementById(stepId);
+            element.className = `status ${status}`;
+            element.textContent = text;
+        }
+        
+        function updateTabStatus(tabId, status) {
+            document.getElementById(tabId).textContent = status;
+        }
+        
+        async function startRealtimeTest() {
+            log('🚀 リアルタイム同期テスト開始');
+            document.getElementById('startButton').disabled = true;
+            currentStep = 1;
+            updateStatus('step1Status', 'running', '実行中');
+            
+            // タブを自動で開く
+            openTabs();
+        }
+        
+        function openTabs() {
+            try {
+                log('📱 アプリケーションタブを開いています...');
+                
+                // タブ1を開く
+                tab1Window = window.open('http://localhost:3003', 'choreApp1');
+                if (tab1Window) {
+                    updateTabStatus('tab1Status', '開いています');
+                    log('✅ タブ1を開きました');
+                } else {
+                    log('❌ タブ1を開けませんでした（ポップアップブロック？）');
+                    return;
+                }
+                
+                // 少し待ってからタブ2を開く
+                setTimeout(() => {
+                    tab2Window = window.open('http://localhost:3003', 'choreApp2');
+                    if (tab2Window) {
+                        updateTabStatus('tab2Status', '開いています');
+                        log('✅ タブ2を開きました');
+                        
+                        // 両方のタブが開けたら次のステップを有効化
+                        setTimeout(() => {
+                            updateStatus('step1Status', 'success', '完了');
+                            document.getElementById('testAddButton').disabled = false;
+                            log('✅ ステップ1完了: 両方のタブでログインしてから次のテストを実行してください');
+                        }, 2000);
+                    } else {
+                        log('❌ タブ2を開けませんでした（ポップアップブロック？）');
+                    }
+                }, 1000);
+                
+            } catch (error) {
+                log(`❌ タブオープンエラー: ${error.message}`);
+                updateStatus('step1Status', 'error', 'エラー');
+            }
+        }
+        
+        async function testAddSync() {
+            if (!tab1Window || !tab2Window) {
+                log('❌ タブが開かれていません');
+                return;
+            }
+            
+            updateStatus('step2Status', 'running', '実行中');
+            log('📝 家事追加の同期テストを開始します...');
+            
+            try {
+                const testTitle = `同期テスト_${Date.now()}`;
+                testChoreId = testTitle;
+                
+                // タブ1で家事を追加
+                const addScript = `
+                    (async function() {
+                        try {
+                            const input = document.querySelector('[data-testid="chore-input"]');
+                            const button = document.querySelector('[data-testid="add-chore-button"]');
+                            
+                            if (!input || !button) {
+                                console.error('❌ 要素が見つかりません');
+                                return false;
+                            }
+                            
+                            input.value = '${testTitle}';
+                            input.dispatchEvent(new Event('input', { bubbles: true }));
+                            button.click();
+                            
+                            console.log('✅ 家事を追加しました: ${testTitle}');
+                            return true;
+                        } catch (error) {
+                            console.error('❌ 追加エラー:', error);
+                            return false;
+                        }
+                    })()
+                `;
+                
+                tab1Window.eval(addScript);
+                log(`📝 タブ1で家事を追加: ${testTitle}`);
+                
+                // 3秒待ってからタブ2で確認
+                setTimeout(() => {
+                    const checkScript = `
+                        (function() {
+                            const items = document.querySelectorAll('[data-testid="chore-item"]');
+                            const found = Array.from(items).some(item => 
+                                item.textContent.includes('${testTitle}')
+                            );
+                            console.log(found ? '✅ 同期確認: 家事が表示されています' : '❌ 同期失敗: 家事が表示されていません');
+                            return found;
+                        })()
+                    `;
+                    
+                    const syncResult = tab2Window.eval(checkScript);
+                    
+                    if (syncResult) {
+                        log('✅ 家事追加の同期成功！');
+                        updateStatus('step2Status', 'success', '完了');
+                        document.getElementById('testToggleButton').disabled = false;
+                    } else {
+                        log('❌ 家事追加の同期失敗');
+                        updateStatus('step2Status', 'error', 'エラー');
+                    }
+                }, 3000);
+                
+            } catch (error) {
+                log(`❌ 追加同期テストエラー: ${error.message}`);
+                updateStatus('step2Status', 'error', 'エラー');
+            }
+        }
+        
+        async function testToggleSync() {
+            if (!tab1Window || !tab2Window || !testChoreId) {
+                log('❌ 前提条件が満たされていません');
+                return;
+            }
+            
+            updateStatus('step3Status', 'running', '実行中');
+            log('🔄 家事完了の同期テストを開始します...');
+            
+            try {
+                // タブ1で家事を完了
+                const toggleScript = `
+                    (function() {
+                        try {
+                            const items = document.querySelectorAll('[data-testid="chore-item"]');
+                            const targetItem = Array.from(items).find(item => 
+                                item.textContent.includes('${testChoreId}')
+                            );
+                            
+                            if (!targetItem) {
+                                console.error('❌ 対象の家事が見つかりません');
+                                return false;
+                            }
+                            
+                            const toggleButton = targetItem.querySelector('[data-testid="toggle-chore-button"]');
+                            if (!toggleButton) {
+                                console.error('❌ 完了ボタンが見つかりません');
+                                return false;
+                            }
+                            
+                            toggleButton.click();
+                            console.log('✅ 家事を完了しました');
+                            return true;
+                        } catch (error) {
+                            console.error('❌ 完了エラー:', error);
+                            return false;
+                        }
+                    })()
+                `;
+                
+                tab1Window.eval(toggleScript);
+                log('🔄 タブ1で家事を完了');
+                
+                // 3秒待ってからタブ2で確認
+                setTimeout(() => {
+                    const checkScript = `
+                        (function() {
+                            const items = document.querySelectorAll('[data-testid="chore-item"]');
+                            const targetItem = Array.from(items).find(item => 
+                                item.textContent.includes('${testChoreId}')
+                            );
+                            
+                            if (!targetItem) return false;
+                            
+                            const isCompleted = targetItem.className.includes('green') || 
+                                              targetItem.textContent.includes('完了');
+                            console.log(isCompleted ? '✅ 同期確認: 完了状態が表示されています' : '❌ 同期失敗: 完了状態が表示されていません');
+                            return isCompleted;
+                        })()
+                    `;
+                    
+                    const syncResult = tab2Window.eval(checkScript);
+                    
+                    if (syncResult) {
+                        log('✅ 家事完了の同期成功！');
+                        updateStatus('step3Status', 'success', '完了');
+                        document.getElementById('testDeleteButton').disabled = false;
+                    } else {
+                        log('❌ 家事完了の同期失敗');
+                        updateStatus('step3Status', 'error', 'エラー');
+                    }
+                }, 3000);
+                
+            } catch (error) {
+                log(`❌ 完了同期テストエラー: ${error.message}`);
+                updateStatus('step3Status', 'error', 'エラー');
+            }
+        }
+        
+        async function testDeleteSync() {
+            if (!tab1Window || !tab2Window || !testChoreId) {
+                log('❌ 前提条件が満たされていません');
+                return;
+            }
+            
+            updateStatus('step4Status', 'running', '実行中');
+            log('🗑️ 家事削除の同期テストを開始します...');
+            
+            try {
+                // タブ1で家事を削除
+                const deleteScript = `
+                    (function() {
+                        try {
+                            const items = document.querySelectorAll('[data-testid="chore-item"]');
+                            const targetItem = Array.from(items).find(item => 
+                                item.textContent.includes('${testChoreId}')
+                            );
+                            
+                            if (!targetItem) {
+                                console.error('❌ 対象の家事が見つかりません');
+                                return false;
+                            }
+                            
+                            const deleteButton = targetItem.querySelector('[data-testid="delete-chore-button"]');
+                            if (!deleteButton) {
+                                console.error('❌ 削除ボタンが見つかりません');
+                                return false;
+                            }
+                            
+                            deleteButton.click();
+                            console.log('✅ 家事を削除しました');
+                            return true;
+                        } catch (error) {
+                            console.error('❌ 削除エラー:', error);
+                            return false;
+                        }
+                    })()
+                `;
+                
+                tab1Window.eval(deleteScript);
+                log('🗑️ タブ1で家事を削除');
+                
+                // 3秒待ってからタブ2で確認
+                setTimeout(() => {
+                    const checkScript = `
+                        (function() {
+                            const items = document.querySelectorAll('[data-testid="chore-item"]');
+                            const found = Array.from(items).some(item => 
+                                item.textContent.includes('${testChoreId}')
+                            );
+                            console.log(!found ? '✅ 同期確認: 家事が削除されています' : '❌ 同期失敗: 家事がまだ表示されています');
+                            return !found;
+                        })()
+                    `;
+                    
+                    const syncResult = tab2Window.eval(checkScript);
+                    
+                    if (syncResult) {
+                        log('✅ 家事削除の同期成功！');
+                        updateStatus('step4Status', 'success', '完了');
+                        log('🎉 全てのリアルタイム同期テストが完了しました！');
+                    } else {
+                        log('❌ 家事削除の同期失敗');
+                        updateStatus('step4Status', 'error', 'エラー');
+                    }
+                }, 3000);
+                
+            } catch (error) {
+                log(`❌ 削除同期テストエラー: ${error.message}`);
+                updateStatus('step4Status', 'error', 'エラー');
+            }
+        }
+        
+        function resetTest() {
+            log('🔄 テストをリセットします...');
+            
+            // タブを閉じる
+            if (tab1Window) {
+                tab1Window.close();
+                tab1Window = null;
+            }
+            if (tab2Window) {
+                tab2Window.close();
+                tab2Window = null;
+            }
+            
+            // 状態をリセット
+            currentStep = 0;
+            testChoreId = null;
+            
+            // UI をリセット
+            updateStatus('step1Status', 'pending', '待機中');
+            updateStatus('step2Status', 'pending', '待機中');
+            updateStatus('step3Status', 'pending', '待機中');
+            updateStatus('step4Status', 'pending', '待機中');
+            
+            updateTabStatus('tab1Status', '未開始');
+            updateTabStatus('tab2Status', '未開始');
+            
+            document.getElementById('startButton').disabled = false;
+            document.getElementById('testAddButton').disabled = true;
+            document.getElementById('testToggleButton').disabled = true;
+            document.getElementById('testDeleteButton').disabled = true;
+            
+            // ログをクリア
+            document.getElementById('testLog').innerHTML = `
+                <div>🔄 リアルタイム同期テストログ</div>
+                <div>テスト開始を待機中...</div>
+            `;
+            
+            log('✅ テストリセット完了');
+        }
+    </script>
+</body>
+</html>
