@@ -4,9 +4,9 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
-    "build:staging": "NODE_ENV=production next build",
-    "build:production": "NODE_ENV=production next build",
+    "build": "opennextjs-cloudflare build",
+    "build:staging": "NODE_ENV=production opennextjs-cloudflare build",
+    "build:production": "NODE_ENV=production opennextjs-cloudflare build",
     "start": "next start",
     "lint": "next lint",
     "test": "jest",
