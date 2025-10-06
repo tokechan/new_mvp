@@ -41,6 +41,12 @@ npm run dev
 # テスト実行
 npm run test:e2e
 npm run test:unit
+npm run test:coverage
+
+# テストカバレッジ監視
+npm run test:monitor              # 一回実行
+npm run test:monitor:watch        # ファイル変更監視
+npm run test:monitor:analyze      # 未テストファイル分析
 
 # デプロイ
 npm run deploy:staging
@@ -86,6 +92,7 @@ docs/
 - **デプロイ**: Cloudflare Pages (静的エクスポート)
 - **UI**: Radix UI + Tailwind CSS + shadcn/ui
 - **テスト**: Playwright (E2E) + Jest (Unit) + axe-core (a11y)
+- **テストカバレッジ**: 70%以上の閾値設定 + 継続監視
 - **型安全性**: TypeScript + Zod
 
 ## 📊 プロジェクト状況
