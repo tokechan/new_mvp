@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, Suspense } from 'react'
+import { useEffect, useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createSupabaseBrowserClient } from '@/lib/supabase'
 
@@ -11,54 +11,69 @@ function AuthCallbackContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const supabase = createSupabaseBrowserClient()
+  const [isProcessing, setIsProcessing] = useState(true)
 
   useEffect(() => {
+    console.log('🔄 認証コールバック処理開始')
+    
     const handleAuthCallback = async () => {
       try {
-        console.log('🔄 認証コールバック処理開始')
-        
         // URLパラメータを取得
-        const code = searchParams.get('code')
         const error = searchParams.get('error')
-        
-        console.log('📋 URLパラメータ:', { code: code ? 'あり' : 'なし', error })
+        const errorDescription = searchParams.get('error_description')
         
         // エラーがある場合は早期リターン
         if (error) {
-          console.error('❌ OAuth認証エラー:', error)
+          console.error('❌ OAuth認証エラー:', error, errorDescription)
+          router.push(`/auth/signin?error=${encodeURIComponent(errorDescription || error)}`)
+          return
+        }
+
+        // 現在のセッションを確認
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+        
+        if (sessionError) {
+          console.error('❌ セッション取得エラー:', sessionError)
           router.push('/auth/signin?error=認証に失敗しました')
           return
         }
 
-        // codeがない場合もエラー
-        if (!code) {
-          console.error('❌ 認証コードが見つかりません')
-          router.push('/auth/signin?error=認証コードが見つかりません')
-          return
-        }
-
-        console.log('🔄 認証コード交換処理開始')
-        
-        // PKCEフローでコードをセッションに交換
-        const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
-        
-        if (exchangeError) {
-          console.error('❌ コード交換エラー:', exchangeError)
-          router.push('/auth/signin?error=認証処理に失敗しました')
-          return
-        }
-
-        if (data.session) {
-          console.log('✅ 認証成功:', data.session.user.email)
+        if (session) {
+          console.log('✅ 認証成功:', session.user.email)
           // 認証成功時はホームページにリダイレクト
           router.push('/')
         } else {
-          console.error('❌ セッションが作成されませんでした')
-          router.push('/auth/signin?error=セッションの作成に失敗しました')
+          console.log('⏳ セッション待機中...')
+          
+          // セッションがない場合は認証状態の変更を監視
+          const { data: { subscription } } = supabase.auth.onAuthStateChange(
+            async (event, newSession) => {
+              console.log('🔄 認証状態変更:', event, newSession?.user?.email || 'セッションなし')
+              
+              if (event === 'SIGNED_IN' && newSession) {
+                console.log('✅ 認証成功（状態変更）:', newSession.user.email)
+                subscription.unsubscribe()
+                router.push('/')
+              } else if (event === 'SIGNED_OUT') {
+                console.log('❌ 認証失敗またはサインアウト')
+                subscription.unsubscribe()
+                router.push('/auth/signin?error=認証に失敗しました')
+              }
+            }
+          )
+
+          // タイムアウト処理（30秒後）
+          setTimeout(() => {
+            console.log('⏰ 認証タイムアウト')
+            subscription.unsubscribe()
+            router.push('/auth/signin?error=認証がタイムアウトしました')
+          }, 30000)
         }
       } catch (error) {
-        console.error('💥 認証コールバック処理エラー:', error)
+        console.error('❌ 認証コールバック処理エラー:', error)
         router.push('/auth/signin?error=認証処理中にエラーが発生しました')
+      } finally {
+        setIsProcessing(false)
       }
     }
 
@@ -70,6 +85,11 @@ function AuthCallbackContent() {
       <div className="text-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
         <p className="text-gray-600">認証処理中...</p>
+        {!isProcessing && (
+          <p className="text-sm text-gray-500 mt-2">
+            処理に時間がかかっています。しばらくお待ちください。
+          </p>
+        )}
       </div>
     </div>
   )
