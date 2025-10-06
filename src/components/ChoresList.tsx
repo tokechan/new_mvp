@@ -563,7 +563,7 @@ export default function ChoresList() {
         </h3>
         <div className="text-xs text-purple-700 dark:text-purple-300 space-y-1">
           <div>hasPartner: <span className="font-mono">{String(hasPartner)}</span></div>
-          <div>partnerInfo: <span className="font-mono">{partnerInfo ? JSON.stringify(partnerInfo) : 'null'}</span></div>
+          <div>partnerInfo: <span className="font-mono">{partnerInfo ? `{id: ${partnerInfo.id}, name: ${partnerInfo.name}}` : 'null'}</span></div>
           <div>ユーザーID: <span className="font-mono text-xs">{user?.id}</span></div>
         </div>
       </div>

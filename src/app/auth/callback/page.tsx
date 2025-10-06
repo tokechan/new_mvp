@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { createSupabaseBrowserClient } from '@/lib/supabase'
 
 /**
@@ -10,35 +10,61 @@ import { createSupabaseBrowserClient } from '@/lib/supabase'
  */
 export default function AuthCallback() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const supabase = createSupabaseBrowserClient()
 
   useEffect(() => {
     const handleAuthCallback = async () => {
       try {
-        // URLからコードを取得してセッションを交換
-        const { data, error } = await supabase.auth.getSession()
+        console.log('🔄 認証コールバック処理開始')
         
+        // URLパラメータを取得
+        const code = searchParams.get('code')
+        const error = searchParams.get('error')
+        
+        console.log('📋 URLパラメータ:', { code: code ? 'あり' : 'なし', error })
+        
+        // エラーがある場合は早期リターン
         if (error) {
-          console.error('認証エラー:', error)
+          console.error('❌ OAuth認証エラー:', error)
           router.push('/auth/signin?error=認証に失敗しました')
           return
         }
 
+        // codeがない場合もエラー
+        if (!code) {
+          console.error('❌ 認証コードが見つかりません')
+          router.push('/auth/signin?error=認証コードが見つかりません')
+          return
+        }
+
+        console.log('🔄 認証コード交換処理開始')
+        
+        // PKCEフローでコードをセッションに交換
+        const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
+        
+        if (exchangeError) {
+          console.error('❌ コード交換エラー:', exchangeError)
+          router.push('/auth/signin?error=認証処理に失敗しました')
+          return
+        }
+
         if (data.session) {
+          console.log('✅ 認証成功:', data.session.user.email)
           // 認証成功時はホームページにリダイレクト
           router.push('/')
         } else {
-          // セッションがない場合はサインインページにリダイレクト
-          router.push('/auth/signin')
+          console.error('❌ セッションが作成されませんでした')
+          router.push('/auth/signin?error=セッションの作成に失敗しました')
         }
       } catch (error) {
-        console.error('認証コールバック処理エラー:', error)
+        console.error('💥 認証コールバック処理エラー:', error)
         router.push('/auth/signin?error=認証処理中にエラーが発生しました')
       }
     }
 
     handleAuthCallback()
-  }, [router, supabase.auth])
+  }, [router, searchParams, supabase.auth])
 
   return (
     <div className="min-h-screen flex items-center justify-center">
