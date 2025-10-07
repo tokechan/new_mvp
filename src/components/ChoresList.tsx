@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useNotifications } from '@/contexts/NotificationContext'
 import { useChores } from '@/hooks/useChores'
+import { useRealtime } from '@/hooks/useRealtime' // リアルタイム機能を追加
 import { Chore, PartnerInfo } from '@/types/chore'
 import { supabase } from '@/lib/supabase'
 import { Database } from '@/lib/supabase'
@@ -28,7 +29,46 @@ export default function ChoresList() {
   const { addNotification } = useNotifications()
   
   // useChoresフックを使用してデータ管理を統一
-  const { chores, loading, isAdding, addChore, toggleChore, deleteChore, realtimeEvents } = useChores()
+  const { 
+    chores, 
+    loading, 
+    isAdding, 
+    addChore, 
+    toggleChore, 
+    deleteChore, 
+    realtimeEvents,
+    setChores,
+    setRealtimeEvents,
+    refetch
+  } = useChores()
+  
+  // リアルタイム機能を統合
+  const realtimeState = useRealtime({
+    onChoreChange: (chores) => {
+      console.log('🔄 Chore changes received:', chores.length, 'chores')
+      // 家事データの更新
+      setChores(chores)
+      
+      // リアルタイムイベント情報を更新
+      setRealtimeEvents(prev => ({
+        ...prev,
+        updates: prev.updates + 1,
+        lastEvent: `Chores updated: ${chores.length} items`,
+        connectionStatus: 'connected'
+      }))
+    },
+    onPartnerChange: (partner) => {
+      console.log('👤 Partner change received:', partner)
+      // パートナー変更時の処理（必要に応じて）
+      
+      setRealtimeEvents(prev => ({
+        ...prev,
+        updates: prev.updates + 1,
+        lastEvent: `Partner updated: ${partner?.display_name || 'Unknown'}`,
+        connectionStatus: 'connected'
+      }))
+    }
+  })
   
   // アクセシビリティ機能
   const { announce, announceSuccess, announceError } = useScreenReader()
