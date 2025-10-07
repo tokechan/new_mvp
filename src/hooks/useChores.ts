@@ -161,10 +161,29 @@ export function useChores() {
         ? '550e8400-e29b-41d4-a716-446655440000' 
         : user.id
       
+      // パートナー情報を取得
+      let partnerId: string | null = null
+      try {
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select('partner_id')
+          .eq('id', userId)
+          .single()
+        
+        if (!profileError && profile?.partner_id) {
+          partnerId = profile.partner_id
+          console.log('👥 パートナーIDを設定:', partnerId)
+        } else {
+          console.log('👤 パートナーが未設定のため、partner_idはnullに設定')
+        }
+      } catch (partnerError) {
+        console.warn('⚠️ パートナー情報の取得に失敗:', partnerError)
+      }
+      
       const choreData: ChoreInsert = {
         title: title.trim(),
         owner_id: userId,
-        partner_id: null,
+        partner_id: partnerId,
         done: false
       }
 
@@ -303,6 +322,7 @@ export function useChores() {
     
     const channel = supabase
       .channel(`chores-realtime-${user.id}-${Date.now()}`)
+      // 自分がownerの家事のINSERT監視
       .on('postgres_changes', { 
          event: 'INSERT', 
          schema: 'public', 
@@ -330,6 +350,35 @@ export function useChores() {
             }))
           }
        })
+      // 自分がpartnerの家事のINSERT監視
+      .on('postgres_changes', { 
+         event: 'INSERT', 
+         schema: 'public', 
+         table: 'chores',
+         filter: `partner_id=eq.${user.id}`
+       }, (payload) => {
+          console.log('🟢 INSERT EVENT RECEIVED (partner):', payload)
+          const newChore = payload.new as Chore
+          if (newChore && (newChore.owner_id === user.id || newChore.partner_id === user.id)) {
+            console.log('📝 Adding chore to state (as partner):', newChore.title)
+            setChores(prev => {
+              const exists = prev.some(c => String(c.id) === String(newChore.id))
+              if (exists) {
+                console.log('⚠️ INSERT: Chore already exists, skipping:', newChore.id)
+                return prev
+              }
+              const updated = [newChore, ...prev]
+              console.log('📊 Updated chores count:', updated.length)
+              return updated
+            })
+            setRealtimeEvents(prev => ({
+              ...prev, 
+              inserts: prev.inserts + 1,
+              lastEvent: `INSERT: ${newChore.title}`
+            }))
+          }
+       })
+      // 自分がownerの家事のUPDATE監視
       .on('postgres_changes', { 
          event: 'UPDATE', 
          schema: 'public', 
@@ -340,6 +389,29 @@ export function useChores() {
           const updatedChore = payload.new as Chore
           if (updatedChore && (updatedChore.owner_id === user.id || updatedChore.partner_id === user.id)) {
             console.log('📝 Updating chore in state:', updatedChore.title)
+            setChores(prev => {
+              const updated = prev.map(c => String(c.id) === String(updatedChore.id) ? updatedChore : c)
+              console.log('📊 Updated chores after UPDATE:', updated.length)
+              return updated
+            })
+            setRealtimeEvents(prev => ({
+              ...prev, 
+              updates: prev.updates + 1,
+              lastEvent: `UPDATE: ${updatedChore.title}`
+            }))
+          }
+       })
+      // 自分がpartnerの家事のUPDATE監視
+      .on('postgres_changes', { 
+         event: 'UPDATE', 
+         schema: 'public', 
+         table: 'chores',
+         filter: `partner_id=eq.${user.id}`
+       }, (payload) => {
+          console.log('🟡 UPDATE EVENT RECEIVED (partner):', payload)
+          const updatedChore = payload.new as Chore
+          if (updatedChore && (updatedChore.owner_id === user.id || updatedChore.partner_id === user.id)) {
+            console.log('📝 Updating chore in state (as partner):', updatedChore.title)
             setChores(prev => {
               const updated = prev.map(c => String(c.id) === String(updatedChore.id) ? updatedChore : c)
               console.log('📊 Updated chores after UPDATE:', updated.length)
