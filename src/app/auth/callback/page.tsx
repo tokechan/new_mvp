@@ -6,6 +6,7 @@ import { createSupabaseBrowserClient } from '@/lib/supabase'
 
 /**
  * 認証コールバック処理コンポーネント
+ * PKCEフローに対応したexchangeCodeForSessionを使用
  */
 function AuthCallbackContent() {
   const router = useRouter()
@@ -14,61 +15,66 @@ function AuthCallbackContent() {
   const [isProcessing, setIsProcessing] = useState(true)
 
   useEffect(() => {
-    console.log('🔄 認証コールバック処理開始')
-    
     const handleAuthCallback = async () => {
       try {
-        // URLパラメータを取得
+        console.log('🔄 PKCE認証コールバック処理開始')
+        console.log('Current URL:', window.location.href)
+        
+        // URLエラーパラメータをチェック
         const error = searchParams.get('error')
         const errorDescription = searchParams.get('error_description')
         
-        // エラーがある場合は早期リターン
         if (error) {
           console.error('❌ OAuth認証エラー:', error, errorDescription)
           router.push(`/auth/signin?error=${encodeURIComponent(errorDescription || error)}`)
           return
         }
 
-        // 現在のセッションを確認
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+        // Supabaseの自動PKCEフロー処理
+        // getSessionは内部でPKCEコード交換を自動実行
+        console.log('🔄 Supabase自動PKCE処理実行中...')
+        
+        const { data, error: sessionError } = await supabase.auth.getSession()
         
         if (sessionError) {
           console.error('❌ セッション取得エラー:', sessionError)
-          router.push('/auth/signin?error=認証に失敗しました')
+          router.push(`/auth/signin?error=${encodeURIComponent(sessionError.message || 'セッション取得に失敗しました')}`)
           return
         }
 
-        if (session) {
-          console.log('✅ 認証成功:', session.user.email)
-          // 認証成功時はホームページにリダイレクト
-          router.push('/')
-        } else {
-          console.log('⏳ セッション待機中...')
+        if (!data.session) {
+          console.log('ℹ️ セッションが見つかりません。PKCEフローを手動実行します...')
           
-          // セッションがない場合は認証状態の変更を監視
-          const { data: { subscription } } = supabase.auth.onAuthStateChange(
-            async (event, newSession) => {
-              console.log('🔄 認証状態変更:', event, newSession?.user?.email || 'セッションなし')
-              
-              if (event === 'SIGNED_IN' && newSession) {
-                console.log('✅ 認証成功（状態変更）:', newSession.user.email)
-                subscription.unsubscribe()
-                router.push('/')
-              } else if (event === 'SIGNED_OUT') {
-                console.log('❌ 認証失敗またはサインアウト')
-                subscription.unsubscribe()
-                router.push('/auth/signin?error=認証に失敗しました')
-              }
-            }
-          )
-
-          // タイムアウト処理（30秒後）
-          setTimeout(() => {
-            console.log('⏰ 認証タイムアウト')
-            subscription.unsubscribe()
-            router.push('/auth/signin?error=認証がタイムアウトしました')
-          }, 30000)
+          // セッションがない場合、手動でPKCEフローを実行
+          const { data: exchangeData, error: exchangeError } = await supabase.auth.exchangeCodeForSession(window.location.href)
+          
+          if (exchangeError) {
+            console.error('❌ PKCEコード交換エラー:', exchangeError)
+            router.push(`/auth/signin?error=${encodeURIComponent(exchangeError.message || 'セッション作成に失敗しました')}`)
+            return
+          }
+          
+          if (!exchangeData.session) {
+            console.error('❌ セッション作成失敗')
+            router.push('/auth/signin?error=セッション作成に失敗しました。再度ログインしてください。')
+            return
+          }
+          
+          console.log('✅ PKCE認証成功:', {
+            userId: exchangeData.session.user.id,
+            email: exchangeData.session.user.email,
+            hasAccessToken: !!exchangeData.session.access_token
+          })
+        } else {
+          console.log('✅ セッション取得成功:', {
+            userId: data.session.user.id,
+            email: data.session.user.email,
+            hasAccessToken: !!data.session.access_token
+          })
         }
+        
+        // 認証成功時はホームページにリダイレクト
+        router.push('/')
       } catch (error) {
         console.error('❌ 認証コールバック処理エラー:', error)
         router.push('/auth/signin?error=認証処理中にエラーが発生しました')
@@ -78,7 +84,7 @@ function AuthCallbackContent() {
     }
 
     handleAuthCallback()
-  }, [router, searchParams, supabase.auth])
+  }, [router, searchParams, supabase])
 
   return (
     <div className="min-h-screen flex items-center justify-center">

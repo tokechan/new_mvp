@@ -14,6 +14,14 @@ export const supabase = createBrowserClient(
   supabaseUrl, 
   supabasePublishableKey,
   {
+    auth: {
+      // PKCEフローの設定を明示的に指定
+      autoRefreshToken: true,
+      persistSession: true,
+      detectSessionInUrl: true,
+      // セッション保存の設定
+      storage: typeof window !== 'undefined' ? window.localStorage : undefined,
+    },
     realtime: {
       params: {
         eventsPerSecond: 10
