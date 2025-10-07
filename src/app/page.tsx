@@ -3,22 +3,49 @@
 import { useAuth } from '@/contexts/AuthContext'
 import { useNotifications } from '@/contexts/NotificationContext'
 import { useRouter } from 'next/navigation'
-import { useEffect } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import ChoresList from '@/components/ChoresList'
 import NotificationCenter from '@/components/NotificationCenter'
 import Navigation from '@/components/Navigation'
 import { Button } from '@/components/ui/Button'
+import { profileService } from '@/services/profileService'
 
 export default function Home() {
   const { user, loading, signOut } = useAuth()
   const { addNotification } = useNotifications()
   const router = useRouter()
+  const [displayName, setDisplayName] = useState<string>('')
+
+  // ユーザーのdisplay_nameを取得
+  const fetchDisplayName = useCallback(async () => {
+    if (!user) return
+    
+    try {
+      const profile = await profileService.getProfile(user.id)
+      if (profile?.display_name) {
+        setDisplayName(profile.display_name)
+      } else {
+        // プロフィールが見つからない場合はメールアドレスから生成
+        setDisplayName(user.email?.split('@')[0] || 'ユーザー')
+      }
+    } catch (error) {
+      console.error('プロフィール取得エラー:', error)
+      // エラーの場合はメールアドレスから生成
+      setDisplayName(user.email?.split('@')[0] || 'ユーザー')
+    }
+  }, [user])
 
   useEffect(() => {
     if (!loading && !user) {
       router.push('/auth/signin')
     }
   }, [user, loading, router])
+
+  useEffect(() => {
+    if (user) {
+      fetchDisplayName()
+    }
+  }, [user, fetchDisplayName])
 
   if (loading) {
     return (
@@ -44,7 +71,7 @@ export default function Home() {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
               <p className="text-sm text-gray-600">こんにちは</p>
-              <p className="font-medium text-gray-900 truncate">{user.email}さん</p>
+              <p className="font-medium text-gray-900 truncate">{displayName || user.email?.split('@')[0] || 'ユーザー'}さん</p>
             </div>
             <div className="flex flex-col sm:flex-row items-center gap-2">
               <Button 

@@ -128,21 +128,24 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
           switch (payload.eventType) {
             case 'INSERT':
               // 追加者が自分かパートナーかを判定
-              const isAddedByMe = payload.new.created_by === user.id
-              const addedByText = isAddedByMe ? 'あなたが追加しました' : '相手が追加しました'
+              const isAddedByMe = payload.new.owner_id === user.id
+              const addedByText = isAddedByMe ? 'あなたが追加しました' : 'パートナーが追加しました'
               
-              addNotification({
-                title: '新しい家事が追加されました',
-                message: `家事「${payload.new.title}」を${addedByText}`,
-                type: 'info',
-                userId: user.id,
-              })
+              // 自分が追加した場合は通知しない
+              if (!isAddedByMe) {
+                addNotification({
+                  title: '新しい家事が追加されました',
+                  message: `家事「${payload.new.title}」を${addedByText}`,
+                  type: 'info',
+                  userId: user.id,
+                })
+              }
               break
             case 'UPDATE':
-              if (payload.new.completed && !payload.old.completed) {
-                // 完了者が自分かパートナーかを判定
-                const isCompletedByMe = payload.new.completed_by === user.id
-                const completedByText = isCompletedByMe ? 'あなたが完了しました' : '相手が完了しました'
+              if (payload.new.done && !payload.old.done) {
+                // 完了者が自分かパートナーかを判定（owner_idで判断）
+                const isCompletedByMe = payload.new.owner_id === user.id
+                const completedByText = isCompletedByMe ? 'あなたが完了しました' : 'パートナーが完了しました'
                 
                 addNotification({
                   title: '家事が完了しました',
