@@ -1,8 +1,9 @@
 import { createBrowserClient } from '@supabase/ssr'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+// 新しいAPI Keyモデルに移行：ANON_KEY → PUBLISHABLE_KEY
 const supabasePublishableKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
-const supabaseSecretKey = process.env.SUPABASE_SECRET_KEY
+const supabaseSecretKey = process.env.SUPABASE_SECRET_KEY!
 
 // テスト環境かどうかを判定
 const isTestEnvironment = process.env.NODE_ENV === 'test' || process.env.NEXT_PUBLIC_SKIP_AUTH === 'true'
