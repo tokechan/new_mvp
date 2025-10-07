@@ -73,6 +73,7 @@ export function useChores() {
    */
   const fetchChores = useCallback(async () => {
     if (!user) {
+      console.log('🚫 ユーザーが未ログイン状態です')
       setChores([])
       setLoading(false)
       return
@@ -81,6 +82,15 @@ export function useChores() {
     try {
       setLoading(true)
       console.log('🔄 Fetching chores for user:', user.id)
+      
+      // 認証状態の詳細確認
+      const { data: { session } } = await supabase.auth.getSession()
+      console.log('🔍 Current session:', {
+        hasSession: !!session,
+        userId: session?.user?.id,
+        accessToken: session?.access_token ? 'present' : 'missing',
+        expiresAt: session?.expires_at
+      })
 
       const { data, error } = await supabase
         .from('chores')
@@ -90,6 +100,12 @@ export function useChores() {
 
       if (error) {
         console.error('❌ 家事の取得に失敗しました:', error)
+        console.error('❌ エラー詳細:', {
+          code: error.code,
+          message: error.message,
+          details: error.details,
+          hint: error.hint
+        })
         throw error
       }
 
@@ -108,12 +124,21 @@ export function useChores() {
    */
   const addChore = useCallback(async (title: string) => {
     if (!user) {
+      console.error('🚫 家事追加失敗: ユーザーが未ログイン')
       throw new Error('ユーザーがログインしていません')
     }
 
     try {
       setIsAdding(true)
-      console.log('➕ 家事を追加中:', title)
+      console.log('➕ 家事を追加中:', title, 'by user:', user.id)
+      
+      // 認証状態の確認
+      const { data: { session } } = await supabase.auth.getSession()
+      console.log('🔍 Add chore session check:', {
+        hasSession: !!session,
+        userId: session?.user?.id,
+        matchesCurrentUser: session?.user?.id === user.id
+      })
 
       const choreData: ChoreInsert = {
         title: title.trim(),
@@ -121,6 +146,8 @@ export function useChores() {
         owner_id: user.id,
         partner_id: null
       }
+
+      console.log('📝 Inserting chore data:', choreData)
 
       const { data, error } = await supabase
         .from('chores')
@@ -130,13 +157,30 @@ export function useChores() {
 
       if (error) {
         console.error('❌ 家事の追加に失敗しました:', error)
+        console.error('❌ 追加エラー詳細:', {
+          code: error.code,
+          message: error.message,
+          details: error.details,
+          hint: error.hint
+        })
         throw error
       }
 
       console.log('✅ 家事を追加しました:', data)
       
-      // リアルタイムイベントで更新されるため、手動でstateを更新しない
-      // setChores(prev => [data, ...prev])
+      // 🔄 即座にローカル状態を更新（リアルタイムイベントを待たない）
+      console.log('🔄 Adding chore to local state immediately:', data.title)
+      setChores(prev => [data, ...prev])
+      
+      // リアルタイムイベント情報を更新
+      setRealtimeEvents(prev => ({
+        ...prev,
+        inserts: prev.inserts + 1,
+        lastEvent: `Added: ${data.title}`,
+        connectionStatus: 'connected'
+      }))
+      
+      return true
       
     } catch (error) {
       console.error('❌ 家事の追加に失敗しました:', error)
@@ -152,6 +196,14 @@ export function useChores() {
   const toggleChore = useCallback(async (choreId: string, currentDone: boolean) => {
     try {
       console.log('🔄 家事の状態を変更中:', choreId, '→', !currentDone)
+      
+      // 認証状態の確認
+      const { data: { session } } = await supabase.auth.getSession()
+      console.log('🔍 Toggle chore session check:', {
+        hasSession: !!session,
+        userId: session?.user?.id,
+        choreId: choreId
+      })
 
       const { data, error } = await supabase
         .from('chores')
@@ -162,6 +214,14 @@ export function useChores() {
 
       if (error) {
         console.error('❌ 家事の状態変更に失敗しました:', error)
+        console.error('❌ 状態変更エラー詳細:', {
+          code: error.code,
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          choreId: choreId,
+          newState: !currentDone
+        })
         throw error
       }
 
@@ -182,6 +242,14 @@ export function useChores() {
   const deleteChore = useCallback(async (choreId: string) => {
     try {
       console.log('🗑️ 家事を削除中:', choreId)
+      
+      // 認証状態の確認
+      const { data: { session } } = await supabase.auth.getSession()
+      console.log('🔍 Delete chore session check:', {
+        hasSession: !!session,
+        userId: session?.user?.id,
+        choreId: choreId
+      })
 
       const { error } = await supabase
         .from('chores')
@@ -190,13 +258,33 @@ export function useChores() {
 
       if (error) {
         console.error('❌ 家事の削除に失敗しました:', error)
+        console.error('❌ 削除エラー詳細:', {
+          code: error.code,
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          choreId: choreId
+        })
         throw error
       }
 
       console.log('✅ 家事を削除しました:', choreId)
       
-      // リアルタイムイベントで更新されるため、手動でstateを更新しない
-      // setChores(prev => prev.filter(c => c.id !== choreId))
+      // 🔄 即座にローカル状態を更新（リアルタイムイベントを待たない）
+      console.log('🔄 Removing chore from local state immediately:', choreId)
+      setChores(prev => {
+        const filtered = prev.filter(c => c.id !== choreId)
+        console.log('🔄 Chores after deletion:', filtered.length, 'items')
+        return filtered
+      })
+      
+      // リアルタイムイベント情報を更新
+      setRealtimeEvents(prev => ({
+        ...prev,
+        deletes: prev.deletes + 1,
+        lastEvent: `Deleted: ${choreId}`,
+        connectionStatus: 'connected'
+      }))
       
     } catch (error) {
       console.error('❌ 家事の削除に失敗しました:', error)

@@ -45,15 +45,29 @@ export default function ChoresList() {
   // リアルタイム機能を統合
   const realtimeState = useRealtime({
     onChoreChange: (chores) => {
-      console.log('🔄 Chore changes received:', chores.length, 'chores')
-      // 家事データの更新
-      setChores(chores)
+      console.log('🔄 Realtime chore changes received:', chores.length, 'chores')
+      
+      // 🔄 リアルタイムイベントによる更新（即座更新との重複を避けるため、慎重に処理）
+      setChores(prevChores => {
+        // 現在のローカル状態と比較して、実際に変更があった場合のみ更新
+        if (prevChores.length !== chores.length || 
+            JSON.stringify(prevChores.map(c => c.id).sort()) !== JSON.stringify(chores.map(c => c.id).sort())) {
+          console.log('🔄 Applying realtime chore changes:', {
+            previousCount: prevChores.length,
+            newCount: chores.length
+          })
+          return chores
+        } else {
+          console.log('🔄 Skipping realtime update - no changes detected')
+          return prevChores
+        }
+      })
       
       // リアルタイムイベント情報を更新
       setRealtimeEvents(prev => ({
         ...prev,
         updates: prev.updates + 1,
-        lastEvent: `Chores updated: ${chores.length} items`,
+        lastEvent: `Realtime update: ${chores.length} items`,
         connectionStatus: 'connected'
       }))
     },

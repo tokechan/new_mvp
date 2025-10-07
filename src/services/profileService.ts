@@ -16,14 +16,35 @@ export class ProfileService {
    * - 表示名は user_metadata.name もしくはメールローカル部を使用
    */
   async ensureProfile(user: User): Promise<void> {
+    console.log('👤 プロフィール確認開始:', {
+      userId: user.id,
+      email: user.email,
+      userMetadata: user.user_metadata
+    })
+    
     try {
+      // 現在のセッション状態を確認
+      const { data: sessionData } = await this.supabase.auth.getSession()
+      console.log('👤 現在のSupabaseセッション:', {
+        hasSession: !!sessionData.session,
+        sessionUserId: sessionData.session?.user?.id,
+        accessToken: sessionData.session?.access_token ? '存在' : '無し'
+      })
+      
       const displayName = (user.user_metadata?.name as string | undefined) || 
                          (user.email?.split('@')[0] ?? 'ユーザー')
       
-      const { error } = await this.supabase.from('profiles').upsert({
+      console.log('👤 プロフィールupsert実行:', {
+        id: user.id,
+        display_name: displayName
+      })
+      
+      const { data, error } = await this.supabase.from('profiles').upsert({
         id: user.id,
         display_name: displayName,
-      })
+      }).select()
+      
+      console.log('👤 プロフィールupsert結果:', { data, error })
       
       // 無限再帰エラーの場合は警告のみ
       if (error && (error.code === '42P17' || error.message?.includes('infinite recursion'))) {
@@ -31,9 +52,20 @@ export class ProfileService {
         return
       }
       
-      if (error) throw error
+      if (error) {
+        console.error('👤 プロフィール作成エラー詳細:', {
+          code: error.code,
+          message: error.message,
+          details: error.details,
+          hint: error.hint
+        })
+        throw error
+      }
+      
+      console.log('👤 プロフィール確認完了')
     } catch (err) {
-      console.warn('プロフィールの自動作成/更新に失敗しました:', err)
+      console.error('👤 プロフィールの自動作成/更新に失敗しました:', err)
+      throw err
     }
   }
 
