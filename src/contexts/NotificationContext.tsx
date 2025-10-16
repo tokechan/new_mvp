@@ -176,17 +176,51 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
           schema: 'public',
           table: 'thanks',
         },
-        (payload) => {
+        async (payload) => {
           console.log('ありがとうメッセージの追加を検出:', payload)
           
           // 自分宛のありがとうメッセージの場合のみ通知（送信者がパートナーの場合）
-          if (payload.new.to_user === user.id) {
-            addNotification({
-              title: 'ありがとうメッセージを受け取りました',
-              message: `${payload.new.message}`,
-              type: 'success',
-              userId: user.id,
-            })
+          if (payload.new.to_id === user.id) {
+            try {
+              // 送信者の表示名を補完するため、JOIN相当の選択で再取得
+              const { data, error } = await supabase
+                .from('thanks')
+                .select(`
+                  *,
+                  from_user:profiles!from_id(display_name),
+                  to_user:profiles!to_id(display_name)
+                `)
+                .eq('id', payload.new.id)
+                .single()
+
+              const senderName = data?.from_user?.display_name || 'パートナー'
+              const messageText = data?.message ?? payload.new.message ?? ''
+
+              if (error) {
+                console.warn('ありがとう詳細取得に失敗したため、簡易通知を表示します:', error)
+                addNotification({
+                  title: 'ありがとうメッセージを受け取りました',
+                  message: `${messageText}`,
+                  type: 'success',
+                  userId: user.id,
+                })
+              } else {
+                addNotification({
+                  title: 'ありがとうメッセージを受け取りました',
+                  message: `${senderName}から: ${messageText}`,
+                  type: 'success',
+                  userId: user.id,
+                })
+              }
+            } catch (e) {
+              console.error('ありがとうメッセージ詳細補完時にエラー:', e)
+              addNotification({
+                title: 'ありがとうメッセージを受け取りました',
+                message: `${payload.new.message ?? ''}`,
+                type: 'success',
+                userId: user.id,
+              })
+            }
           }
         }
       )

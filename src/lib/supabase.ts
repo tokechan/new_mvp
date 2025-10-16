@@ -1,9 +1,22 @@
 import { createBrowserClient } from '@supabase/ssr'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-// 新しいAPI Keyモデルに移行：ANON_KEY → PUBLISHABLE_KEY
-const supabasePublishableKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
-const supabaseSecretKey = process.env.SUPABASE_SECRET_KEY!
+// 環境変数の存在チェックと取得
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+const supabasePublishableKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+const supabaseSecretKey = process.env.SUPABASE_SECRET_KEY
+
+if (!supabaseUrl || !supabasePublishableKey) {
+  const missing = [
+    !supabaseUrl && 'NEXT_PUBLIC_SUPABASE_URL',
+    !supabasePublishableKey && 'NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY',
+  ].filter(Boolean).join(', ')
+
+  const hint = `\nヒント: .env に以下を設定してください\nNEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co\nNEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=your_publishable_key`
+
+  // 開発時にわかりやすいログを表示し、明示的にエラーを投げる
+  console.error(`Supabase環境変数が未設定です: ${missing}${hint}`)
+  throw new Error(`Supabase環境変数が未設定です: ${missing}`)
+}
 
 // テスト環境かどうかを判定
 const isTestEnvironment = process.env.NODE_ENV === 'test' || process.env.NEXT_PUBLIC_SKIP_AUTH === 'true'
