@@ -52,7 +52,7 @@ export function ChoreItem({
       // 完了済みの場合は直接未完了に戻す
       setIsLoading(true)
       try {
-        await onToggle(chore.id, chore.done)
+        await onToggle(chore.id as any, !!chore.done)
       } catch (error) {
         console.error('家事の状態更新に失敗しました:', error)
       } finally {
@@ -67,7 +67,7 @@ export function ChoreItem({
   const handleConfirm = async () => {
     setIsLoading(true)
     try {
-      await onToggle(chore.id, chore.done)
+      await onToggle(chore.id as any, !!chore.done)
       setShowCompletionModal(false)
       // 完了後に「お疲れ様でした！」モーダルを表示
       setShowCongratulationsModal(true)
@@ -141,6 +141,7 @@ export function ChoreItem({
           <div className="flex items-center space-x-2">
             {/* 完了/未完了ボタン */}
             <Button
+              type="button"
               data-testid="toggle-chore-button"
               onClick={handleToggle}
               disabled={isLoading}
@@ -200,7 +201,7 @@ export function ChoreItem({
             <Button
               variant="outline"
               size="sm"
-              onClick={() => onDelete(chore.id)}
+              onClick={() => onDelete(chore.id as any)}
               className="
                 text-xs sm:text-sm px-3 sm:px-4 py-2 font-medium transition-all duration-200
                 border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300
@@ -218,7 +219,7 @@ export function ChoreItem({
         {showThankYou && (
           <div className="mt-4 pt-4 border-t">
             <ThankYouMessage
-              choreId={chore.id}
+              choreId={String(chore.id)}
               toUserId={partnerInfo?.id || ''}
               toUserName={partnerInfo?.name || 'パートナー'}
               onSuccess={onHideThankYou}

@@ -35,6 +35,7 @@ export function useRealtime(callbacks: RealtimeCallbacks) {
   // チャンネルの参照を保持（テーブル別に分割）
   const choresChannelRef = useRef<RealtimeChannel | null>(null)
   const profileChannelRef = useRef<RealtimeChannel | null>(null)
+  const completionsChannelRef = useRef<RealtimeChannel | null>(null)
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const isReconnectingRef = useRef(false)
   const reconnectAttemptsRef = useRef(0)
@@ -49,6 +50,7 @@ export function useRealtime(callbacks: RealtimeCallbacks) {
       eventCount,
       hasChoresChannel: !!choresChannelRef.current,
       hasProfileChannel: !!profileChannelRef.current,
+      hasCompletionsChannel: !!completionsChannelRef.current,
       userId: user?.id
     })
   }, [isConnected, connectionError, lastEventTime, eventCount, user?.id])
@@ -107,13 +109,10 @@ export function useRealtime(callbacks: RealtimeCallbacks) {
         matchesCurrentUser: session?.user?.id === user.id
       })
 
-      // 最新の家事一覧を取得して更新
+      // 最新の家事一覧を取得して更新（completions展開を外す）
       const { data: choresData, error } = await supabase
         .from('chores')
-        .select(`
-          *,
-          completions (*)
-        `)
+        .select('*')
         .or(`owner_id.eq.${user.id},partner_id.eq.${user.id}`)
         .order('created_at', { ascending: false })
 
@@ -154,13 +153,10 @@ export function useRealtime(callbacks: RealtimeCallbacks) {
     setEventCount(prev => prev + 1)
 
     try {
-      // 最新の家事一覧を取得して更新
+      // 最新の家事一覧を取得して更新（completions展開を外す）
       const { data: choresData, error } = await supabase
         .from('chores')
-        .select(`
-          *,
-          completions (*)
-        `)
+        .select('*')
         .or(`owner_id.eq.${user.id},partner_id.eq.${user.id}`)
         .order('created_at', { ascending: false })
 
@@ -277,12 +273,20 @@ export function useRealtime(callbacks: RealtimeCallbacks) {
       // テーブルごとにチャンネル分割
       const choresChannel = supabase.channel(`user-${user.id}-chores-${CHANNEL_VERSION}-${topicSuffix}`)
       const profileChannel = supabase.channel(`user-${user.id}-profile-${CHANNEL_VERSION}-${topicSuffix}`)
+      const completionsChannel = supabase.channel(`user-${user.id}-completions-${CHANNEL_VERSION}-${topicSuffix}`)
 
       // 家事テーブルの変更購読
       choresChannel.on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'chores' },
         handleChoreChange
+      )
+
+      // 完了記録テーブルの変更購読
+      completionsChannel.on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'completions' },
+        handleCompletionChange
       )
 
       // プロフィールテーブルの変更購読（自身のプロフィールのみ）
@@ -320,8 +324,22 @@ export function useRealtime(callbacks: RealtimeCallbacks) {
         }
       })
 
+      completionsChannel.subscribe((status, err) => {
+        console.log('🔌 Completions channel status:', status, err ? 'Error:' : '', err)
+        if (status === 'SUBSCRIBED') {
+          setIsConnected(true)
+          setConnectionError(null)
+          reconnectAttemptsRef.current = 0
+          console.log('✅ Completions realtime connected')
+        } else if (status === 'CHANNEL_ERROR') {
+          console.error('❌ Completions channel error:', err)
+          setConnectionError(`完了記録チャンネルでエラー: ${err?.message || err}`)
+        }
+      })
+
       choresChannelRef.current = choresChannel
       profileChannelRef.current = profileChannel
+      completionsChannelRef.current = completionsChannel
     } catch (error) {
       console.error('❌ Failed to establish realtime connection:', error)
       setConnectionError('リアルタイム接続の確立に失敗しました')
@@ -342,6 +360,11 @@ export function useRealtime(callbacks: RealtimeCallbacks) {
       console.log('🔌 Disconnecting profile channel')
       supabase.removeChannel(profileChannelRef.current)
       profileChannelRef.current = null
+    }
+    if (completionsChannelRef.current) {
+      console.log('🔌 Disconnecting completions channel')
+      supabase.removeChannel(completionsChannelRef.current)
+      completionsChannelRef.current = null
     }
     
     if (reconnectTimeoutRef.current) {
@@ -381,11 +404,6 @@ export function useRealtime(callbacks: RealtimeCallbacks) {
    */
   const autoReconnect = useCallback(() => {
     if (isReconnectingRef.current || !user) return
-    // チャンネル設定不一致（bindings mismatch）は再接続しても改善しないためスキップ
-    if (connectionError && typeof connectionError === 'string' && connectionError.includes('bindings')) {
-      console.warn('⛔ Skipping auto-reconnect due to bindings mismatch. Await code alignment or versioned channels.')
-      return
-    }
     if (reconnectAttemptsRef.current >= 5) {
       console.warn('⏳ Reconnect attempts exceeded; stopping auto-reconnect.')
       return
@@ -406,12 +424,6 @@ export function useRealtime(callbacks: RealtimeCallbacks) {
     // ユーザーがいない場合は切断
     if (!user) {
       disconnect()
-      return
-    }
-
-    // bindings mismatch エラーが出ている間は自動接続を抑止
-    if (connectionError && typeof connectionError === 'string' && connectionError.includes('bindings')) {
-      console.warn('⛔ Suppressing auto-connect due to bindings mismatch state.')
       return
     }
 

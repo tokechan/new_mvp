@@ -1,5 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 
+const E2E_BASE_URL = process.env.E2E_BASE_URL;
+
 /**
  * Playwright設定ファイル
  * E2Eテストの実行環境とブラウザ設定を定義
@@ -22,7 +24,7 @@ export default defineConfig({
   // 共通設定
   use: {
     // ベースURL（開発サーバーのURL）
-    baseURL: 'http://localhost:3001',
+    baseURL: E2E_BASE_URL ?? 'http://localhost:3001',
     
     // スクリーンショット設定
     screenshot: 'only-on-failure',
@@ -51,13 +53,16 @@ export default defineConfig({
   ],
 
   // 開発サーバーの設定
-  webServer: {
-    command: 'NEXT_PUBLIC_SKIP_AUTH=true npm run dev',
-    url: 'http://localhost:3001',
-    reuseExistingServer: !process.env.CI,
-    timeout: 120 * 1000, // 2分
-    env: {
-      NEXT_PUBLIC_SKIP_AUTH: 'true',
-    },
-  },
+  // ステージング（外部URL）指定時はローカル開発サーバーを起動しない
+  webServer: E2E_BASE_URL
+    ? undefined
+    : {
+        command: 'NEXT_PUBLIC_SKIP_AUTH=true npm run dev',
+        url: 'http://localhost:3001',
+        reuseExistingServer: !process.env.CI,
+        timeout: 120 * 1000, // 2分
+        env: {
+          NEXT_PUBLIC_SKIP_AUTH: 'true',
+        },
+      },
 });

@@ -52,6 +52,12 @@ npm run deploy:production
 
 # プレビュー
 npm run preview
+
+#### Cloudflare Workers 直接デプロイ（代替手段）
+```bash
+# Staging環境にデプロイ（workers.devに公開）
+npx wrangler deploy --env staging
+```
 ```
 
 ### ⚠️ セキュリティ注意事項
