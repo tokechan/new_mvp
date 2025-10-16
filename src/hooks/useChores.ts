@@ -193,7 +193,7 @@ export function useChores() {
   /**
    * 家事の完了状態を切り替え
    */
-  const toggleChore = useCallback(async (choreId: string, currentDone: boolean) => {
+  const toggleChore = useCallback(async (choreId: number, currentDone: boolean) => {
     try {
       console.log('🔄 家事の状態を変更中:', choreId, '→', !currentDone)
       
@@ -239,7 +239,7 @@ export function useChores() {
   /**
    * 家事を削除
    */
-  const deleteChore = useCallback(async (choreId: string) => {
+  const deleteChore = useCallback(async (choreId: number) => {
     try {
       console.log('🗑️ 家事を削除中:', choreId)
       
