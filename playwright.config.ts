@@ -57,12 +57,13 @@ export default defineConfig({
   webServer: E2E_BASE_URL
     ? undefined
     : {
-        command: 'NEXT_PUBLIC_SKIP_AUTH=true npm run dev',
+        command: 'NEXT_PUBLIC_SKIP_AUTH=true next dev -p 3001',
         url: 'http://localhost:3001',
         reuseExistingServer: !process.env.CI,
         timeout: 120 * 1000, // 2分
         env: {
           NEXT_PUBLIC_SKIP_AUTH: 'true',
+          PORT: '3001',
         },
       },
 });

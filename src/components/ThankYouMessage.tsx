@@ -28,6 +28,7 @@ export default function ThankYouMessage({
   const [message, setMessage] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [successMessage, setSuccessMessage] = useState<string | null>(null)
   
   const { user } = useAuth()
   const { addNotification } = useNotifications()
@@ -50,6 +51,7 @@ export default function ThankYouMessage({
 
     setIsSubmitting(true)
     setError(null)
+    setSuccessMessage(null)
 
     try {
       // thankYouServiceを使用してメッセージを送信
@@ -65,13 +67,14 @@ export default function ThankYouMessage({
         message: `${toUserName || '相手'}にありがとうメッセージを送信しました`,
         type: 'success'
       })
+      setSuccessMessage('ありがとうメッセージを送信しました')
 
       // 成功コールバックを実行
       onSuccess?.(thankYou)
       
       // フォームをリセット
       setMessage('')
-      
+
     } catch (error) {
       console.error('ありがとうメッセージの送信に失敗しました:', error)
       setError(error instanceof Error ? error.message : 'メッセージの送信に失敗しました。もう一度お試しください。')
@@ -85,7 +88,8 @@ export default function ThankYouMessage({
    */
   const selectPredefinedMessage = (predefinedMessage: string) => {
     setMessage(predefinedMessage)
-  }
+    setSuccessMessage(null)
+    }
 
   return (
     <div className="bg-white rounded-lg shadow-md p-6 max-w-md mx-auto">
@@ -95,8 +99,23 @@ export default function ThankYouMessage({
 
       {/* エラーメッセージ */}
       {error && (
-        <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+        <div
+          className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded"
+          role="alert"
+          data-testid="error-message"
+        >
           {error}
+        </div>
+      )}
+
+      {/* 成功メッセージ */}
+      {successMessage && (
+        <div
+          className="mb-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded"
+          role="status"
+          data-testid="success-message"
+        >
+          {successMessage}
         </div>
       )}
 
@@ -114,6 +133,7 @@ export default function ThankYouMessage({
                 onClick={() => selectPredefinedMessage(predefinedMessage)}
                 className="text-left p-2 text-sm bg-gray-50 hover:bg-gray-100 rounded border transition-colors"
                 aria-label={`定型メッセージを選択: ${predefinedMessage}`}
+                data-testid={`predefined-message-${index}`}
               >
                 {predefinedMessage}
               </button>
@@ -134,15 +154,23 @@ export default function ThankYouMessage({
             rows={3}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             disabled={isSubmitting}
+            aria-label="メッセージ"
+            data-testid="custom-message-input"
           />
         </div>
 
         {/* アクションボタン */}
         <div className="flex gap-3 pt-4">
+          {/* 視覚的には非表示だが説明文として関連付ける */}
+          <span id="send-thank-you-desc" className="sr-only">
+            ありがとうメッセージを送信します
+          </span>
           <button
             type="submit"
             disabled={isSubmitting || !message.trim()}
             className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            data-testid="send-thank-you-button"
+            aria-describedby="send-thank-you-desc"
           >
             {isSubmitting ? '送信中...' : '送信する'}
           </button>

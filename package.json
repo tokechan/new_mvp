@@ -35,7 +35,8 @@
     "env:check": "node scripts/check-env.js",
     "env:setup:staging": "./scripts/setup-env.sh staging",
     "env:setup:production": "./scripts/setup-env.sh production",
-    "security:check": "npm run env:check && git status --ignored | grep -E '\\.env|\\.open-next'"
+    "security:check": "npm run env:check && git status --ignored | grep -E '\\.env|\\.open-next'",
+    "create:test-user": "node scripts/create-supabase-user.mjs"
   },
   "dependencies": {
     "@opennextjs/cloudflare": "^1.8.3",
