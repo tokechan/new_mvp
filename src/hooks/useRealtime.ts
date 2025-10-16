@@ -34,25 +34,62 @@ export function useRealtime(callbacks: RealtimeCallbacks) {
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const isReconnectingRef = useRef(false)
 
+  // 🔄 リアルタイム接続状態のデバッグログ
+  useEffect(() => {
+    console.log('🔄 Realtime state changed:', {
+      isConnected,
+      connectionError,
+      lastEventTime: lastEventTime?.toISOString(),
+      eventCount,
+      hasChannel: !!channelRef.current,
+      userId: user?.id
+    })
+  }, [isConnected, connectionError, lastEventTime, eventCount, user?.id])
+
   /**
    * 家事変更イベントの処理
    */
   const handleChoreChange = useCallback(async (
     payload: RealtimePostgresChangesPayload<Chore>
   ) => {
-    if (!user || !callbacks.onChoreChange) return
+    console.log('🔄 Realtime chore event START:', {
+      eventType: payload.eventType,
+      table: payload.table,
+      choreId: (payload.new as Chore)?.id || (payload.old as Chore)?.id,
+      userId: user?.id,
+      hasUser: !!user,
+      hasCallback: !!callbacks.onChoreChange,
+      timestamp: new Date().toISOString()
+    })
+
+    if (!user || !callbacks.onChoreChange) {
+      console.log('🚫 Realtime event skipped:', {
+        hasUser: !!user,
+        hasCallback: !!callbacks.onChoreChange
+      })
+      return
+    }
 
     console.log('🔄 Realtime chore event received:', {
       eventType: payload.eventType,
       table: payload.table,
       new: payload.new,
-      old: payload.old
+      old: payload.old,
+      userId: user.id
     })
 
     setLastEventTime(new Date())
     setEventCount(prev => prev + 1)
 
     try {
+      // 認証状態の確認
+      const { data: { session } } = await supabase.auth.getSession()
+      console.log('🔍 Realtime session check:', {
+        hasSession: !!session,
+        userId: session?.user?.id,
+        matchesCurrentUser: session?.user?.id === user.id
+      })
+
       // 最新の家事一覧を取得して更新
       const { data: choresData, error } = await supabase
         .from('chores')
@@ -65,6 +102,12 @@ export function useRealtime(callbacks: RealtimeCallbacks) {
 
       if (error) {
         console.error('❌ Failed to fetch updated chores:', error)
+        console.error('❌ Realtime fetch error details:', {
+          code: error.code,
+          message: error.message,
+          details: error.details,
+          hint: error.hint
+        })
         return
       }
 
@@ -166,7 +209,7 @@ export function useRealtime(callbacks: RealtimeCallbacks) {
   /**
    * リアルタイム接続を確立
    */
-  const connect = useCallback(() => {
+  const connect = useCallback(async () => {
     if (!user || channelRef.current || isReconnectingRef.current) {
       console.log('🔄 Skipping realtime connection:', {
         hasUser: !!user,
@@ -178,6 +221,15 @@ export function useRealtime(callbacks: RealtimeCallbacks) {
 
     console.log('🔌 Establishing realtime connection for user:', user.id)
     setConnectionError(null)
+
+    // 認証状態の確認
+    const { data: { session } } = await supabase.auth.getSession()
+    console.log('🔍 Realtime connection session check:', {
+      hasSession: !!session,
+      userId: session?.user?.id,
+      matchesCurrentUser: session?.user?.id === user.id,
+      accessToken: session?.access_token ? 'present' : 'missing'
+    })
 
     try {
       // チャンネルを作成
@@ -250,8 +302,8 @@ export function useRealtime(callbacks: RealtimeCallbacks) {
       })
 
       // チャンネルを購読
-      channel.subscribe((status) => {
-        console.log('🔌 Realtime subscription status:', status)
+      channel.subscribe((status, err) => {
+        console.log('🔌 Realtime subscription status:', status, err ? 'Error:' : '', err)
         
         if (status === 'SUBSCRIBED') {
           setIsConnected(true)
@@ -259,12 +311,13 @@ export function useRealtime(callbacks: RealtimeCallbacks) {
           console.log('✅ Realtime connection established successfully')
         } else if (status === 'CHANNEL_ERROR') {
           setIsConnected(false)
-          setConnectionError('リアルタイム接続でエラーが発生しました')
-          console.error('❌ Realtime channel error')
+          const errorMessage = err ? `リアルタイム接続でエラーが発生しました: ${err.message || err}` : 'リアルタイム接続でエラーが発生しました'
+          setConnectionError(errorMessage)
+          console.error('❌ Realtime channel error:', err)
         } else if (status === 'TIMED_OUT') {
           setIsConnected(false)
           setConnectionError('リアルタイム接続がタイムアウトしました')
-          console.error('❌ Realtime connection timed out')
+          console.error('❌ Realtime connection timed out:', err)
         } else if (status === 'CLOSED') {
           setIsConnected(false)
           console.log('🔌 Realtime connection closed')
