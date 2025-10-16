@@ -140,11 +140,29 @@ export function useChores() {
         matchesCurrentUser: session?.user?.id === user.id
       })
 
+      // パートナーIDを取得（連携済みなら共有家事として作成）
+      let partnerId: string | null = null
+      try {
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select('partner_id')
+          .eq('id', user.id)
+          .single()
+
+        if (profileError) {
+          console.warn('⚠️ パートナーID取得に失敗（共有なしで作成）:', profileError)
+        } else {
+          partnerId = profile?.partner_id ?? null
+        }
+      } catch (e) {
+        console.warn('⚠️ パートナー情報取得中に例外（共有なしで作成）:', e)
+      }
+
       const choreData: ChoreInsert = {
         title: title.trim(),
         done: false,
         owner_id: user.id,
-        partner_id: null
+        partner_id: partnerId
       }
 
       console.log('📝 Inserting chore data:', choreData)

@@ -1,4 +1,4 @@
-import { useEffect, useCallback } from 'react'
+import { useEffect, useCallback, useRef } from 'react'
 import { RealtimeChannel } from '@supabase/supabase-js'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
@@ -12,6 +12,7 @@ import { ThankYouMessage } from '@/services/thankYouService'
 export function useThankYouRealtime() {
   const { user } = useAuth()
   const { addNotification } = useNotifications()
+  const initializedRef = useRef(false)
 
   /**
    * 新しい感謝メッセージを受信した際の処理
@@ -35,14 +36,20 @@ export function useThankYouRealtime() {
 
   useEffect(() => {
     if (!user?.id) return
+    if (initializedRef.current) return
+    initializedRef.current = true
 
     let channel: RealtimeChannel
 
     const setupRealtimeSubscription = async () => {
       try {
+        const CHANNEL_VERSION = 'v2'
+        const instanceId = (typeof crypto !== 'undefined' && 'randomUUID' in crypto)
+          ? crypto.randomUUID()
+          : `i-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`
         // thanksテーブルの変更を監視
         channel = supabase
-          .channel('thanks-changes')
+          .channel(`thanks-changes-${user.id}-${CHANNEL_VERSION}-${instanceId}`)
           .on(
             'postgres_changes',
             {
@@ -73,6 +80,7 @@ export function useThankYouRealtime() {
         supabase.removeChannel(channel)
         console.log('感謝メッセージのリアルタイム通知を停止しました')
       }
+      initializedRef.current = false
     }
   }, [user?.id, handleNewThankYou])
 
