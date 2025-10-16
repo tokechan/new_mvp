@@ -127,42 +127,39 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
           
           switch (payload.eventType) {
             case 'INSERT':
-              // 追加者が自分かパートナーかを判定
+              // 追加者が自分でない場合のみ通知（パートナーが追加した場合）
               const isAddedByMe = payload.new.owner_id === user.id
-              const addedByText = isAddedByMe ? 'あなたが追加しました' : 'パートナーが追加しました'
               
-              // 自分が追加した場合は通知しない
               if (!isAddedByMe) {
                 addNotification({
                   title: '新しい家事が追加されました',
-                  message: `家事「${payload.new.title}」を${addedByText}`,
+                  message: `家事「${payload.new.title}」をパートナーが追加しました`,
                   type: 'info',
                   userId: user.id,
                 })
               }
               break
             case 'UPDATE':
+              // 家事が完了状態に変更された場合
               if (payload.new.done && !payload.old.done) {
-                // 完了者が自分かパートナーかを判定（owner_idで判断）
-                const isCompletedByMe = payload.new.owner_id === user.id
-                const completedByText = isCompletedByMe ? 'あなたが完了しました' : 'パートナーが完了しました'
+                // 完了者の判定: owner_idが現在のユーザーと異なる場合はパートナーが完了
+                // （実際の完了者はcompletionsテーブルで管理されるが、簡易的にowner_idで判定）
+                const isCompletedByPartner = payload.new.owner_id !== user.id
                 
-                addNotification({
-                  title: '家事が完了しました',
-                  message: `家事「${payload.new.title}」を${completedByText}`,
-                  type: 'success',
-                  userId: user.id,
-                  actionUrl: '/completed-chores',
-                })
+                if (isCompletedByPartner) {
+                  addNotification({
+                    title: '家事が完了しました',
+                    message: `家事「${payload.new.title}」をパートナーが完了しました`,
+                    type: 'success',
+                    userId: user.id,
+                    actionUrl: '/completed-chores',
+                  })
+                }
               }
               break
             case 'DELETE':
-              addNotification({
-                title: '家事が削除されました',
-                message: `家事が削除されました`,
-                type: 'warning',
-                userId: user.id,
-              })
+              // 削除者の情報は取得できないため、削除通知は表示しない
+              // （削除は通常、家事を作成した本人が行うため）
               break
           }
         }
@@ -182,7 +179,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
         (payload) => {
           console.log('ありがとうメッセージの追加を検出:', payload)
           
-          // 自分宛のありがとうメッセージの場合のみ通知
+          // 自分宛のありがとうメッセージの場合のみ通知（送信者がパートナーの場合）
           if (payload.new.to_user === user.id) {
             addNotification({
               title: 'ありがとうメッセージを受け取りました',
