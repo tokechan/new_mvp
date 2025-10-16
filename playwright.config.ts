@@ -1,6 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 
 const E2E_BASE_URL = process.env.E2E_BASE_URL;
+const E2E_SKIP_A11Y = process.env.E2E_SKIP_A11Y === 'true';
 
 /**
  * Playwright設定ファイル
@@ -9,6 +10,8 @@ const E2E_BASE_URL = process.env.E2E_BASE_URL;
 export default defineConfig({
   // テストディレクトリ
   testDir: './tests/e2e',
+  // 一時的にアクセシビリティテストを除外するトグル
+  testIgnore: E2E_SKIP_A11Y ? [/accessibility\.spec\.ts$/] : undefined,
   
   // 並列実行の設定
   fullyParallel: true,
