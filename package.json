@@ -20,6 +20,8 @@
     "test:monitor:analyze": "node scripts/coverage-monitor.js --analyze",
     "test:unit": "jest --testPathPatterns=src",
     "test:e2e": "playwright test",
+    "test:e2e:fast": "E2E_SKIP_A11Y=true playwright test",
+    "test:e2e:core": "E2E_SKIP_A11Y=true playwright test tests/e2e/thank-you.spec.ts tests/e2e/thank-you-feature.spec.ts tests/e2e/chores-management.spec.ts",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:headed": "playwright test --headed",
     "test:e2e:debug": "playwright test --debug",
