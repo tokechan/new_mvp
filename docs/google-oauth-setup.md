@@ -48,7 +48,7 @@ SupabaseでGoogle OAuth認証を有効にするための設定手順です。
 
 ```env
 NEXT_PUBLIC_SUPABASE_URL=https://[YOUR_PROJECT_REF].supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=[YOUR_ANON_KEY]
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=[YOUR_PUBLISHABLE_KEY]
 ```
 
 ## 4. トラブルシューティング

@@ -234,12 +234,13 @@ export default function ChoresList() {
    * 家事削除処理
    */
   const handleDeleteChore = async (choreId: string) => {
-    const chore = chores.find(c => c.id === choreId)
+    const numericId = Number(choreId)
+    const chore = chores.find(c => c.id === numericId)
     if (!chore) return
 
     try {
       saveFocus()
-      await deleteChore(choreId)
+      await deleteChore(numericId)
       announceSuccess(`家事「${chore.title}」を削除しました`)
       addNotification({
         title: '家事を削除しました',

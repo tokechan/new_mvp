@@ -39,7 +39,7 @@ export function ChoreCompletionModal({
 
     setIsProcessing(true)
     try {
-      await onConfirm(chore.id)
+      await onConfirm(String(chore.id))
       onClose()
     } catch (error) {
       console.error('家事完了処理エラー:', error)
@@ -56,10 +56,10 @@ export function ChoreCompletionModal({
 
     setIsProcessing(true)
     try {
-      await onConfirm(chore.id)
+      await onConfirm(String(chore.id))
       onClose()
       if (onThankYou) {
-        onThankYou(chore.id)
+        onThankYou(String(chore.id))
       }
     } catch (error) {
       console.error('家事完了処理エラー:', error)

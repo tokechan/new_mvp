@@ -35,7 +35,13 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
   const [notifications, setNotifications] = useState<Notification[]>([])
   const { user } = useAuth()
   const supabase = createSupabaseBrowserClient()
-  const initializedRef = useRef(false)
+  const instanceIdRef = useRef<string | null>(null)
+  // Hooksは常に同じ順序で呼び出す必要があるため、useRefは無条件で1回のみ呼ぶ
+  const initializedRefLocal = useRef(false)
+  const initializedRef = (
+    (NotificationContext as any)._initializedRef ??
+    ((NotificationContext as any)._initializedRef = initializedRefLocal)
+  ) as React.MutableRefObject<boolean>
 
   // 新しい通知を追加する関数
   const addNotification = useCallback((notification: Omit<Notification, 'id' | 'timestamp' | 'read'>) => {
@@ -117,9 +123,30 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
 
     console.log('リアルタイム通知の監視を開始します...')
 
+    // Realtime用に最新アクセストークンを設定（必要な場合）
+    ;(async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession()
+        const rt: any = (supabase as any).realtime
+        if (session?.access_token && typeof rt?.setAuth === 'function') {
+          rt.setAuth(session.access_token)
+        }
+      } catch (err) {
+        console.warn('通知用Realtime認証の設定に失敗:', err)
+      }
+    })()
+
+    // ユニークなチャンネル識別子（StrictModeの再購読でも衝突しないように）
+    if (!instanceIdRef.current) {
+      instanceIdRef.current = (typeof crypto !== 'undefined' && 'randomUUID' in crypto)
+        ? crypto.randomUUID()
+        : `i-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`
+    }
+    const topicSuffix = `${instanceIdRef.current}`
+
     // 家事の変更を監視
     const choresChannel = supabase
-      .channel(`chores-changes-${user.id}`)
+      .channel(`user-${user.id}-notif-chores-v1-${topicSuffix}`)
       .on(
         'postgres_changes',
         {
@@ -127,7 +154,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
           schema: 'public',
           table: 'chores',
         },
-        (payload) => {
+        async (payload) => {
           console.log('家事データの変更を検出:', payload)
           
           switch (payload.eventType) {
@@ -145,21 +172,59 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
               }
               break
             case 'UPDATE':
-              // 家事が完了状態に変更された場合
+              // 完了状態の変更を厳密に判定（completionsテーブルを参照）
               if (payload.new.done && !payload.old.done) {
-                // 完了者の判定: owner_idが現在のユーザーと異なる場合はパートナーが完了
-                // （実際の完了者はcompletionsテーブルで管理されるが、簡易的にowner_idで判定）
-                const isCompletedByPartner = payload.new.owner_id !== user.id
-                
-                if (isCompletedByPartner) {
+                try {
+                  const { data: latestCompletion, error: compErr } = await supabase
+                    .from('completions')
+                    .select('id,user_id,created_at')
+                    .eq('chore_id', payload.new.id)
+                    .order('created_at', { ascending: false })
+                    .limit(1)
+
+                  let completedBy: string | undefined = latestCompletion?.[0]?.user_id
+                  const isCompletedByPartner = !!completedBy && completedBy !== user.id
+
+                  if (compErr) {
+                    console.warn('完了者取得に失敗（簡易判定にフォールバック）:', compErr)
+                  }
+
+                  if (isCompletedByPartner) {
+                    addNotification({
+                      title: '家事が完了しました',
+                      message: `家事「${payload.new.title}」をパートナーが完了しました`,
+                      type: 'success',
+                      userId: user.id,
+                      actionUrl: '/completed-chores',
+                    })
+                  } else if (compErr || !completedBy) {
+                    // フォールバック: 完了者が取得できない場合でも完了通知を出す（誰が完了したかは明示しない）
+                    addNotification({
+                      title: '家事が完了しました',
+                      message: `家事「${payload.new.title}」が完了しました`,
+                      type: 'success',
+                      userId: user.id,
+                      actionUrl: '/completed-chores',
+                    })
+                  }
+                } catch (e) {
+                  console.warn('完了通知処理中に例外:', e)
+                  // 例外時もフォールバック通知を保証
                   addNotification({
                     title: '家事が完了しました',
-                    message: `家事「${payload.new.title}」をパートナーが完了しました`,
+                    message: `家事「${payload.new.title}」が完了しました`,
                     type: 'success',
                     userId: user.id,
                     actionUrl: '/completed-chores',
                   })
                 }
+              } else if (!payload.new.done && payload.old.done) {
+                addNotification({
+                  title: '家事が未完了に戻されました',
+                  message: `家事「${payload.new.title}」が未完了に戻りました`,
+                  type: 'info',
+                  userId: user.id,
+                })
               }
               break
             case 'DELETE':
@@ -173,7 +238,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
 
     // ありがとうメッセージの変更を監視
     const thanksChannel = supabase
-      .channel(`thanks-changes-${user.id}`)
+      .channel(`user-${user.id}-notif-thanks-v2-${topicSuffix}`)
       .on(
         'postgres_changes',
         {

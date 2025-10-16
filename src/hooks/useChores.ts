@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
 import { Chore, ChoreInsert, RealtimeEvents } from '@/types/chore'
+import { ChoreService } from '@/services/choreService'
 
 /**
  * テスト環境でSupabaseクライアントにセッションを設定するヘルパー関数
@@ -212,47 +213,34 @@ export function useChores() {
    * 家事の完了状態を切り替え
    */
   const toggleChore = useCallback(async (choreId: number, currentDone: boolean) => {
+    if (!user) {
+      const errorMessage = '家事の状態更新には認証が必要です。'
+      console.error(`❌ ${errorMessage}`)
+      throw new Error(errorMessage)
+    }
+
     try {
-      console.log('🔄 家事の状態を変更中:', choreId, '→', !currentDone)
-      
-      // 認証状態の確認
-      const { data: { session } } = await supabase.auth.getSession()
-      console.log('🔍 Toggle chore session check:', {
-        hasSession: !!session,
-        userId: session?.user?.id,
-        choreId: choreId
-      })
+      console.log(`🔄 [useChores] 家事の状態を変更中 (via service): choreId=${choreId}, newDoneState=${!currentDone}`)
 
-      const { data, error } = await supabase
-        .from('chores')
-        .update({ done: !currentDone })
-        .eq('id', choreId)
-        .select()
-        .single()
+      // choreServiceで完了状態を切り替え（completionsテーブルも更新）
+      const updatedChore = await ChoreService.toggleChoreCompletion(choreId, user.id, !currentDone)
 
-      if (error) {
-        console.error('❌ 家事の状態変更に失敗しました:', error)
-        console.error('❌ 状態変更エラー詳細:', {
-          code: error.code,
-          message: error.message,
-          details: error.details,
-          hint: error.hint,
-          choreId: choreId,
-          newState: !currentDone
-        })
-        throw error
-      }
+      console.log('✅ [useChores] 家事の状態をサービス経由で変更しました:', updatedChore)
 
-      console.log('✅ 家事の状態を変更しました:', data)
-      
-      // リアルタイムイベントで更新されるため、手動でstateを更新しない
-      // setChores(prev => prev.map(c => c.id === choreId ? data : c))
-      
+      // 即座にローカル状態を更新してUIに反映
+      setChores(prevChores =>
+        prevChores.map(chore =>
+          chore.id === choreId
+            ? { ...chore, ...updatedChore }
+            : chore
+        )
+      )
+
     } catch (error) {
-      console.error('❌ 家事の状態変更に失敗しました:', error)
+      console.error('❌ [useChores] 家事の状態変更に失敗しました (service error):', error)
       throw error
     }
-  }, [])
+  }, [user])
 
   /**
    * 家事を削除
