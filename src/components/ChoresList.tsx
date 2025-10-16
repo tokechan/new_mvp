@@ -49,18 +49,30 @@ export default function ChoresList() {
       
       // 🔄 リアルタイムイベントによる更新（即座更新との重複を避けるため、慎重に処理）
       setChores(prevChores => {
-        // 現在のローカル状態と比較して、実際に変更があった場合のみ更新
-        if (prevChores.length !== chores.length || 
-            JSON.stringify(prevChores.map(c => c.id).sort()) !== JSON.stringify(chores.map(c => c.id).sort())) {
-          console.log('🔄 Applying realtime chore changes:', {
+        // 現在のローカル状態と比較して、主要プロパティの差分がある場合のみ更新
+        const hasDiff =
+          prevChores.length !== chores.length ||
+          prevChores.some(prev => {
+            const next = chores.find(c => c.id === prev.id)
+            if (!next) return true
+            return (
+              prev.title !== next.title ||
+              prev.done !== next.done ||
+              prev.owner_id !== next.owner_id ||
+              prev.partner_id !== next.partner_id
+            )
+          })
+
+        if (hasDiff) {
+          console.log('🔄 Applying realtime chore changes with diff detected:', {
             previousCount: prevChores.length,
             newCount: chores.length
           })
           return chores
-        } else {
-          console.log('🔄 Skipping realtime update - no changes detected')
-          return prevChores
         }
+
+        console.log('🔄 Skipping realtime update - no changes detected')
+        return prevChores
       })
       
       // リアルタイムイベント情報を更新
@@ -112,19 +124,38 @@ export default function ChoresList() {
 
     try {
       setIsLoadingPartner(true)
-      const { data, error } = await supabase
-        .from('partner_links')
-        .select('*')
-        .eq('user_id', user.id)
+      // 自分のプロフィールから partner_id を取得
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('partner_id')
+        .eq('id', user.id)
         .single()
 
-      if (error && error.code !== 'PGRST116') {
-        console.error('パートナー情報の取得に失敗:', error)
+      if (profileError && profileError.code !== 'PGRST116') {
+        console.error('プロフィールの取得に失敗:', profileError)
         return
       }
 
-      if (data) {
-        setPartnerInfo(data)
+      // パートナーが設定されている場合は詳細情報を取得
+      if (profile?.partner_id) {
+        const { data: partner, error: partnerError } = await supabase
+          .from('profiles')
+          .select('id, display_name')
+          .eq('id', profile.partner_id)
+          .single()
+
+        if (partnerError && partnerError.code !== 'PGRST116') {
+          console.error('パートナー情報の取得に失敗:', partnerError)
+          return
+        }
+
+        if (partner) {
+          setPartnerInfo({ id: partner.id, name: partner.display_name })
+        } else {
+          setPartnerInfo(null)
+        }
+      } else {
+        setPartnerInfo(null)
       }
     } catch (error) {
       console.error('パートナー情報の取得中にエラー:', error)
@@ -166,7 +197,9 @@ export default function ChoresList() {
   const handleToggleChore = async (chore: Chore) => {
     try {
       saveFocus()
-      await toggleChore(chore.id, chore.done)
+      // idはstring/number両対応、doneはboolean|nullの可能性に対応
+      const numericId = typeof chore.id === 'number' ? chore.id : Number(chore.id)
+      await toggleChore(numericId, !!chore.done)
       
       if (!chore.done) {
         announceSuccess(`家事「${chore.title}」を完了しました`)
@@ -266,8 +299,8 @@ export default function ChoresList() {
               key={chore.id}
               chore={chore}
               onToggle={() => handleToggleChore(chore)}
-              onDelete={() => handleDeleteChore(chore.id)}
-              isOwnChore={chore.owner_id === user?.id}
+              onDelete={() => handleDeleteChore(String(chore.id))}
+              isOwnChore={String(chore.owner_id) === String(user?.id || '')}
               partnerName={partnerInfo?.name || 'パートナー'}
               showThankYou={false}
               onShowThankYou={() => {}}

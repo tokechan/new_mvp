@@ -1,6 +1,6 @@
 'use client'
 
-import React, { createContext, useContext, useEffect, useState, useCallback } from 'react'
+import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react'
 import { createSupabaseBrowserClient } from '@/lib/supabase'
 import { useAuth } from './AuthContext'
 
@@ -35,6 +35,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
   const [notifications, setNotifications] = useState<Notification[]>([])
   const { user } = useAuth()
   const supabase = createSupabaseBrowserClient()
+  const initializedRef = useRef(false)
 
   // 新しい通知を追加する関数
   const addNotification = useCallback((notification: Omit<Notification, 'id' | 'timestamp' | 'read'>) => {
@@ -110,11 +111,15 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
   useEffect(() => {
     if (!user) return
 
+    // React StrictMode 下の二重マウントで重複購読を避けるためのガード
+    if (initializedRef.current) return
+    initializedRef.current = true
+
     console.log('リアルタイム通知の監視を開始します...')
 
     // 家事の変更を監視
     const choresChannel = supabase
-      .channel('chores-changes')
+      .channel(`chores-changes-${user.id}`)
       .on(
         'postgres_changes',
         {
@@ -168,7 +173,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
 
     // ありがとうメッセージの変更を監視
     const thanksChannel = supabase
-      .channel('thanks-changes')
+      .channel(`thanks-changes-${user.id}`)
       .on(
         'postgres_changes',
         {
@@ -231,6 +236,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
       console.log('リアルタイム通知の監視を停止します...')
       supabase.removeChannel(choresChannel)
       supabase.removeChannel(thanksChannel)
+      initializedRef.current = false
     }
   }, [user, supabase, addNotification])
 

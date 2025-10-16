@@ -24,15 +24,21 @@ interface RealtimeCallbacks {
  */
 export function useRealtime(callbacks: RealtimeCallbacks) {
   const { user } = useAuth()
+  const CHANNEL_VERSION = 'v2'
+  // クライアントインスタンスごとに一意のサフィックスを付与して、トピック衝突（bindings mismatch）を回避
+  const instanceIdRef = useRef<string>('')
   const [isConnected, setIsConnected] = useState(false)
   const [connectionError, setConnectionError] = useState<string | null>(null)
   const [lastEventTime, setLastEventTime] = useState<Date | null>(null)
   const [eventCount, setEventCount] = useState(0)
   
-  // チャンネルの参照を保持
-  const channelRef = useRef<RealtimeChannel | null>(null)
+  // チャンネルの参照を保持（テーブル別に分割）
+  const choresChannelRef = useRef<RealtimeChannel | null>(null)
+  const profileChannelRef = useRef<RealtimeChannel | null>(null)
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const isReconnectingRef = useRef(false)
+  const reconnectAttemptsRef = useRef(0)
+  const connectNonceRef = useRef(0)
 
   // 🔄 リアルタイム接続状態のデバッグログ
   useEffect(() => {
@@ -41,7 +47,8 @@ export function useRealtime(callbacks: RealtimeCallbacks) {
       connectionError,
       lastEventTime: lastEventTime?.toISOString(),
       eventCount,
-      hasChannel: !!channelRef.current,
+      hasChoresChannel: !!choresChannelRef.current,
+      hasProfileChannel: !!profileChannelRef.current,
       userId: user?.id
     })
   }, [isConnected, connectionError, lastEventTime, eventCount, user?.id])
@@ -77,6 +84,16 @@ export function useRealtime(callbacks: RealtimeCallbacks) {
       old: payload.old,
       userId: user.id
     })
+
+    // 受信行が自分に関係するかを確認（owner_id または partner_id が一致）
+    const row = (payload.new as any) ?? (payload.old as any)
+    if (row && row.owner_id && row.partner_id) {
+      const related = row.owner_id === user.id || row.partner_id === user.id
+      if (!related) {
+        console.log('↪️ Skipping unrelated chore change for user:', user.id)
+        return
+      }
+    }
 
     setLastEventTime(new Date())
     setEventCount(prev => prev + 1)
@@ -210,10 +227,11 @@ export function useRealtime(callbacks: RealtimeCallbacks) {
    * リアルタイム接続を確立
    */
   const connect = useCallback(async () => {
-    if (!user || channelRef.current || isReconnectingRef.current) {
+    if (!user || choresChannelRef.current || profileChannelRef.current || isReconnectingRef.current) {
       console.log('🔄 Skipping realtime connection:', {
         hasUser: !!user,
-        hasChannel: !!channelRef.current,
+        hasChoresChannel: !!choresChannelRef.current,
+        hasProfileChannel: !!profileChannelRef.current,
         isReconnecting: isReconnectingRef.current
       })
       return
@@ -231,100 +249,79 @@ export function useRealtime(callbacks: RealtimeCallbacks) {
       accessToken: session?.access_token ? 'present' : 'missing'
     })
 
+    // 最新のアクセストークンをRealtimeに設定（推奨）
     try {
-      // チャンネルを作成
-      const channel = supabase.channel(`user-${user.id}-changes`, {
-        config: {
-          presence: { key: user.id }
+      if (session?.access_token) {
+        // 型定義に現れない場合があるため安全に呼び出す
+        const rt: any = (supabase as any).realtime
+        if (typeof rt?.setAuth === 'function') {
+          rt.setAuth(session.access_token)
         }
-      })
+      }
+    } catch (err) {
+      console.warn('⚠️ Failed to set realtime auth token:', err)
+    }
 
-      // 家事テーブルの変更を監視
-      channel.on(
+    try {
+      // インスタンスIDを初期化（初回のみ）
+      if (!instanceIdRef.current) {
+        const uuid = (typeof crypto !== 'undefined' && 'randomUUID' in crypto)
+          ? crypto.randomUUID()
+          : `i-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`
+        instanceIdRef.current = uuid
+      }
+      // 接続試行ごとに異なるトピックを使用し、サーバーの古いbindingsとの不整合を回避
+      connectNonceRef.current += 1
+      const topicSuffix = `${instanceIdRef.current}-r${connectNonceRef.current}`
+
+      // テーブルごとにチャンネル分割
+      const choresChannel = supabase.channel(`user-${user.id}-chores-${CHANNEL_VERSION}-${topicSuffix}`)
+      const profileChannel = supabase.channel(`user-${user.id}-profile-${CHANNEL_VERSION}-${topicSuffix}`)
+
+      // 家事テーブルの変更購読
+      choresChannel.on(
         'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'chores',
-          filter: `owner_id=eq.${user.id}`
-        },
+        { event: '*', schema: 'public', table: 'chores' },
         handleChoreChange
       )
 
-      // パートナーの家事も監視（partner_idが自分のIDの場合）
-      channel.on(
+      // プロフィールテーブルの変更購読（自身のプロフィールのみ）
+      profileChannel.on(
         'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'chores',
-          filter: `partner_id=eq.${user.id}`
-        },
-        handleChoreChange
-      )
-
-      // 完了記録テーブルの変更を監視
-      channel.on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'completions'
-        },
-        handleCompletionChange
-      )
-
-      // プロフィールテーブルの変更を監視（パートナー関係の変更用）
-      channel.on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'profiles',
-          filter: `id=eq.${user.id}`
-        },
+        { event: '*', schema: 'public', table: 'profiles', filter: `id=eq.${user.id}` },
         handleProfileChange
       )
 
-      // 接続状態の監視
-      channel.on('presence', { event: 'sync' }, () => {
-        console.log('✅ Realtime presence synced')
-        setIsConnected(true)
-        setConnectionError(null)
-      })
-
-      channel.on('presence', { event: 'join' }, ({ key, newPresences }) => {
-        console.log('👋 User joined realtime:', key, newPresences)
-      })
-
-      channel.on('presence', { event: 'leave' }, ({ key, leftPresences }) => {
-        console.log('👋 User left realtime:', key, leftPresences)
-      })
-
-      // チャンネルを購読
-      channel.subscribe((status, err) => {
-        console.log('🔌 Realtime subscription status:', status, err ? 'Error:' : '', err)
-        
+      // それぞれ購読
+      choresChannel.subscribe((status, err) => {
+        console.log('🔌 Chores channel status:', status, err ? 'Error:' : '', err)
         if (status === 'SUBSCRIBED') {
+          // どちらかが接続できれば開始とみなす
           setIsConnected(true)
           setConnectionError(null)
-          console.log('✅ Realtime connection established successfully')
+          reconnectAttemptsRef.current = 0
+          console.log('✅ Chores realtime connected')
         } else if (status === 'CHANNEL_ERROR') {
-          setIsConnected(false)
-          const errorMessage = err ? `リアルタイム接続でエラーが発生しました: ${err.message || err}` : 'リアルタイム接続でエラーが発生しました'
-          setConnectionError(errorMessage)
-          console.error('❌ Realtime channel error:', err)
-        } else if (status === 'TIMED_OUT') {
-          setIsConnected(false)
-          setConnectionError('リアルタイム接続がタイムアウトしました')
-          console.error('❌ Realtime connection timed out:', err)
-        } else if (status === 'CLOSED') {
-          setIsConnected(false)
-          console.log('🔌 Realtime connection closed')
+          console.error('❌ Chores channel error:', err)
+          setConnectionError(`家事チャンネルでエラー: ${err?.message || err}`)
         }
       })
 
-      channelRef.current = channel
+      profileChannel.subscribe((status, err) => {
+        console.log('🔌 Profile channel status:', status, err ? 'Error:' : '', err)
+        if (status === 'SUBSCRIBED') {
+          setIsConnected(true)
+          setConnectionError(null)
+           reconnectAttemptsRef.current = 0
+          console.log('✅ Profile realtime connected')
+        } else if (status === 'CHANNEL_ERROR') {
+          console.error('❌ Profile channel error:', err)
+          setConnectionError(`プロフィールチャンネルでエラー: ${err?.message || err}`)
+        }
+      })
+
+      choresChannelRef.current = choresChannel
+      profileChannelRef.current = profileChannel
     } catch (error) {
       console.error('❌ Failed to establish realtime connection:', error)
       setConnectionError('リアルタイム接続の確立に失敗しました')
@@ -336,10 +333,15 @@ export function useRealtime(callbacks: RealtimeCallbacks) {
    * リアルタイム接続を切断
    */
   const disconnect = useCallback(() => {
-    if (channelRef.current) {
-      console.log('🔌 Disconnecting realtime connection')
-      channelRef.current.unsubscribe()
-      channelRef.current = null
+    if (choresChannelRef.current) {
+      console.log('🔌 Disconnecting chores channel')
+      supabase.removeChannel(choresChannelRef.current)
+      choresChannelRef.current = null
+    }
+    if (profileChannelRef.current) {
+      console.log('🔌 Disconnecting profile channel')
+      supabase.removeChannel(profileChannelRef.current)
+      profileChannelRef.current = null
     }
     
     if (reconnectTimeoutRef.current) {
@@ -363,6 +365,7 @@ export function useRealtime(callbacks: RealtimeCallbacks) {
 
     console.log('🔄 Manual reconnection requested')
     isReconnectingRef.current = true
+    reconnectAttemptsRef.current += 1
     
     disconnect()
     
@@ -378,28 +381,49 @@ export function useRealtime(callbacks: RealtimeCallbacks) {
    */
   const autoReconnect = useCallback(() => {
     if (isReconnectingRef.current || !user) return
+    // チャンネル設定不一致（bindings mismatch）は再接続しても改善しないためスキップ
+    if (connectionError && typeof connectionError === 'string' && connectionError.includes('bindings')) {
+      console.warn('⛔ Skipping auto-reconnect due to bindings mismatch. Await code alignment or versioned channels.')
+      return
+    }
+    if (reconnectAttemptsRef.current >= 5) {
+      console.warn('⏳ Reconnect attempts exceeded; stopping auto-reconnect.')
+      return
+    }
 
     console.log('🔄 Auto-reconnecting in 5 seconds...')
     isReconnectingRef.current = true
+    reconnectAttemptsRef.current += 1
     
     reconnectTimeoutRef.current = setTimeout(() => {
       isReconnectingRef.current = false
       connect()
     }, 5000)
-  }, [user, connect])
+  }, [user, connect, connectionError])
 
   // ユーザーログイン時に自動接続
   useEffect(() => {
-    if (user && !channelRef.current) {
-      connect()
-    } else if (!user && channelRef.current) {
+    // ユーザーがいない場合は切断
+    if (!user) {
       disconnect()
+      return
     }
 
-    return () => {
-      disconnect()
+    // bindings mismatch エラーが出ている間は自動接続を抑止
+    if (connectionError && typeof connectionError === 'string' && connectionError.includes('bindings')) {
+      console.warn('⛔ Suppressing auto-connect due to bindings mismatch state.')
+      return
     }
-  }, [user, connect, disconnect])
+
+    // まだチャンネルが無ければ接続
+    if (!choresChannelRef.current && !profileChannelRef.current) {
+      connect()
+    }
+    // クリーンアップはユーザー変更時/アンマウント時に必要最小限のみ
+    return () => {
+      // ここでは何もしない（切断は上の分岐で行う）
+    }
+  }, [user, connectionError])
 
   // 接続エラー時の自動再接続
   useEffect(() => {
