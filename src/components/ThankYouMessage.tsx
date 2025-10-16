@@ -120,6 +120,24 @@ export default function ThankYouMessage({
       )}
 
       <form onSubmit={handleSubmit} className="space-y-4">
+        {/* カスタムメッセージ入力（Tab移動で最初にフォーカスされる順序に配置） */}
+        <div>
+          <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-2">
+            メッセージ
+          </label>
+          <textarea
+            id="message"
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            placeholder="ありがとうメッセージを入力してください..."
+            rows={3}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            disabled={isSubmitting}
+            aria-label="メッセージ"
+            data-testid="custom-message-input"
+          />
+        </div>
+
         {/* 定型メッセージ選択 */}
         <fieldset>
           <legend className="block text-sm font-medium text-gray-700 mb-2">
@@ -141,24 +159,6 @@ export default function ThankYouMessage({
           </div>
         </fieldset>
 
-        {/* カスタムメッセージ入力 */}
-        <div>
-          <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-2">
-            メッセージ
-          </label>
-          <textarea
-            id="message"
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            placeholder="ありがとうメッセージを入力してください..."
-            rows={3}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            disabled={isSubmitting}
-            aria-label="メッセージ"
-            data-testid="custom-message-input"
-          />
-        </div>
-
         {/* アクションボタン */}
         <div className="flex gap-3 pt-4">
           {/* 視覚的には非表示だが説明文として関連付ける */}
@@ -167,7 +167,7 @@ export default function ThankYouMessage({
           </span>
           <button
             type="submit"
-            disabled={isSubmitting || !message.trim()}
+            disabled={isSubmitting}
             className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             data-testid="send-thank-you-button"
             aria-describedby="send-thank-you-desc"
