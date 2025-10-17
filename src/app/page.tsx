@@ -9,12 +9,24 @@ import NotificationCenter from '@/components/NotificationCenter'
 import Navigation from '@/components/Navigation'
 import { Button } from '@/components/ui/Button'
 import { profileService } from '@/services/profileService'
+import { PartnerService } from '@/services/partnerService'
+import { supabase } from '@/lib/supabase'
 
 export default function Home() {
   const { user, loading, signOut } = useAuth()
   const { addNotification } = useNotifications()
   const router = useRouter()
   const [displayName, setDisplayName] = useState<string>('')
+  const [partnerStatus, setPartnerStatus] = useState<{
+    hasPartner: boolean
+    partnerId: string | null
+    partnerInfo: { id: string; display_name: string } | null
+    isLinkedProperly: boolean
+  } | null>(null)
+  const [partnerChecking, setPartnerChecking] = useState(false)
+  const [partnerError, setPartnerError] = useState<string | null>(null)
+  const [thanksTesting, setThanksTesting] = useState(false)
+  const [thanksTestResult, setThanksTestResult] = useState<string | null>(null)
 
   // ユーザーのdisplay_nameを取得
   const fetchDisplayName = useCallback(async () => {
@@ -108,6 +120,88 @@ export default function Home() {
         {/* 通知センター */}
         <div className="mb-8">
           <NotificationCenter />
+        </div>
+
+        {/* デバッグ: パートナー連携状態＆通知受信テスト */}
+        <div className="bg-white rounded-lg shadow-sm border border-amber-300 p-4 mb-8">
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex-1">
+              <h3 className="text-sm font-semibold text-gray-900 mb-2">パートナー連携状態</h3>
+              <div className="text-sm text-gray-700 space-y-1">
+                <p><span className="font-medium">あなたのユーザーID:</span> {user.id}</p>
+                {partnerStatus ? (
+                  <>
+                    <p><span className="font-medium">連携有無:</span> {partnerStatus.hasPartner ? '連携済み' : '未連携'}</p>
+                    <p><span className="font-medium">partner_id:</span> {partnerStatus.partnerId ?? 'なし'}</p>
+                    <p><span className="font-medium">相互リンク整合性:</span> {partnerStatus.isLinkedProperly ? 'OK' : '不整合'}</p>
+                    {partnerStatus.partnerInfo && (
+                      <p><span className="font-medium">パートナー表示名:</span> {partnerStatus.partnerInfo.display_name}</p>
+                    )}
+                  </>
+                ) : (
+                  <p className="text-gray-500">未確認</p>
+                )}
+                {partnerError && (
+                  <p className="text-red-600">エラー: {partnerError}</p>
+                )}
+              </div>
+            </div>
+            <div className="flex flex-col gap-2">
+              <Button
+                onClick={async () => {
+                  if (!user) return
+                  setPartnerChecking(true)
+                  setPartnerError(null)
+                  try {
+                    const status = await PartnerService.checkPartnershipStatus(user.id)
+                    setPartnerStatus(status as any)
+                  } catch (e: any) {
+                    setPartnerError(e?.message || '状態確認に失敗しました')
+                  } finally {
+                    setPartnerChecking(false)
+                  }
+                }}
+                variant="outline"
+                size="sm"
+                disabled={partnerChecking}
+              >
+                {partnerChecking ? '確認中...' : '連携状態をチェック'}
+              </Button>
+              <Button
+                onClick={async () => {
+                  if (!user) return
+                  setThanksTesting(true)
+                  setThanksTestResult(null)
+                  try {
+                    const { error } = await supabase.from('thanks').insert({
+                      from_id: user.id,
+                      to_id: user.id,
+                      message: '通知受信テスト（自分宛）'
+                    })
+                    if (error) {
+                      setThanksTestResult(`挿入失敗: ${error.message}`)
+                    } else {
+                      setThanksTestResult('挿入成功 → 通知が表示されるか確認してください')
+                    }
+                  } catch (e: any) {
+                    setThanksTestResult(`例外: ${e?.message || e}`)
+                  } finally {
+                    setThanksTesting(false)
+                  }
+                }}
+                size="sm"
+                title="thanksにINSERTして通知受信を確認"
+                disabled={thanksTesting}
+              >
+                {thanksTesting ? 'テスト中...' : 'ありがとう受信テスト'}
+              </Button>
+            </div>
+          </div>
+          {thanksTestResult && (
+            <div className="mt-2 text-sm text-gray-700">
+              結果: {thanksTestResult}
+            </div>
+          )}
         </div>
 
         {/* CTAテキスト */}
