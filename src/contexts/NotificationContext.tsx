@@ -1,6 +1,6 @@
 'use client'
 
-import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react'
+import React, { createContext, useContext, useEffect, useState, useCallback, useRef, useMemo } from 'react'
 import { createSupabaseBrowserClient } from '@/lib/supabase'
 import { useAuth } from './AuthContext'
 
@@ -36,7 +36,7 @@ const NotificationContext = createContext<NotificationContextType | undefined>(u
 export function NotificationProvider({ children }: { children: React.ReactNode }) {
   const [notifications, setNotifications] = useState<Notification[]>([])
   const { user } = useAuth()
-  const supabase = createSupabaseBrowserClient()
+  const supabase = useMemo(() => createSupabaseBrowserClient(), [])
   const instanceIdRef = useRef<string | null>(null)
   // StrictModeガードを撤廃して、毎回購読を確実に開始する
 
@@ -129,6 +129,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
     // チャンネル参照（クリーンアップ用）
     let choresChannel: ReturnType<typeof supabase.channel> | null = null
     let thanksChannel: ReturnType<typeof supabase.channel> | null = null
+    let completionsChannel: ReturnType<typeof supabase.channel> | null = null
 
     const setupRealtime = async () => {
       try {
@@ -244,8 +245,8 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
                   .from('thanks')
                   .select(`
                       *,
-                      from_user:profiles!from_id(display_name),
-                      to_user:profiles!to_id(display_name)
+                      from_user:profiles!thanks_from_id_fkey(display_name),
+                      to_user:profiles!thanks_to_id_fkey(display_name)
                     `)
                   .eq('id', payload.new.id)
                   .single()
@@ -288,7 +289,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
         console.log('[NotificationProvider] thanks channel created')
     
         // 完了通知はcompletionsのINSERTを監視（REPLICA IDENTITY依存を回避）
-        const completionsChannel = supabase
+        completionsChannel = supabase
           .channel(`user-${user.id}-notif-completions-v1-${topicSuffix}`)
           .on(
             'postgres_changes',
@@ -298,7 +299,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
               table: 'completions',
             },
             async (payload) => {
-              console.log('完了エントリの追加を検出:', payload)
+              console.log('[DEBUG] completions insert payload:', payload)
               const completedBy = payload.new?.user_id
               if (!completedBy || completedBy === user.id) {
                 return
@@ -330,14 +331,6 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
           })
     
         console.log('[NotificationProvider] completions channel created')
-    
-        // クリーンアップ関数
-        return () => {
-          console.log('リアルタイム通知の監視を停止します...')
-          if (choresChannel) supabase.removeChannel(choresChannel)
-          if (thanksChannel) supabase.removeChannel(thanksChannel)
-          supabase.removeChannel(completionsChannel)
-        }
       } catch (err) {
         console.error('Realtime購読初期化エラー:', err)
       }
@@ -350,8 +343,9 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
       console.log('リアルタイム通知の監視を停止します...')
       if (choresChannel) supabase.removeChannel(choresChannel)
       if (thanksChannel) supabase.removeChannel(thanksChannel)
+      if (completionsChannel) supabase.removeChannel(completionsChannel)
     }
-  }, [user, supabase, addNotification])
+  }, [user, addNotification])
 
   const value = {
     notifications,
