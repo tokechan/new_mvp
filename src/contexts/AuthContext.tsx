@@ -15,6 +15,7 @@ interface AuthContextType {
   signUp: (email: string, password: string, name?: string) => Promise<{ error: any }>
   signOut: () => Promise<void>
   signInWithGoogle: () => Promise<{ error: any }>
+  resendConfirmation: (email: string) => Promise<{ error: any }>
   clearError: () => void
 }
 
@@ -35,6 +36,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     signUp,
     signOut,
     signInWithGoogle,
+    resendConfirmation,
     clearError,
     error,
     loading: actionLoading,
@@ -52,6 +54,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     signUp,
     signOut,
     signInWithGoogle,
+    resendConfirmation,
     clearError,
   }
 

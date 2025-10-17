@@ -114,7 +114,7 @@ export default function CompletedChoresPage() {
         <div className="text-center py-8">
           <p className="text-gray-600">ログインが必要です</p>
           <button 
-            onClick={() => router.push('/login')} 
+            onClick={() => router.push('/auth/signin')} 
             className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
           >
             ログインページへ

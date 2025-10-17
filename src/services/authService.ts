@@ -20,12 +20,23 @@ export class AuthService {
    */
   async signIn(email: string, password: string): Promise<AuthResult> {
     try {
+      console.debug('🔐 Emailサインイン開始', { email })
       const { data, error } = await this.supabase.auth.signInWithPassword({
         email,
         password,
       })
+      if (error) {
+        console.error('❌ Emailサインインエラー', {
+          message: error.message,
+          name: (error as any).name,
+          status: (error as any).status,
+        })
+      } else {
+        console.debug('✅ Emailサインイン成功', { userId: data?.user?.id })
+      }
       return { data, error }
     } catch (e: any) {
+      console.error('❌ Emailサインイン例外', e)
       return { data: null, error: e }
     }
   }
@@ -35,6 +46,7 @@ export class AuthService {
    */
   async signUp(email: string, password: string, name?: string): Promise<AuthResult> {
     try {
+      console.debug('🆕 Emailサインアップ開始', { email })
       const { data, error } = await this.supabase.auth.signUp({
         email,
         password,
@@ -44,8 +56,18 @@ export class AuthService {
           },
         },
       })
+      if (error) {
+        console.error('❌ Emailサインアップエラー', {
+          message: error.message,
+          name: (error as any).name,
+          status: (error as any).status,
+        })
+      } else {
+        console.debug('✅ Emailサインアップ受付', { userId: data?.user?.id })
+      }
       return { data, error }
     } catch (e: any) {
+      console.error('❌ Emailサインアップ例外', e)
       return { data: null, error: e }
     }
   }
@@ -89,6 +111,32 @@ export class AuthService {
       return { data, error }
     } catch (error) {
       console.error('❌ Google認証失敗:', error)
+      return { data: null, error: error as Error }
+    }
+  }
+
+  /**
+   * サインアップ確認メールを再送
+   */
+  async resendConfirmation(email: string): Promise<AuthResult> {
+    try {
+      console.debug('📧 確認メール再送開始', { email })
+      const { data, error } = await this.supabase.auth.resend({
+        type: 'signup',
+        email,
+      })
+      if (error) {
+        console.error('❌ 確認メール再送エラー', {
+          message: error.message,
+          name: (error as any).name,
+          status: (error as any).status,
+        })
+      } else {
+        console.debug('✅ 確認メール再送完了')
+      }
+      return { data, error }
+    } catch (error) {
+      console.error('❌ 確認メール再送失敗', error)
       return { data: null, error: error as Error }
     }
   }

@@ -109,6 +109,27 @@ export function useAuthActions() {
   }
 
   /**
+   * サインアップ確認メールを再送
+   */
+  const resendConfirmation = async (email: string) => {
+    try {
+      setLoading(true)
+      setError(null)
+      const result = await authService.resendConfirmation(email)
+      if (result.error) {
+        setError(result.error.message || '確認メールの再送に失敗しました')
+      }
+      return result
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : '確認メール再送中にエラーが発生しました'
+      setError(errorMessage)
+      return { error: err }
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  /**
    * エラーをクリアする関数
    */
   const clearError = () => {
@@ -120,6 +141,7 @@ export function useAuthActions() {
     signUp,
     signOut,
     signInWithGoogle,
+    resendConfirmation,
     clearError,
     error,
     loading,
