@@ -13,14 +13,11 @@ export default function NotificationCenter() {
   const router = useRouter()
   const {
     notifications,
-    filteredNotifications,
     unreadCount,
     markAsRead,
     markAllAsRead,
     removeNotification,
     clearAllNotifications,
-    preferences,
-    updatePreference,
   } = useNotifications()
 
   // 通知アイコンの色を決定
@@ -169,52 +166,16 @@ export default function NotificationCenter() {
             </div>
           </div>
 
-          {/* フィルタ設定 */}
-          <div className="p-3 border-b border-gray-100 bg-gray-50">
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-              <label className="inline-flex items-center space-x-2 text-xs text-gray-700">
-                <input
-                  type="checkbox"
-                  checked={preferences.showPartnerActions}
-                  onChange={(e) => updatePreference('showPartnerActions', e.target.checked)}
-                />
-                <span>パートナー</span>
-              </label>
-              <label className="inline-flex items-center space-x-2 text-xs text-gray-700">
-                <input
-                  type="checkbox"
-                  checked={preferences.showSelfActions}
-                  onChange={(e) => updatePreference('showSelfActions', e.target.checked)}
-                />
-                <span>自分</span>
-              </label>
-              <label className="inline-flex items-center space-x-2 text-xs text-gray-700">
-                <input
-                  type="checkbox"
-                  checked={preferences.showUnknownActions}
-                  onChange={(e) => updatePreference('showUnknownActions', e.target.checked)}
-                />
-                <span>不明</span>
-              </label>
-              <label className="inline-flex items-center space-x-2 text-xs text-gray-700">
-                <input
-                  type="checkbox"
-                  checked={preferences.showSystemActions}
-                  onChange={(e) => updatePreference('showSystemActions', e.target.checked)}
-                />
-                <span>システム</span>
-              </label>
-            </div>
-          </div>
+          {/* フィルタ設定はシンプル方針のため非表示（パートナーのみ追加済み） */}
 
           {/* 通知リスト */}
           <div className="max-h-[60vh] overflow-y-auto">
-            {filteredNotifications.length === 0 ? (
+            {notifications.length === 0 ? (
               <div className="p-4 text-center text-gray-500">
                 通知はありません
               </div>
             ) : (
-              filteredNotifications.map((notification) => (
+              notifications.map((notification) => (
                 <div
                   key={notification.id}
                   className={`p-4 border-b border-gray-100 cursor-pointer hover:bg-gray-50 ${getNotificationBgColor(notification.type, notification.read)}`}

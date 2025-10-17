@@ -64,6 +64,11 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
 
   // 新しい通知を追加する関数
   const addNotification = useCallback((notification: Omit<Notification, 'id' | 'timestamp' | 'read'>) => {
+    // シンプル方針: パートナーのアクションのみ通知として追加
+    const src = notification.source ?? 'unknown'
+    if (src !== 'partner') {
+      return
+    }
     // より安全なUUID生成（crypto.randomUUIDが利用できない場合の代替）
     const generateId = () => {
       if (typeof crypto !== 'undefined' && crypto.randomUUID) {
@@ -233,7 +238,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
               }
               break
             case 'UPDATE':
-              // 完了状態の変更を厳密に判定（completionsテーブルを参照）
+              // 完了状態の変更: 完了者がパートナーの場合のみ通知
               if (payload.new.done && !payload.old.done) {
                 try {
                   const { data: latestCompletion, error: compErr } = await supabase
@@ -243,11 +248,11 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
                     .order('created_at', { ascending: false })
                     .limit(1)
 
-                  let completedBy: string | undefined = latestCompletion?.[0]?.user_id
+                  const completedBy: string | undefined = latestCompletion?.[0]?.user_id
                   const isCompletedByPartner = !!completedBy && completedBy !== user.id
 
                   if (compErr) {
-                    console.warn('完了者取得に失敗（簡易判定にフォールバック）:', compErr)
+                    console.warn('完了者取得に失敗:', compErr)
                   }
 
                   if (isCompletedByPartner) {
@@ -259,48 +264,10 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
                       actionUrl: '/completed-chores',
                       source: 'partner',
                     })
-                  } else if (completedBy === user.id) {
-                    // 自分が完了した場合も記録（デフォルト非表示）
-                    addNotification({
-                      title: '家事が完了しました',
-                      message: `家事「${payload.new.title}」を完了しました`,
-                      type: 'success',
-                      userId: user.id,
-                      actionUrl: '/completed-chores',
-                      source: 'self',
-                    })
-                  } else if (compErr || !completedBy) {
-                    // フォールバック: 完了者が取得できない場合でも完了通知を出す（誰が完了したかは明示しない）
-                    addNotification({
-                      title: '家事が完了しました',
-                      message: `家事「${payload.new.title}」が完了しました`,
-                      type: 'success',
-                      userId: user.id,
-                      actionUrl: '/completed-chores',
-                      source: 'unknown',
-                    })
                   }
                 } catch (e) {
                   console.warn('完了通知処理中に例外:', e)
-                  // 例外時もフォールバック通知を保証
-                  addNotification({
-                    title: '家事が完了しました',
-                    message: `家事「${payload.new.title}」が完了しました`,
-                    type: 'success',
-                    userId: user.id,
-                    actionUrl: '/completed-chores',
-                    source: 'unknown',
-                  })
                 }
-              } else if (!payload.new.done && payload.old.done) {
-                addNotification({
-                  title: '家事が未完了に戻されました',
-                  message: `家事「${payload.new.title}」が未完了に戻りました`,
-                  type: 'info',
-                  userId: user.id,
-                  // 送信者判別不可のためunknown（デフォルト非表示）
-                  source: 'unknown',
-                })
               }
               break
             case 'DELETE':
