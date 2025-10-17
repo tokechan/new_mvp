@@ -124,182 +124,179 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
       return
     }
 
-    // StrictModeによる二重マウントでも購読を開始する
-
     console.log('リアルタイム通知の監視を開始します...')
 
-    // Realtime用に最新アクセストークンを設定（必要な場合）
-    ;(async () => {
+    // チャンネル参照（クリーンアップ用）
+    let choresChannel: ReturnType<typeof supabase.channel> | null = null
+    let thanksChannel: ReturnType<typeof supabase.channel> | null = null
+
+    const setupRealtime = async () => {
       try {
+        // 1) セッション取得 → 2) Realtime認証設定 → 3) チャンネル購読
         const { data: { session } } = await supabase.auth.getSession()
         const rt: any = (supabase as any).realtime
         if (session?.access_token && typeof rt?.setAuth === 'function') {
           rt.setAuth(session.access_token)
           console.log('[NotificationProvider] realtime auth set')
+        } else {
+          console.warn('[NotificationProvider] no access token available for realtime')
         }
-      } catch (err) {
-        console.warn('通知用Realtime認証の設定に失敗:', err)
-      }
-    })()
 
-    // ユニークなチャンネル識別子（StrictModeの再購読でも衝突しないように）
-    if (!instanceIdRef.current) {
-      instanceIdRef.current = (typeof crypto !== 'undefined' && 'randomUUID' in crypto)
-        ? crypto.randomUUID()
-        : `i-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`
-    }
-    const topicSuffix = `${instanceIdRef.current}`
+        // ユニークなチャンネル識別子（StrictModeの再購読でも衝突しないように）
+        if (!instanceIdRef.current) {
+          instanceIdRef.current = (typeof crypto !== 'undefined' && 'randomUUID' in crypto)
+            ? crypto.randomUUID()
+            : `i-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`
+        }
+        const topicSuffix = `${instanceIdRef.current}`
+        console.log('[NotificationProvider] topic suffix:', topicSuffix)
 
-    console.log('[NotificationProvider] topic suffix:', topicSuffix)
-
-    // 家事の変更を監視
-    const choresChannel = supabase
-      .channel(`user-${user.id}-notif-chores-v1-${topicSuffix}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'chores',
-        },
-        async (payload) => {
-          console.log('家事データの変更を検出:', payload)
-          
-          switch (payload.eventType) {
-            case 'INSERT':
-              // 追加者が自分でない場合のみ通知（パートナーが追加した場合）
-              const isAddedByMe = payload.new.owner_id === user.id
-              
-              if (!isAddedByMe) {
-                addNotification({
-                  title: '新しい家事が追加されました',
-                  message: `家事「${payload.new.title}」をパートナーが追加しました`,
-                  type: 'info',
-                  userId: user.id,
-                  source: 'partner',
-                })
-              }
-              break
-            case 'UPDATE':
-              // 完了状態の変更: 完了者がパートナーの場合のみ通知
-              if (payload.new.done && !payload.old.done) {
-                try {
-                  const { data: latestCompletion, error: compErr } = await supabase
-                    .from('completions')
-                    .select('id,user_id,created_at')
-                    .eq('chore_id', payload.new.id)
-                    .order('created_at', { ascending: false })
-                    .limit(1)
-
-                  const completedBy: string | undefined = latestCompletion?.[0]?.user_id
-                  const isCompletedByPartner = !!completedBy && completedBy !== user.id
-
-                  if (compErr) {
-                    console.warn('完了者取得に失敗:', compErr)
-                  }
-
-                  if (isCompletedByPartner) {
+        // 家事の変更を監視
+        choresChannel = supabase
+          .channel(`user-${user.id}-notif-chores-v1-${topicSuffix}`)
+          .on(
+            'postgres_changes',
+            {
+              event: '*',
+              schema: 'public',
+              table: 'chores',
+            },
+            async (payload) => {
+              console.log('家事データの変更を検出:', payload)
+              switch (payload.eventType) {
+                case 'INSERT': {
+                  const isAddedByMe = payload.new.owner_id === user.id
+                  if (!isAddedByMe) {
                     addNotification({
-                      title: '家事が完了しました',
-                      message: `家事「${payload.new.title}」をパートナーが完了しました`,
-                      type: 'success',
+                      title: '新しい家事が追加されました',
+                      message: `家事「${payload.new.title}」をパートナーが追加しました`,
+                      type: 'info',
                       userId: user.id,
-                      actionUrl: '/completed-chores',
                       source: 'partner',
                     })
                   }
-                } catch (e) {
-                  console.warn('完了通知処理中に例外:', e)
+                  break
+                }
+                case 'UPDATE': {
+                  if (payload.new.done && !payload.old.done) {
+                    try {
+                      const { data: latestCompletion, error: compErr } = await supabase
+                        .from('completions')
+                        .select('id,user_id,created_at')
+                        .eq('chore_id', payload.new.id)
+                        .order('created_at', { ascending: false })
+                        .limit(1)
+                      const completedBy: string | undefined = latestCompletion?.[0]?.user_id
+                      const isCompletedByPartner = !!completedBy && completedBy !== user.id
+                      if (compErr) {
+                        console.warn('完了者取得に失敗:', compErr)
+                      }
+                      if (isCompletedByPartner) {
+                        addNotification({
+                          title: '家事が完了しました',
+                          message: `家事「${payload.new.title}」をパートナーが完了しました`,
+                          type: 'success',
+                          userId: user.id,
+                          actionUrl: '/completed-chores',
+                          source: 'partner',
+                        })
+                      }
+                    } catch (e) {
+                      console.warn('完了通知処理中に例外:', e)
+                    }
+                  }
+                  break
+                }
+                case 'DELETE': {
+                  break
                 }
               }
-              break
-            case 'DELETE':
-              // 削除者の情報は取得できないため、削除通知は表示しない
-              // （削除は通常、家事を作成した本人が行うため）
-              break
-          }
-        }
-      )
-      .subscribe((status) => {
-        console.log('chores channel status:', status)
-      })
+            }
+          )
+          .subscribe((status) => {
+            console.log('chores channel status:', status)
+          })
 
-    console.log('[NotificationProvider] chores channel created')
+        console.log('[NotificationProvider] chores channel created')
 
-    // ありがとうメッセージの変更を監視（自分宛のみサーバー側フィルタ）
-    const thanksChannel = supabase
-      .channel(`user-${user.id}-notif-thanks-v2-${topicSuffix}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'thanks',
-          filter: `to_id=eq.${user.id}`,
-        },
-        async (payload) => {
-          console.log('ありがとうメッセージの追加を検出:', payload)
-
-          // 自分宛のありがとうメッセージの場合のみ通知（送信者がパートナーの場合）
-          if (payload.new.to_id === user.id) {
-            try {
-              // 送信者の表示名を補完するため、JOIN相当の選択で再取得
-              const { data, error } = await supabase
-                .from('thanks')
-                .select(`
-                  *,
-                  from_user:profiles!from_id(display_name),
-                  to_user:profiles!to_id(display_name)
-                `)
-                .eq('id', payload.new.id)
-                .single()
-
-              const senderName = data?.from_user?.display_name || 'パートナー'
-              const messageText = data?.message ?? payload.new.message ?? ''
-
-              if (error) {
-                console.warn('ありがとう詳細取得に失敗したため、簡易通知を表示します:', error)
-                addNotification({
-                  title: 'ありがとうメッセージを受け取りました',
-                  message: `${messageText}`,
-                  type: 'success',
-                  userId: user.id,
-                  source: 'partner',
+        // ありがとうメッセージの変更を監視（クライアント側で判定）
+        thanksChannel = supabase
+          .channel(`user-${user.id}-notif-thanks-v2-${topicSuffix}`)
+          .on(
+            'postgres_changes',
+            {
+              event: 'INSERT',
+              schema: 'public',
+              table: 'thanks',
+            },
+            async (payload) => {
+              console.log('ありがとうメッセージの追加を検出:', payload)
+              if (payload.new?.to_id !== user.id) {
+                console.log('ありがとう通知: 自分宛ではないためスキップ', {
+                  to_id: payload.new?.to_id,
+                  my_id: user.id,
                 })
-              } else {
+                return
+              }
+              try {
+                const { data, error } = await supabase
+                  .from('thanks')
+                  .select(`
+                      *,
+                      from_user:profiles!from_id(display_name),
+                      to_user:profiles!to_id(display_name)
+                    `)
+                  .eq('id', payload.new.id)
+                  .single()
+                const senderName = data?.from_user?.display_name || 'パートナー'
+                const messageText = data?.message ?? payload.new.message ?? ''
+                if (error) {
+                  console.warn('ありがとう詳細取得に失敗したため、簡易通知を表示します:', error)
+                  addNotification({
+                    title: 'ありがとうメッセージを受け取りました',
+                    message: `${messageText}`,
+                    type: 'success',
+                    userId: user.id,
+                    source: 'partner',
+                  })
+                } else {
+                  addNotification({
+                    title: 'ありがとうメッセージを受け取りました',
+                    message: `${senderName}から: ${messageText}`,
+                    type: 'success',
+                    userId: user.id,
+                    source: 'partner',
+                  })
+                }
+              } catch (e) {
+                console.error('ありがとうメッセージ詳細補完時にエラー:', e)
                 addNotification({
                   title: 'ありがとうメッセージを受け取りました',
-                  message: `${senderName}から: ${messageText}`,
+                  message: `${payload.new?.message ?? ''}`,
                   type: 'success',
                   userId: user.id,
                   source: 'partner',
                 })
               }
-            } catch (e) {
-              console.error('ありがとうメッセージ詳細補完時にエラー:', e)
-              addNotification({
-                title: 'ありがとうメッセージを受け取りました',
-                message: `${payload.new.message ?? ''}`,
-                type: 'success',
-                userId: user.id,
-                source: 'partner',
-              })
             }
-          }
-        }
-      )
-      .subscribe((status) => {
-        console.log('thanks channel status:', status)
-      })
+          )
+          .subscribe((status) => {
+            console.log('thanks channel status:', status)
+          })
 
-    console.log('[NotificationProvider] thanks channel created')
+        console.log('[NotificationProvider] thanks channel created')
+      } catch (err) {
+        console.error('Realtime購読初期化エラー:', err)
+      }
+    }
+
+    setupRealtime()
 
     // クリーンアップ関数
     return () => {
       console.log('リアルタイム通知の監視を停止します...')
-      supabase.removeChannel(choresChannel)
-      supabase.removeChannel(thanksChannel)
-      // ガード状態のリセットは不要
+      if (choresChannel) supabase.removeChannel(choresChannel)
+      if (thanksChannel) supabase.removeChannel(thanksChannel)
     }
   }, [user, supabase, addNotification])
 
