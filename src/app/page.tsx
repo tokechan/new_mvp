@@ -91,7 +91,8 @@ export default function Home() {
                   addNotification({
                     title: 'テスト通知',
                     message: 'これはテスト用の通知です',
-                    type: 'info'
+                    type: 'info',
+                    source: 'partner'
                   })
                 }}
                 variant="outline"
@@ -215,7 +216,8 @@ export default function Home() {
                 addNotification({
                   title: 'リマインダー',
                   message: '家事をチェックしてみましょう！',
-                  type: 'info'
+                  type: 'info',
+                  source: 'partner'
                 })
               }}
               className="p-2 rounded-full bg-blue-100 text-blue-600 hover:bg-blue-200 hover:text-blue-700 transition-colors duration-200 dark:bg-blue-900/50 dark:text-blue-400 dark:hover:bg-blue-800/70 dark:hover:text-blue-300"
