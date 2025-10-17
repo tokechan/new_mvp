@@ -219,7 +219,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
 
         console.log('[NotificationProvider] chores channel created')
 
-        // ありがとうメッセージの変更を監視（クライアント側で判定）
+        // ありがとうメッセージの変更を監視（サーバー側フィルタ + 念のためクライアント側判定）
         thanksChannel = supabase
           .channel(`user-${user.id}-notif-thanks-v2-${topicSuffix}`)
           .on(
@@ -228,11 +228,12 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
               event: 'INSERT',
               schema: 'public',
               table: 'thanks',
+              filter: `to_id=eq.${user.id}`,
             },
             async (payload) => {
               console.log('ありがとうメッセージの追加を検出:', payload)
               if (payload.new?.to_id !== user.id) {
-                console.log('ありがとう通知: 自分宛ではないためスキップ', {
+                console.log('ありがとう通知: 自分宛ではないためスキップ(クライアント判定)', {
                   to_id: payload.new?.to_id,
                   my_id: user.id,
                 })
@@ -283,8 +284,60 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
           .subscribe((status) => {
             console.log('thanks channel status:', status)
           })
-
+    
         console.log('[NotificationProvider] thanks channel created')
+    
+        // 完了通知はcompletionsのINSERTを監視（REPLICA IDENTITY依存を回避）
+        const completionsChannel = supabase
+          .channel(`user-${user.id}-notif-completions-v1-${topicSuffix}`)
+          .on(
+            'postgres_changes',
+            {
+              event: 'INSERT',
+              schema: 'public',
+              table: 'completions',
+            },
+            async (payload) => {
+              console.log('完了エントリの追加を検出:', payload)
+              const completedBy = payload.new?.user_id
+              if (!completedBy || completedBy === user.id) {
+                return
+              }
+              try {
+                const { data: chore, error: choreErr } = await supabase
+                  .from('chores')
+                  .select('title')
+                  .eq('id', payload.new?.chore_id)
+                  .single()
+                if (choreErr) {
+                  console.warn('家事タイトル取得に失敗:', choreErr)
+                }
+                addNotification({
+                  title: '家事が完了しました',
+                  message: `家事「${chore?.title ?? '不明'}」をパートナーが完了しました`,
+                  type: 'success',
+                  userId: user.id,
+                  actionUrl: '/completed-chores',
+                  source: 'partner',
+                })
+              } catch (e) {
+                console.warn('完了通知処理中に例外:', e)
+              }
+            }
+          )
+          .subscribe((status) => {
+            console.log('completions channel status:', status)
+          })
+    
+        console.log('[NotificationProvider] completions channel created')
+    
+        // クリーンアップ関数
+        return () => {
+          console.log('リアルタイム通知の監視を停止します...')
+          if (choresChannel) supabase.removeChannel(choresChannel)
+          if (thanksChannel) supabase.removeChannel(thanksChannel)
+          supabase.removeChannel(completionsChannel)
+        }
       } catch (err) {
         console.error('Realtime購読初期化エラー:', err)
       }
