@@ -215,7 +215,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
       )
       .subscribe()
 
-    // ありがとうメッセージの変更を監視
+    // ありがとうメッセージの変更を監視（自分宛のみサーバー側フィルタ）
     const thanksChannel = supabase
       .channel(`user-${user.id}-notif-thanks-v2-${topicSuffix}`)
       .on(
@@ -224,10 +224,11 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
           event: 'INSERT',
           schema: 'public',
           table: 'thanks',
+          filter: `to_id=eq.${user.id}`,
         },
         async (payload) => {
           console.log('ありがとうメッセージの追加を検出:', payload)
-          
+
           // 自分宛のありがとうメッセージの場合のみ通知（送信者がパートナーの場合）
           if (payload.new.to_id === user.id) {
             try {
@@ -276,7 +277,9 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
           }
         }
       )
-      .subscribe()
+      .subscribe((status) => {
+        console.log('thanks channel status:', status)
+      })
 
     // クリーンアップ関数
     return () => {
