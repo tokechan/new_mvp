@@ -38,12 +38,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
   const { user } = useAuth()
   const supabase = createSupabaseBrowserClient()
   const instanceIdRef = useRef<string | null>(null)
-  // Hooksは常に同じ順序で呼び出す必要があるため、useRefは無条件で1回のみ呼ぶ
-  const initializedRefLocal = useRef(false)
-  const initializedRef = (
-    (NotificationContext as any)._initializedRef ??
-    ((NotificationContext as any)._initializedRef = initializedRefLocal)
-  ) as React.MutableRefObject<boolean>
+  // StrictModeガードを撤廃して、毎回購読を確実に開始する
 
   // 新しい通知を追加する関数
   const addNotification = useCallback((notification: Omit<Notification, 'id' | 'timestamp' | 'read'>) => {
@@ -125,9 +120,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
   useEffect(() => {
     if (!user) return
 
-    // React StrictMode 下の二重マウントで重複購読を避けるためのガード
-    if (initializedRef.current) return
-    initializedRef.current = true
+    // StrictModeによる二重マウントでも購読を開始する
 
     console.log('リアルタイム通知の監視を開始します...')
 
@@ -290,7 +283,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
       console.log('リアルタイム通知の監視を停止します...')
       supabase.removeChannel(choresChannel)
       supabase.removeChannel(thanksChannel)
-      initializedRef.current = false
+      // ガード状態のリセットは不要
     }
   }, [user, supabase, addNotification])
 
