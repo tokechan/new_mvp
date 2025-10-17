@@ -21,23 +21,12 @@ export interface Notification {
 // 通知コンテキストの型定義
 interface NotificationContextType {
   notifications: Notification[]
-  filteredNotifications: Notification[]
   unreadCount: number
   addNotification: (notification: Omit<Notification, 'id' | 'timestamp' | 'read'>) => void
   markAsRead: (id: string) => void
   markAllAsRead: () => void
   removeNotification: (id: string) => void
   clearAllNotifications: () => void
-  preferences: NotificationPreferences
-  updatePreference: (key: keyof NotificationPreferences, value: boolean) => void
-}
-
-// 通知の表示フィルタ設定
-export interface NotificationPreferences {
-  showSelfActions: boolean
-  showPartnerActions: boolean
-  showUnknownActions: boolean
-  showSystemActions: boolean
 }
 
 // 通知コンテキストの作成
@@ -46,12 +35,6 @@ const NotificationContext = createContext<NotificationContextType | undefined>(u
 // 通知プロバイダーコンポーネント
 export function NotificationProvider({ children }: { children: React.ReactNode }) {
   const [notifications, setNotifications] = useState<Notification[]>([])
-  const [preferences, setPreferences] = useState<NotificationPreferences>({
-    showSelfActions: false,
-    showPartnerActions: true,
-    showUnknownActions: false,
-    showSystemActions: false,
-  })
   const { user } = useAuth()
   const supabase = createSupabaseBrowserClient()
   const instanceIdRef = useRef<string | null>(null)
@@ -128,46 +111,6 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
 
   // 未読通知数を計算
   const unreadCount = notifications.filter(notification => !notification.read).length
-
-  // フィルタ適用済み通知
-  const filteredNotifications = notifications.filter((n) => {
-    const src = n.source ?? 'unknown'
-    if (src === 'self' && !preferences.showSelfActions) return false
-    if (src === 'partner' && !preferences.showPartnerActions) return false
-    if (src === 'unknown' && !preferences.showUnknownActions) return false
-    if (src === 'system' && !preferences.showSystemActions) return false
-    return true
-  })
-
-  // 設定読み込み
-  useEffect(() => {
-    if (!user?.id) return
-    try {
-      const raw = typeof window !== 'undefined' ? window.localStorage.getItem(`notifPreferences:${user.id}`) : null
-      if (raw) {
-        const parsed = JSON.parse(raw)
-        setPreferences((prev) => ({ ...prev, ...parsed }))
-      }
-    } catch (e) {
-      console.warn('通知フィルタ設定の読み込みに失敗:', e)
-    }
-  }, [user?.id])
-
-  // 設定保存
-  useEffect(() => {
-    if (!user?.id) return
-    try {
-      if (typeof window !== 'undefined') {
-        window.localStorage.setItem(`notifPreferences:${user.id}`, JSON.stringify(preferences))
-      }
-    } catch (e) {
-      console.warn('通知フィルタ設定の保存に失敗:', e)
-    }
-  }, [user?.id, preferences])
-
-  const updatePreference = useCallback((key: keyof NotificationPreferences, value: boolean) => {
-    setPreferences((prev) => ({ ...prev, [key]: value }))
-  }, [])
 
   // ブラウザ通知の許可を要求
   useEffect(() => {
@@ -353,15 +296,12 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
 
   const value = {
     notifications,
-    filteredNotifications,
     unreadCount,
     addNotification,
     markAsRead,
     markAllAsRead,
     removeNotification,
     clearAllNotifications,
-    preferences,
-    updatePreference,
   }
 
   return (
