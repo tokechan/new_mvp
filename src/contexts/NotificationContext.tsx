@@ -118,7 +118,11 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
 
   // Supabaseリアルタイム機能でデータベースの変更を監視
   useEffect(() => {
-    if (!user) return
+    console.log('[NotificationProvider] effect run, user:', user?.id || 'none')
+    if (!user) {
+      console.log('[NotificationProvider] user not ready → skip subscribe')
+      return
+    }
 
     // StrictModeによる二重マウントでも購読を開始する
 
@@ -131,6 +135,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
         const rt: any = (supabase as any).realtime
         if (session?.access_token && typeof rt?.setAuth === 'function') {
           rt.setAuth(session.access_token)
+          console.log('[NotificationProvider] realtime auth set')
         }
       } catch (err) {
         console.warn('通知用Realtime認証の設定に失敗:', err)
@@ -144,6 +149,8 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
         : `i-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`
     }
     const topicSuffix = `${instanceIdRef.current}`
+
+    console.log('[NotificationProvider] topic suffix:', topicSuffix)
 
     // 家事の変更を監視
     const choresChannel = supabase
@@ -213,7 +220,11 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
           }
         }
       )
-      .subscribe()
+      .subscribe((status) => {
+        console.log('chores channel status:', status)
+      })
+
+    console.log('[NotificationProvider] chores channel created')
 
     // ありがとうメッセージの変更を監視（自分宛のみサーバー側フィルタ）
     const thanksChannel = supabase
@@ -280,6 +291,8 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
       .subscribe((status) => {
         console.log('thanks channel status:', status)
       })
+
+    console.log('[NotificationProvider] thanks channel created')
 
     // クリーンアップ関数
     return () => {
