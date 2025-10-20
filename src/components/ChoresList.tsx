@@ -277,11 +277,13 @@ export default function ChoresList() {
         onPartnerLinked={fetchPartnerInfo}
       /> */}
 
-      {/* 家事追加フォーム */}
+      {/* 家事追加フォーム（検討段階のため一時的に非表示） */}
+      {/*
       <ChoreAddForm 
         onAddChore={handleAddChore}
         isAdding={isAdding}
       />
+      */}
 
       {/* 家事リスト */}
       <div 

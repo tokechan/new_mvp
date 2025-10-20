@@ -6,6 +6,10 @@ import { Home, CheckSquare, Share2, Menu, X, LogOut } from 'lucide-react'
 import NotificationCenter from '@/components/NotificationCenter'
 import { useState, useEffect, useRef } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
+import FooterChoreInput from './FooterChoreInput'
+import Link from 'next/link'
+import { Bell } from 'lucide-react'
+import { cn } from '@/lib/utils'
 
 /**
  * ナビゲーションコンポーネント
@@ -106,16 +110,35 @@ export default function Navigation() {
       aria-label="メインナビゲーション"
     >
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
-          {/* ロゴ・タイトル */}
-          <div className="flex items-center">
-            <h1 className="text-xl font-bold text-blue-600">
+        {/* ヘッダー行：左にロゴ（PC）、中央にロゴ（モバイル）、右にナビ（PC） */}
+        <div className="relative flex items-center h-16">
+          {/* 左側：PCロゴ + ハンバーガー（モバイルのみ） */}
+          <div className="flex items-center gap-3">
+            {/* PC表示用ロゴ（左寄せ） */}
+            <h1 className="hidden sm:block text-xl font-bold text-blue-600 select-none">
+              ThankYou Chores
+            </h1>
+            {/* ハンバーガーメニュー（モバイルのみ） */}
+            <button
+              onClick={() => setIsMenuOpen((prev) => !prev)}
+              className="sm:hidden p-2 rounded-lg text-gray-700 hover:text-blue-600 hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              aria-label="メニューを開閉"
+              aria-controls="mobile-nav-panel"
+              aria-expanded={isMenuOpen}
+            >
+              {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            </button>
+          </div>
+
+          {/* 中央：モバイル用ロゴ（PCでは非表示） */}
+          <div className="absolute left-1/2 -translate-x-1/2 sm:hidden">
+            <h1 className="text-xl font-bold text-blue-600 select-none">
               ThankYou Chores
             </h1>
           </div>
 
-          {/* ナビゲーション項目（PC表示） */}
-          <div className="hidden sm:flex items-center space-x-1 sm:space-x-2">
+          {/* 右側：ナビゲーション項目（PC表示） */}
+          <div className="ml-auto hidden sm:flex items-center space-x-1 sm:space-x-2">
             {/* メインナビゲーション項目 */}
             <div className="flex space-x-1 sm:space-x-2">
               {navigationItems.map((item) => {
@@ -149,23 +172,10 @@ export default function Navigation() {
 
             {/* 通知センター */}
             <div className="hide-on-menu-open">
-            <NotificationCenter />
+              <NotificationCenter />
             </div>
           </div>
-
-          {/* モバイル用: ハンバーガーと通知 */}
-          <div className="flex items-center space-x-2 sm:hidden">
-            <button
-              onClick={() => setIsMenuOpen((prev) => !prev)}
-              className="p-2 rounded-lg text-gray-700 hover:text-blue-600 hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              aria-label="メニューを開閉"
-              aria-controls="mobile-nav-panel"
-              aria-expanded={isMenuOpen}
-            >
-              {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-            </button>
-          </div>
-          </div>
+        </div>
 
         {/* モバイル用メニューパネル */}
         <div className="sm:hidden relative" ref={menuRef}>
@@ -219,42 +229,8 @@ export default function Navigation() {
         </div>
       </div>
 
-      {/* モバイル用の下部ナビゲーション */}
-      <div className="sm:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-50">
-        <div className="flex justify-around items-center py-2">
-          {navigationItems.map((item) => {
-            const Icon = item.icon
-            const active = isActive(item.path)
-            return (
-              <button
-                key={`mobile-${item.id}`}
-                onClick={() => handleNavigation(item.path)}
-                className={`
-                  flex flex-col items-center space-y-1 px-3 py-2 rounded-lg
-                  transition-all duration-200
-                  ${active 
-                    ? 'text-blue-600 bg-blue-50' 
-                    : 'text-gray-500 hover:text-blue-600'
-                  }
-                `}
-                aria-label={item.description}
-                aria-current={active ? 'page' : undefined}
-              >
-                <Icon className="w-5 h-5" />
-                <span className="text-xs font-medium">
-                  {item.label}
-                </span>
-              </button>
-            )
-          })}
-          {/* モバイル用通知センター（メニュー開時は非表示） */}
-          {!isMenuOpen && (
-            <div className="flex flex-col items-center space-y-1 px-3 py-2">
-              <NotificationCenter />
-            </div>
-          )}
-        </div>
-      </div>
+      {/* フッター入力（PCにも適用、画面左右いっぱい） */}
+      <FooterChoreInput />
     </nav>
   )
 }
