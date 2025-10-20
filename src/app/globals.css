@@ -2,6 +2,13 @@
 @tailwind components;
 @tailwind utilities;
 
+/* 既存のグローバルスタイルはそのまま */
+
+/* モバイルメニュー開時に特定要素を非表示にするユーティリティ */
+.menu-open .hide-on-menu-open {
+  display: none !important;
+}
+
 /* カスタムアニメーション */
 @import '../styles/animations.css';
 
