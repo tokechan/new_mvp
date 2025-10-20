@@ -266,112 +266,12 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
         channelsRef.current.push(choresChannel)
         console.log('[NotificationProvider] chores channel created')
 
-        // ありがとうメッセージの変更を監視（サーバー側フィルタ + 念のためクライアント側判定）
-        console.log('[NotificationProvider] thanks channel setup with filter:', `to_id=eq.${user.id}`)
-        const thanksChannel = supabase
-          .channel(`user-${user.id}-notif-thanks-v2-${topicSuffix}`)
-          .on(
-            'postgres_changes',
-            {
-              event: 'INSERT',
-              schema: 'public',
-              table: 'thanks',
-              filter: `to_id=eq.${user.id}`,
-            },
-            async (payload) => {
-              console.log('ありがとうメッセージの追加を検出:', payload)
-              if (payload.new?.to_id !== user.id) {
-                console.log('ありがとう通知: 自分宛ではないためスキップ(クライアント判定)', {
-                  to_id: payload.new?.to_id,
-                  my_id: user.id,
-                })
-                return
-              }
-              try {
-                const { data, error } = await supabase
-                  .from('thanks')
-                  .select(`
-                      *,
-                      from_user:profiles!thanks_from_id_fkey(display_name),
-                      to_user:profiles!thanks_to_id_fkey(display_name)
-                    `)
-                  .eq('id', payload.new.id)
-                  .single()
-                const senderName = data?.from_user?.display_name || 'パートナー'
-                const messageText = data?.message ?? payload.new.message ?? ''
-                if (error) {
-                  console.warn('ありがとう詳細取得に失敗したため、簡易通知を表示します:', error)
-                  addNotification({
-                    title: 'ありがとうメッセージを受け取りました',
-                    message: `${messageText}`,
-                    type: 'success',
-                    userId: user.id,
-                    source: 'partner',
-                  })
-                } else {
-                  addNotification({
-                    title: 'ありがとうメッセージを受け取りました',
-                    message: `${senderName}から: ${messageText}`,
-                    type: 'success',
-                    userId: user.id,
-                    source: 'partner',
-                  })
-                }
-                // 受信済みIDとして記録（バックフィルの重複表示防止）
-                if (typeof payload.new?.id === 'number') {
-                  notifiedThanksIdsRef.current.add(payload.new.id)
-                }
-              } catch (e) {
-                console.error('ありがとうメッセージ詳細補完時にエラー:', e)
-                addNotification({
-                  title: 'ありがとうメッセージを受け取りました',
-                  message: `${payload.new?.message ?? ''}`,
-                  type: 'success',
-                  userId: user.id,
-                  source: 'partner',
-                })
-              }
-            }
-          )
-          .subscribe((status) => {
-            console.log('thanks channel status:', status)
-          })
-        channelsRef.current.push(thanksChannel)
-        console.log('[NotificationProvider] thanks channel created')
+        // ありがとうメッセージ購読は「環境に応じて1本のみ」作成する
+        const skipAuth = process.env.NEXT_PUBLIC_SKIP_AUTH === 'true'
+        const devNoFilter = process.env.NEXT_PUBLIC_DEV_THANKS_NOFILTER === 'true'
 
-        // 直近のありがとうを軽くバックフィル（5分/最大5件）
-        try {
-          const since = new Date(Date.now() - 5 * 60 * 1000).toISOString()
-          const { data: recentThanks, error: backfillErr } = await supabase
-            .from('thanks')
-            .select(`id,message,created_at,from_id,to_id,from_user:profiles!thanks_from_id_fkey(display_name)`) // 軽量
-            .gte('created_at', since)
-            .eq('to_id', user.id)
-            .order('created_at', { ascending: false })
-            .limit(5)
-          if (backfillErr) {
-            console.warn('thanks backfill error:', backfillErr)
-          } else {
-            (recentThanks || []).forEach((row: any) => {
-              if (!row || typeof row.id !== 'number') return
-              if (notifiedThanksIdsRef.current.has(row.id)) return
-              addNotification({
-                title: 'ありがとうメッセージを受け取りました',
-                message: `${row?.from_user?.display_name || 'パートナー'}から: ${row?.message || ''}`,
-                type: 'success',
-                userId: user.id,
-                source: 'partner',
-              })
-              notifiedThanksIdsRef.current.add(row.id)
-            })
-          }
-        } catch (e) {
-          console.warn('thanks backfill exception:', e)
-        }
-
-        // SKIP_AUTH（ステージング高速検証モード）時のフォールバック購読
-        // サーバー側フィルタが解釈されない/権限でエラーになる場合に備え、クライアント側でto_idを判定
-        if (process.env.NEXT_PUBLIC_SKIP_AUTH === 'true') {
+        if (skipAuth) {
+          console.log('[NotificationProvider] using THANKS fallback channel (SKIP_AUTH=true)')
           const thanksFallbackChannel = supabase
             .channel(`user-${user.id}-notif-thanks-fallback-v1-${topicSuffix}`)
             .on(
@@ -383,7 +283,6 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
               },
               async (payload) => {
                 console.log('[NotificationProvider] thanks fallback event received:', payload)
-                // クライアント側で宛先判定
                 if (payload?.new?.to_id !== user.id) {
                   console.log('[NotificationProvider] thanks fallback: 自分宛ではないためスキップ', {
                     to_id: payload?.new?.to_id,
@@ -437,10 +336,8 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
               console.log('[NotificationProvider] thanks fallback channel status:', status)
             })
           channelsRef.current.push(thanksFallbackChannel)
-        }
-        // DEVのみ: フィルタ無しチャンネル（到達性の切り分け用）
-        if (process.env.NODE_ENV === 'development') {
-          console.log('[NotificationProvider][DEV] thanks channel without filter setup')
+        } else if (devNoFilter) {
+          console.log('[NotificationProvider] using THANKS no-filter channel (DEV debug flag)')
           const thanksChannelNoFilter = supabase
             .channel(`user-${user.id}-notif-thanks-nofilter-${topicSuffix}`)
             .on(
@@ -452,7 +349,6 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
               },
               async (payload) => {
                 console.log('[DEV] thanks event (no filter):', payload)
-                // クライアント側で自分宛に限定
                 if (payload.new?.to_id !== user.id) return
                 try {
                   const { data, error } = await supabase
@@ -480,6 +376,104 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
               console.log('[DEV] thanks no-filter channel status:', status)
             })
           channelsRef.current.push(thanksChannelNoFilter)
+        } else {
+          console.log('[NotificationProvider] thanks channel setup with filter:', `to_id=eq.${user.id}`)
+          const thanksChannel = supabase
+            .channel(`user-${user.id}-notif-thanks-v2-${topicSuffix}`)
+            .on(
+              'postgres_changes',
+              {
+                event: 'INSERT',
+                schema: 'public',
+                table: 'thanks',
+                filter: `to_id=eq.${user.id}`,
+              },
+              async (payload) => {
+                console.log('ありがとうメッセージの追加を検出:', payload)
+                if (payload.new?.to_id !== user.id) {
+                  console.log('ありがとう通知: 自分宛ではないためスキップ(クライアント判定)', {
+                    to_id: payload.new?.to_id,
+                    my_id: user.id,
+                  })
+                  return
+                }
+                try {
+                  const { data, error } = await supabase
+                    .from('thanks')
+                    .select(`
+                      *,
+                      from_user:profiles!thanks_from_id_fkey(display_name),
+                      to_user:profiles!thanks_to_id_fkey(display_name)
+                    `)
+                    .eq('id', payload.new.id)
+                    .single()
+                  const senderName = data?.from_user?.display_name || 'パートナー'
+                  const messageText = data?.message ?? payload.new.message ?? ''
+                  if (error) {
+                    console.warn('ありがとう詳細取得に失敗したため、簡易通知を表示します:', error)
+                    addNotification({
+                      title: 'ありがとうメッセージを受け取りました',
+                      message: `${messageText}`,
+                      type: 'success',
+                      userId: user.id,
+                      source: 'partner',
+                    })
+                  } else {
+                    addNotification({
+                      title: 'ありがとうメッセージを受け取りました',
+                      message: `${senderName}から: ${messageText}`,
+                      type: 'success',
+                      userId: user.id,
+                      source: 'partner',
+                    })
+                  }
+                } catch (e) {
+                  console.error('ありがとうメッセージ詳細補完時にエラー:', e)
+                  addNotification({
+                    title: 'ありがとうメッセージを受け取りました',
+                    message: `${payload.new?.message ?? ''}`,
+                    type: 'success',
+                    userId: user.id,
+                    source: 'partner',
+                  })
+                }
+              }
+            )
+            .subscribe((status) => {
+              console.log('thanks channel status:', status)
+            })
+          channelsRef.current.push(thanksChannel)
+          console.log('[NotificationProvider] thanks channel created')
+        }
+
+        // 直近のありがとうを軽くバックフィル（5分/最大5件）
+        try {
+          const since = new Date(Date.now() - 5 * 60 * 1000).toISOString()
+          const { data: recentThanks, error: backfillErr } = await supabase
+            .from('thanks')
+            .select(`id,message,created_at,from_id,to_id,from_user:profiles!thanks_from_id_fkey(display_name)`) // 軽量
+            .gte('created_at', since)
+            .eq('to_id', user.id)
+            .order('created_at', { ascending: false })
+            .limit(5)
+          if (backfillErr) {
+            console.warn('thanks backfill error:', backfillErr)
+          } else {
+            (recentThanks || []).forEach((row: any) => {
+              if (!row || typeof row.id !== 'number') return
+              if (notifiedThanksIdsRef.current.has(row.id)) return
+              addNotification({
+                title: 'ありがとうメッセージを受け取りました',
+                message: `${row?.from_user?.display_name || 'パートナー'}から: ${row?.message || ''}`,
+                type: 'success',
+                userId: user.id,
+                source: 'partner',
+              })
+              notifiedThanksIdsRef.current.add(row.id)
+            })
+          }
+        } catch (e) {
+          console.warn('thanks backfill exception:', e)
         }
     
         // 完了通知はcompletionsのINSERTを監視（REPLICA IDENTITY依存を回避）
