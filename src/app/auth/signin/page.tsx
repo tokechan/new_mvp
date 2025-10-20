@@ -4,7 +4,7 @@ import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { useAuth } from '@/contexts/AuthContext'
-import { Button } from '@/components/ui/button'
+import { Button } from '@/components/ui/Button'
 import { ValidatedInput } from '@/components/ui/ValidatedInput'
 import { useFormValidation, validationRules } from '@/hooks/useFormValidation'
 
@@ -22,7 +22,7 @@ function SignInContent() {
   })
   const router = useRouter()
   const searchParams = useSearchParams()
-  const { signIn, signInWithGoogle, error: authError, clearError } = useAuth()
+  const { signIn, signInWithGoogle, resendConfirmation, error: authError, clearError } = useAuth()
 
   // URLパラメータからエラーメッセージを取得
   useEffect(() => {
@@ -48,12 +48,13 @@ function SignInContent() {
     clearAllErrors()
 
     // バリデーション実行
-    const validationErrors = validateAll({
+    const { isValid } = validateAll({
       email: validationRules.email,
       password: validationRules.password
     })
 
-    if (Object.values(validationErrors).some(error => error)) {
+    // バリデーションNGのときは送信を中断
+    if (!isValid) {
       setLoading(false)
       return
     }
@@ -67,20 +68,20 @@ function SignInContent() {
         
         if (error.message) {
           // Supabaseの認証エラーメッセージを日本語に変換
-          if (error.message.includes('Invalid login credentials') || 
-              error.message.includes('invalid_credentials') ||
-              error.message.includes('Email not confirmed') ||
-              error.message.includes('Invalid email or password')) {
+          const msg = error.message
+          if (msg.includes('Invalid login credentials') || 
+              msg.includes('invalid_credentials') ||
+              msg.includes('Invalid email or password')) {
             errorMessage = 'メールアドレスまたはパスワードが正しくありません。入力内容をご確認ください。'
-          } else if (error.message.includes('Email not confirmed')) {
-            errorMessage = 'メールアドレスの確認が完了していません。送信されたメールをご確認ください。'
-          } else if (error.message.includes('Too many requests')) {
+          } else if (msg.includes('Email not confirmed')) {
+            errorMessage = 'メールアドレスの確認が完了していません。確認メールを再送できます。'
+          } else if (msg.includes('Too many requests')) {
             errorMessage = 'ログイン試行回数が上限に達しました。しばらく時間をおいてから再度お試しください。'
           } else {
             errorMessage = `サインインに失敗しました: ${error.message}`
           }
         }
-        
+        console.debug('🔐 サインイン失敗詳細', { message: error.message })
         setLocalError(errorMessage)
       } else {
         router.push('/')
@@ -149,6 +150,30 @@ function SignInContent() {
                 ×
               </button>
             </div>
+            {displayError.includes('確認が完了していません') && (
+              <div className="mt-3 flex items-center gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={async () => {
+                    if (!formState.email.value) {
+                      setLocalError('確認メール再送にはメールアドレスの入力が必要です。')
+                      return
+                    }
+                    const { error } = await resendConfirmation(formState.email.value)
+                    if (error) {
+                      setLocalError(`確認メールの再送に失敗しました: ${error.message}`)
+                    } else {
+                      setLocalError('確認メールを再送しました。メールをご確認ください。')
+                    }
+                  }}
+                >
+                  確認メールを再送
+                </Button>
+                <span className="text-sm text-gray-600">メールが届かない場合は迷惑メールフォルダもご確認ください。</span>
+              </div>
+            )}
           </div>
         )}
 

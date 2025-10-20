@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { useNotifications, Notification } from '@/contexts/NotificationContext'
 
 /**
@@ -9,6 +10,8 @@ import { useNotifications, Notification } from '@/contexts/NotificationContext'
  */
 export default function NotificationCenter() {
   const [isOpen, setIsOpen] = useState(false)
+  const [activePopoverId, setActivePopoverId] = useState<string | null>(null)
+  const router = useRouter()
   const {
     notifications,
     unreadCount,
@@ -54,12 +57,21 @@ export default function NotificationCenter() {
     if (!notification.read) {
       markAsRead(notification.id)
     }
+
+    // ありがとう通知はコメントのポップオーバーをトグル表示
+    if (notification.title.includes('ありがとうメッセージ')) {
+      setActivePopoverId(prev => (prev === notification.id ? null : notification.id))
+      return
+    }
     
     // アクションURLがある場合はページ遷移
     if (notification.actionUrl) {
-      window.location.href = notification.actionUrl
+      setIsOpen(false) // モーダルを閉じる
+      router.push(notification.actionUrl)
     }
   }
+
+
 
   // 時間の表示フォーマット
   const formatTime = (timestamp: Date) => {
@@ -76,7 +88,7 @@ export default function NotificationCenter() {
   }
 
   return (
-    <div className="relative">
+    <div className="relative" data-testid="notification-center">
       {/* 通知ベルアイコン */}
       <button
         onClick={() => setIsOpen(!isOpen)}
@@ -109,7 +121,30 @@ export default function NotificationCenter() {
 
       {/* 通知パネル */}
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50"
+          onClick={() => { setIsOpen(false); setActivePopoverId(null); }}
+          onKeyDown={(e) => {
+            if (e.key === 'Escape') {
+              setIsOpen(false)
+              setActivePopoverId(null)
+            }
+          }}
+          role="button"
+          tabIndex={0}
+          aria-label="通知パネルを閉じる"
+        >
+          <div 
+            className="bg-white rounded-lg shadow-xl border border-gray-200 w-full max-w-2xl max-h-[80vh] overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.stopPropagation()
+              }
+            }}
+            role="button"
+            tabIndex={0}
+          >
           {/* ヘッダー */}
           <div className="flex items-center justify-between p-4 border-b border-gray-200">
             <h3 className="text-lg font-semibold text-gray-900">通知</h3>
@@ -133,8 +168,10 @@ export default function NotificationCenter() {
             </div>
           </div>
 
+          {/* フィルタ設定はシンプル方針のため非表示（パートナーのみ追加済み） */}
+
           {/* 通知リスト */}
-          <div className="max-h-96 overflow-y-auto">
+          <div className="max-h-[60vh] overflow-y-auto">
             {notifications.length === 0 ? (
               <div className="p-4 text-center text-gray-500">
                 通知はありません
@@ -199,9 +236,14 @@ export default function NotificationCenter() {
                           </svg>
                         </button>
                       </div>
-                      <p className={`text-sm ${notification.read ? 'text-gray-500' : 'text-gray-700'}`}>
-                        {notification.message}
-                      </p>
+                      {/* ありがとう通知はコメントを一覧では表示しない */}
+                      {notification.title.includes('ありがとうメッセージ') ? (
+                        <p className="text-sm text-gray-500">タップ／クリックでコメントを表示</p>
+                      ) : (
+                        <p className={`text-sm ${notification.read ? 'text-gray-500' : 'text-gray-700'}`}>
+                          {notification.message}
+                        </p>
+                      )}
                       <p className="text-xs text-gray-400 mt-1">
                         {formatTime(notification.timestamp)}
                       </p>
@@ -214,27 +256,41 @@ export default function NotificationCenter() {
                       </div>
                     )}
                   </div>
+
+                  {/* コメントポップオーバー（ありがとう通知のみ） */}
+                  {activePopoverId === notification.id && notification.title.includes('ありがとうメッセージ') && (
+                    <div className="mt-3 relative">
+                      <div className="absolute left-6 right-6 z-10">
+                        <div className="bg-white border border-blue-200 rounded-lg shadow-lg p-3 animate-scale-in">
+                          <div className="flex items-start gap-2">
+                            <span className="text-pink-500">
+                              <svg className="w-5 h-5 animate-heart-beat" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 6 4 4 6.5 4c1.74 0 3.41 1.01 4.22 2.53C11.09 5.01 12.76 4 14.5 4 17 4 19 6 19 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+                              </svg>
+                            </span>
+                            <div className="flex-1 text-sm text-gray-700">
+                              {notification.message}
+                            </div>
+                            <button
+                              className="text-gray-400 hover:text-gray-600"
+                              onClick={(e) => { e.stopPropagation(); setActivePopoverId(null); }}
+                              aria-label="コメントを閉じる"
+                            >
+                              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                              </svg>
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               ))
             )}
           </div>
+          </div>
         </div>
-      )}
-
-      {/* オーバーレイ（パネルを閉じるため） */}
-      {isOpen && (
-        <div
-          className="fixed inset-0 z-40"
-          onClick={() => setIsOpen(false)}
-          onKeyDown={(e) => {
-            if (e.key === 'Escape') {
-              setIsOpen(false)
-            }
-          }}
-          role="button"
-          tabIndex={0}
-          aria-label="通知パネルを閉じる"
-        />
       )}
     </div>
   )

@@ -1,10 +1,13 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { ChoreService, ExtendedChore } from '@/services/choreService'
-import { sendThankYou, PREDEFINED_THANK_YOU_MESSAGES } from '@/services/thankYouService'
+import { sendThankYou } from '@/services/thankYouService'
 import { useAuthState } from '@/hooks/useAuthState'
+import Navigation from '@/components/Navigation'
+import { ThankYouModal } from '@/components/ThankYouModal'
+import { Smile, ThumbsUp, Heart, Handshake, Flame, FileText, Clock } from 'lucide-react'
 
 /**
  * 完了した家事一覧ページ
@@ -15,14 +18,15 @@ export default function CompletedChoresPage() {
   const router = useRouter()
   const [completedChores, setCompletedChores] = useState<ExtendedChore[]>([])
   const [isLoading, setIsLoading] = useState(true)
-  const [thankYouMessage, setThankYouMessage] = useState('')
   const [selectedChore, setSelectedChore] = useState<ExtendedChore | null>(null)
   const [isSending, setIsSending] = useState(false)
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [selectedIcon, setSelectedIcon] = useState<string>('')
 
   /**
    * 完了した家事を取得
    */
-  const fetchCompletedChores = async () => {
+  const fetchCompletedChores = useCallback(async () => {
     if (!user) return
 
     try {
@@ -34,25 +38,37 @@ export default function CompletedChoresPage() {
     } finally {
       setIsLoading(false)
     }
+  }, [user])
+
+  /**
+   * アイコンボタンクリック時の処理
+   */
+  const handleIconClick = (chore: ExtendedChore, icon: string) => {
+    setSelectedChore(chore)
+    setSelectedIcon(icon)
+    setIsModalOpen(true)
   }
 
   /**
    * ありがとうメッセージを送信
    */
-  const handleSendThankYou = async (chore: ExtendedChore, message: string) => {
-    if (!user || !message.trim()) return
+  const handleSendThankYou = async (message: string) => {
+    if (!user || !selectedChore || !message.trim()) return
 
     try {
       setIsSending(true)
-      const toUserId = chore.owner_id === user.id ? chore.partner_id : chore.owner_id
+      const toUserId = selectedChore.owner_id === user.id ? selectedChore.partner_id : selectedChore.owner_id
       if (!toUserId) {
         throw new Error('送信先ユーザーが見つかりません')
       }
       
+      // アイコンとメッセージを組み合わせて送信
+      const fullMessage = `${selectedIcon} ${message}`
+      
       await sendThankYou(user.id, {
         toUserId,
-        choreId: chore.id,
-        message: message.trim()
+        choreId: selectedChore.id,
+        message: fullMessage
       })
       
       // 完了した家事一覧を再取得
@@ -62,6 +78,15 @@ export default function CompletedChoresPage() {
     } finally {
       setIsSending(false)
     }
+  }
+
+  /**
+   * モーダルを閉じる処理
+   */
+  const handleCloseModal = () => {
+    setIsModalOpen(false)
+    setSelectedChore(null)
+    setSelectedIcon('')
   }
 
   /**
@@ -82,7 +107,7 @@ export default function CompletedChoresPage() {
     if (user) {
       fetchCompletedChores()
     }
-  }, [user])
+  }, [user, fetchCompletedChores])
 
   if (!user) {
     return (
@@ -90,7 +115,7 @@ export default function CompletedChoresPage() {
         <div className="text-center py-8">
           <p className="text-gray-600">ログインが必要です</p>
           <button 
-            onClick={() => router.push('/login')} 
+            onClick={() => router.push('/auth/signin')} 
             className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
           >
             ログインページへ
@@ -101,21 +126,15 @@ export default function CompletedChoresPage() {
   }
 
   return (
-    <div className="container mx-auto p-4 max-w-4xl">
-      <div className="mb-6">
-        <div className="flex items-center justify-between">
+    <div className="min-h-screen bg-gray-50">
+      <Navigation />
+      <div className="container mx-auto p-4 max-w-4xl pt-20">
+        <div className="mb-6">
           <h1 className="text-2xl font-bold text-gray-800">完了した家事</h1>
-          <button 
-            onClick={() => router.push('/')}
-            className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-50"
-          >
-            ← ホームに戻る
-          </button>
+          <p className="text-gray-600 mt-2">
+            完了した家事一覧です。ありがとうメッセージを送ることができます。
+          </p>
         </div>
-        <p className="text-gray-600 mt-2">
-          完了した家事一覧です。ありがとうメッセージを送ることができます。
-        </p>
-      </div>
 
       {isLoading ? (
         <div className="flex items-center justify-center py-8">
@@ -137,43 +156,99 @@ export default function CompletedChoresPage() {
       ) : (
         <div className="grid gap-4">
           {completedChores.map((chore) => (
-            <div key={chore.id} className="bg-green-50 border-green-200 rounded-lg border shadow-sm">
+            <div key={chore.id} className="bg-gray-50 border-green-200 rounded-lg border shadow-sm">
               <div className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold text-green-800">{chore.title}</h3>
-                  <div className="flex gap-2">
-                    {PREDEFINED_THANK_YOU_MESSAGES.map((msg, index) => (
-                      <button
-                        key={index}
-                        onClick={() => handleSendThankYou(chore, msg)}
-                        disabled={isSending}
-                        className="px-3 py-1 text-sm bg-pink-100 text-pink-700 rounded-full hover:bg-pink-200 disabled:opacity-50"
-                      >
-                        {msg}
-                      </button>
-                    ))}
-                  </div>
+                {/* H1タイトル */}
+                <h1 className="text-2xl font-bold text-green-800 mb-6 text-center">{chore.title}</h1>
+                
+                {/* アイコンボタン */}
+                <div className="flex gap-3 justify-center mb-6">
+                  <button
+                    onClick={() => handleIconClick(chore, '😊')}
+                    disabled={isSending}
+                    className="w-12 h-12 bg-yellow-50 hover:bg-yellow-100 rounded-lg flex items-center justify-center text-yellow-600 transition-colors disabled:opacity-50"
+                    title="嬉しい"
+                    aria-label="嬉しい"
+                  >
+                    <Smile className="w-6 h-6" aria-hidden="true" />
+                  </button>
+                  <button
+                    onClick={() => handleIconClick(chore, '👍')}
+                    disabled={isSending}
+                    className="w-12 h-12 bg-blue-50 hover:bg-blue-100 rounded-lg flex items-center justify-center text-blue-600 transition-colors disabled:opacity-50"
+                    title="いいね"
+                    aria-label="いいね"
+                  >
+                    <ThumbsUp className="w-6 h-6" aria-hidden="true" />
+                  </button>
+                  <button
+                    onClick={() => handleIconClick(chore, '❤️')}
+                    disabled={isSending}
+                    className="w-12 h-12 bg-pink-50 hover:bg-pink-100 rounded-lg flex items-center justify-center text-pink-600 transition-colors disabled:opacity-50"
+                    title="愛してる"
+                    aria-label="愛してる"
+                  >
+                    <Heart className="w-6 h-6" aria-hidden="true" />
+                  </button>
+                  <button
+                    onClick={() => handleIconClick(chore, '🙏')}
+                    disabled={isSending}
+                    className="w-12 h-12 bg-purple-50 hover:bg-purple-100 rounded-lg flex items-center justify-center text-purple-600 transition-colors disabled:opacity-50"
+                    title="お疲れさま"
+                    aria-label="お疲れさま"
+                  >
+                    <Handshake className="w-6 h-6" aria-hidden="true" />
+                  </button>
+                  <button
+                    onClick={() => handleIconClick(chore, '🔥')}
+                    disabled={isSending}
+                    className="w-12 h-12 bg-orange-50 hover:bg-orange-100 rounded-lg flex items-center justify-center text-orange-600 transition-colors disabled:opacity-50"
+                    title="すごい"
+                    aria-label="すごい"
+                  >
+                    <Flame className="w-6 h-6" aria-hidden="true" />
+                  </button>
                 </div>
+                
+                {/* 詳細情報 */}
                 <div className="space-y-2 text-sm text-gray-600">
-                    <div className="flex items-center gap-2">
-                      <span>📝</span>
-                      <span>家事: {chore.title}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span>⏰</span>
-                      <span>作成: {new Date(chore.created_at).toLocaleString('ja-JP')}</span>
-                    </div>
-                    {chore.completions && chore.completions.length > 0 && (
-                      <div className="text-xs text-green-600">
-                        ✅ 完了記録: {chore.completions.length} 件
-                      </div>
-                    )}
+                  <div className="flex items-center gap-2">
+                    <span className="inline-flex items-center justify-center">
+                      <FileText className="w-4 h-4 text-black" aria-hidden="true" />
+                    </span>
+                    <span>家事: {chore.title}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="inline-flex items-center justify-center">
+                      <Clock className="w-4 h-4 text-black" aria-hidden="true" />
+                    </span>
+                    <span>
+                      完了: {new Date(
+                        (chore.completions && chore.completions.length > 0
+                          ? Math.max(
+                              ...chore.completions.map((c: any) => new Date(c.created_at).getTime())
+                            )
+                          : new Date(chore.created_at).getTime()
+                        )
+                      ).toLocaleString('ja-JP')}
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
           ))}
         </div>
       )}
+      </div>
+
+      {/* ありがとうメッセージモーダル */}
+      <ThankYouModal
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        onSend={handleSendThankYou}
+        choreTitle={selectedChore?.title || ''}
+        isSending={isSending}
+      />
     </div>
   )
 }

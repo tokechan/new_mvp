@@ -23,15 +23,50 @@ test.describe('家事管理機能', () => {
     // ページが完全に読み込まれるまで待機
     await page.waitForLoadState('networkidle');
     
-    // 認証状態を確認し、必要に応じてログイン
+    // 認証状態を確認し、必要に応じてログイン（環境変数で資格情報を指定可能）
     const isSignInPage = await page.locator('text=サインイン').isVisible();
     if (isSignInPage) {
-      // テスト用のメールアドレスでログイン
-      await page.fill('input[type="email"]', 'test@example.com');
-      await page.click('button:has-text("サインイン")');
-      
-      // ログイン後のページ読み込みを待機
+      const email = process.env.E2E_EMAIL || 'test@example.com';
+      const password = process.env.E2E_PASSWORD || 'test12345!';
+
+      // サインイン試行
+      await page.fill('input[type="email"]', email);
+      await page.fill('input[type="password"]', password);
+      const signInButton = page.locator('button:has-text("サインイン")');
+      if (await signInButton.count()) {
+        await signInButton.click();
+      }
       await page.waitForLoadState('networkidle');
+
+      // まだサインイン画面ならサインアップを試行（アカウント未作成ケース）
+      const stillSignIn = await page.locator('text=アカウントにサインイン').isVisible();
+      if (stillSignIn) {
+        // サインアップページへ遷移
+        const toSignupLink = page.locator('text=新しいアカウントを作成');
+        if (await toSignupLink.count()) {
+          await toSignupLink.click();
+          await page.waitForLoadState('networkidle');
+
+          // サインアップ入力
+          await page.fill('input[type="email"]', email);
+          await page.fill('input[type="password"]', password);
+          const signUpButton = page.locator('button:has-text("サインアップ")');
+          if (await signUpButton.count()) {
+            await signUpButton.click();
+          } else {
+            // 表記ゆれ対策
+            const registerButton = page.locator('button:has-text("登録")');
+            if (await registerButton.count()) {
+              await registerButton.click();
+            }
+          }
+          await page.waitForLoadState('networkidle');
+
+          // ホームへ戻る
+          await page.goto('/');
+          await page.waitForLoadState('networkidle');
+        }
+      }
     }
     
     // 既存の家事をすべて削除してクリーンな状態にする
@@ -80,9 +115,9 @@ test.describe('家事管理機能', () => {
     // 追加された家事が一覧に表示されることを確認
     await expect(page.locator(`button[aria-label="${choreTitle}を完了にする"]`)).toBeVisible({ timeout: 10000 });
     
-    // 家事の状態が「未完了」であることを確認（チェックボックスが空）
+    // 家事の状態が「未完了」であることを確認（完了ボタンが青色）
     const completeButton = page.locator(`button[aria-label="${choreTitle}を完了にする"]`);
-    await expect(completeButton).not.toHaveClass(/bg-green-500/);
+    await expect(completeButton).toHaveClass(/bg-blue-600/);
   });
 
   /**
@@ -102,7 +137,7 @@ test.describe('家事管理機能', () => {
     // 追加された家事が表示されることを確認
     await expect(page.locator(`button[aria-label="${choreTitle}を完了にする"]`)).toBeVisible({ timeout: 10000 });
     
-    // 家事の完了ボタン（チェックボックス）をクリック
+    // 家事の完了ボタンをクリック
     const completeButton = page.locator(`button[aria-label="${choreTitle}を完了にする"]`);
     await completeButton.click();
     
@@ -110,7 +145,7 @@ test.describe('家事管理機能', () => {
     await page.waitForTimeout(1000);
     const completedButton = page.locator(`button[aria-label="${choreTitle}を未完了にする"]`);
     await expect(completedButton).toBeVisible({ timeout: 5000 });
-    await expect(completedButton).toHaveClass(/bg-green-500/);
+    await expect(completedButton).toHaveClass(/bg-green-50/);
     
     // 再度完了ボタンをクリックして未完了に戻す
     await completedButton.click();
@@ -119,7 +154,7 @@ test.describe('家事管理機能', () => {
     await page.waitForTimeout(1000);
     const newCompleteButton = page.locator(`button[aria-label="${choreTitle}を完了にする"]`);
     await expect(newCompleteButton).toBeVisible({ timeout: 5000 });
-    await expect(newCompleteButton).not.toHaveClass(/bg-green-500/);
+    await expect(newCompleteButton).toHaveClass(/bg-blue-600/);
   });
 
   /**
@@ -176,13 +211,13 @@ test.describe('家事管理機能', () => {
     await page.waitForTimeout(1000);
     const firstCompletedButton = page.locator(`button[aria-label="${chores[0]}を未完了にする"]`);
     await expect(firstCompletedButton).toBeVisible({ timeout: 5000 });
-    await expect(firstCompletedButton).toHaveClass(/bg-green-500/);
+    await expect(firstCompletedButton).toHaveClass(/bg-green-50/);
     
     // 他の家事は未完了状態のままであることを確認
     for (let i = 1; i < chores.length; i++) {
       const choreCompleteButton = page.locator(`button[aria-label="${chores[i]}を完了にする"]`);
       await expect(choreCompleteButton).toBeVisible();
-      await expect(choreCompleteButton).not.toHaveClass(/bg-green-500/);
+      await expect(choreCompleteButton).toHaveClass(/bg-blue-600/);
     }
   });
 });

@@ -9,6 +9,29 @@
 
 ## 📋 クイックスタート
 
+### 🔧 環境変数の設定
+
+1. `.env.example`をコピーして`.env`ファイルを作成：
+```bash
+cp .env.example .env
+```
+
+2. `.env`ファイルに実際の値を設定：
+```bash
+# Supabase Configuration
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=your_actual_publishable_key
+SUPABASE_SECRET_KEY=your_actual_service_role_key
+
+
+
+# 開発環境設定
+NODE_ENV=development
+NEXT_PUBLIC_SKIP_AUTH=true
+```
+
+### 🚀 開発・デプロイコマンド
+
 ```bash
 # 開発環境
 npm run dev
@@ -16,6 +39,12 @@ npm run dev
 # テスト実行
 npm run test:e2e
 npm run test:unit
+npm run test:coverage
+
+# テストカバレッジ監視
+npm run test:monitor              # 一回実行
+npm run test:monitor:watch        # ファイル変更監視
+npm run test:monitor:analyze      # 未テストファイル分析
 
 # デプロイ
 npm run deploy:staging
@@ -23,7 +52,18 @@ npm run deploy:production
 
 # プレビュー
 npm run preview
+
+#### Cloudflare Workers 直接デプロイ（代替手段）
+```bash
+# Staging環境にデプロイ（workers.devに公開）
+npx wrangler deploy --env staging
 ```
+```
+
+### ⚠️ セキュリティ注意事項
+
+- **絶対に** `.env`ファイルをGitにコミットしないでください
+- 本番環境では環境変数をCloudflareダッシュボードで設定してください
 
 ## 📚 ドキュメント構成
 
@@ -55,6 +95,7 @@ docs/
 - **デプロイ**: Cloudflare Pages (静的エクスポート)
 - **UI**: Radix UI + Tailwind CSS + shadcn/ui
 - **テスト**: Playwright (E2E) + Jest (Unit) + axe-core (a11y)
+- **テストカバレッジ**: 70%以上の閾値設定 + 継続監視
 - **型安全性**: TypeScript + Zod
 
 ## 📊 プロジェクト状況

@@ -25,8 +25,29 @@ const config = {
     'src/**/*.{js,jsx,ts,tsx}',
     '!src/**/*.d.ts',
     '!src/app/**', // App Routerのファイルは除外
-    '!src/lib/types/**'
+    '!src/lib/types/**',
+    '!src/**/*.stories.{js,jsx,ts,tsx}', // Storybookファイルは除外
+    '!src/**/*.config.{js,jsx,ts,tsx}' // 設定ファイルは除外
   ],
+  
+  // カバレッジレポートの設定
+  coverageReporters: [
+    'text',
+    'text-summary',
+    'html',
+    'lcov',
+    'json'
+  ],
+  
+  // カバレッジの閾値設定
+  coverageThreshold: {
+    global: {
+      branches: 70,
+      functions: 70,
+      lines: 70,
+      statements: 70
+    }
+  },
   
   // モジュールパスのマッピング
   moduleNameMapper: {

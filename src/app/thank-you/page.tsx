@@ -5,7 +5,8 @@ import { useSearchParams } from 'next/navigation'
 import ThankYouMessage from '@/components/ThankYouMessage'
 import { useAuth } from '@/contexts/AuthContext'
 import { useRouter } from 'next/navigation'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
+import { PartnerService } from '@/services/partnerService'
 
 /**
  * 感謝メッセージ送信ページのコンテンツコンポーネント
@@ -15,12 +16,36 @@ function ThankYouPageContent() {
   const { user, loading } = useAuth()
   const router = useRouter()
   const choreId = searchParams.get('choreId')
+  const [toUserId, setToUserId] = useState<string | null>(null)
+  const [toUserName, setToUserName] = useState<string | undefined>(undefined)
 
   useEffect(() => {
     if (!loading && !user) {
       router.push('/auth/signin')
     }
   }, [user, loading, router])
+
+  // パートナーIDを解決（なければ自分自身を宛先に）
+  useEffect(() => {
+    const resolvePartner = async () => {
+      if (!user) return
+      try {
+        const partner = await PartnerService.getPartnerInfo(user.id)
+        if (partner) {
+          setToUserId(partner.id)
+          setToUserName(partner.display_name || undefined)
+        } else {
+          setToUserId(user.id)
+          setToUserName(user.email || undefined)
+        }
+      } catch (e) {
+        console.warn('パートナー解決に失敗。自分宛てに送信します。', e)
+        setToUserId(user.id)
+        setToUserName(user.email || undefined)
+      }
+    }
+    resolvePartner()
+  }, [user])
 
   if (loading) {
     return (
@@ -57,7 +82,11 @@ function ThankYouPageContent() {
         <h1 className="text-3xl font-bold text-gray-900 mb-8 text-center">
           ありがとうメッセージ
         </h1>
-        <ThankYouMessage choreId={choreId} toUserId="" />
+        {toUserId ? (
+          <ThankYouMessage choreId={choreId} toUserId={toUserId} toUserName={toUserName} />
+        ) : (
+          <div className="text-center text-gray-600">宛先を読み込み中...</div>
+        )}
       </div>
     </div>
   )

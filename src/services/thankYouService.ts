@@ -49,6 +49,30 @@ export async function sendThankYou(
   // 入力値のバリデーション
   const validatedInput = SendThankYouSchema.parse(input)
   
+  // 認証スキップ時（E2E/開発高速化モード）はローカルストレージに保存して擬似的に成功させる
+  if (typeof window !== 'undefined' && process.env.NEXT_PUBLIC_SKIP_AUTH === 'true') {
+    const LOCAL_KEY = 'thank_you_history'
+    const raw = window.localStorage.getItem(LOCAL_KEY)
+    const history: ThankYouMessage[] = raw ? JSON.parse(raw) : []
+
+    const newItem: ThankYouMessage = {
+      id: Date.now(),
+      from_id: fromUserId,
+      to_id: validatedInput.toUserId,
+      message: validatedInput.message,
+      created_at: new Date().toISOString(),
+      chore_id: validatedInput.choreId,
+      from_user: { display_name: 'あなた' },
+      to_user: { display_name: '相手' }
+    } as any
+
+    // 先頭に追加（新しい順）
+    history.unshift(newItem)
+    window.localStorage.setItem(LOCAL_KEY, JSON.stringify(history))
+
+    return newItem
+  }
+  
   // 感謝メッセージをデータベースに挿入
   const { data, error } = await supabase
     .from('thanks')
@@ -136,6 +160,30 @@ export async function getThankYouHistory(
 ): Promise<ThankYouMessage[]> {
   const { limit = 50, offset = 0, type = 'all' } = options
 
+  // 認証スキップ時（E2E/開発高速化モード）はローカルストレージから取得
+  if (typeof window !== 'undefined' && process.env.NEXT_PUBLIC_SKIP_AUTH === 'true') {
+    const LOCAL_KEY = 'thank_you_history'
+    const raw = window.localStorage.getItem(LOCAL_KEY)
+    const all: ThankYouMessage[] = raw ? JSON.parse(raw) : []
+
+    let filtered: ThankYouMessage[]
+    switch (type) {
+      case 'sent':
+        filtered = all.filter((i) => i.from_id === userId)
+        break
+      case 'received':
+        filtered = all.filter((i) => i.to_id === userId)
+        break
+      case 'all':
+      default:
+        filtered = all.filter((i) => i.from_id === userId || i.to_id === userId)
+        break
+    }
+
+    filtered.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+    return filtered.slice(offset, offset + limit)
+  }
+
   let query = supabase
     .from('thanks')
     .select(`
@@ -180,6 +228,19 @@ export async function getThankYouStats(userId: string): Promise<{
   receivedCount: number
   totalCount: number
 }> {
+  // 認証スキップ時（E2E/開発高速化モード）はローカルストレージから集計
+  if (typeof window !== 'undefined' && process.env.NEXT_PUBLIC_SKIP_AUTH === 'true') {
+    const LOCAL_KEY = 'thank_you_history'
+    const raw = window.localStorage.getItem(LOCAL_KEY)
+    const all: ThankYouMessage[] = raw ? JSON.parse(raw) : []
+    const sentCount = all.filter((i) => i.from_id === userId).length
+    const receivedCount = all.filter((i) => i.to_id === userId).length
+    return {
+      sentCount,
+      receivedCount,
+      totalCount: sentCount + receivedCount
+    }
+  }
   // 送信した感謝メッセージ数
   const { count: sentCount, error: sentError } = await supabase
     .from('thanks')
@@ -218,12 +279,7 @@ export const PREDEFINED_THANK_YOU_MESSAGES = [
   'お疲れさまでした！',
   'いつもありがとう ❤️',
   'とても助かります！',
-  'ありがとう！愛してる 💕',
-  'お疲れさま！感謝してます',
-  'ありがとう！嬉しいです',
-  'いつも本当にありがとう',
-  'お疲れさま！大好き',
-  'ありがとう！頼りになります'
+  'ありがとう！愛してる 💕'
 ] as const
 
 export type PredefinedThankYouMessage = typeof PREDEFINED_THANK_YOU_MESSAGES[number]

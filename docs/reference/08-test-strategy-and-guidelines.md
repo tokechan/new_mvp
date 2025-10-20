@@ -196,7 +196,7 @@ import { test, expect } from '@playwright/test'
 test.describe('家事管理フロー', () => {
   test('家事の追加から完了までの一連の流れ', async ({ page }) => {
     // 1. ログイン
-    await page.goto('/login')
+    await page.goto('/auth/signin')
     await page.fill('[data-testid="email"]', 'test@example.com')
     await page.click('[data-testid="login-button"]')
     

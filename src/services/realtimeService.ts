@@ -117,6 +117,7 @@ export class RealtimeService {
       return
     }
 
+    // 自分がオーナーの家事を監視
     this.channel.on(
       'postgres_changes',
       {
@@ -126,13 +127,29 @@ export class RealtimeService {
         filter: `owner_id=eq.${this.userId}`
       },
       (payload) => {
-        console.log('🏠 家事変更イベント:', payload)
+        console.log('🏠 家事変更イベント (owner):', payload)
         this.updateEventCount()
         handler(payload)
       }
     )
 
-    console.log('✅ 家事変更イベントの監視を開始しました')
+    // 自分がパートナーの家事を監視
+    this.channel.on(
+      'postgres_changes',
+      {
+        event: '*',
+        schema: 'public',
+        table: 'chores',
+        filter: `partner_id=eq.${this.userId}`
+      },
+      (payload) => {
+        console.log('🏠 家事変更イベント (partner):', payload)
+        this.updateEventCount()
+        handler(payload)
+      }
+    )
+
+    console.log('✅ 家事変更イベントの監視を開始しました (owner + partner)')
   }
 
   /**

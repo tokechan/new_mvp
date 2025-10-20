@@ -4,35 +4,100 @@ import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useNotifications } from '@/contexts/NotificationContext'
 import { useChores } from '@/hooks/useChores'
+import { useRealtime } from '@/hooks/useRealtime' // リアルタイム機能を追加
 import { Chore, PartnerInfo } from '@/types/chore'
 import { supabase } from '@/lib/supabase'
 import { Database } from '@/lib/supabase'
 import ThankYouMessage from './ThankYouMessage'
-import PartnerInvitation from './PartnerInvitation'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/Input'
+import { ChoreItem } from './ChoreItem'
+import { ChoreAddForm } from './ChoreAddForm'
+import { PartnerSetup } from './PartnerSetup'
+import { RealtimeDebugPanel } from './RealtimeDebugPanel'
 import { Skeleton } from '@/components/ui/skeleton'
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from '@/components/ui/accordion'
 import { useScreenReader, useFocusManagement } from '@/hooks/useScreenReader'
 import { useKeyboardNavigation } from '@/hooks/useKeyboardNavigation'
 
 // 型定義
 type ThankYou = Database['public']['Tables']['thanks']['Row']
 
+/**
+ * 家事リストメインコンポーネント
+ * 責務：家事リストの表示とコンポーネント間の調整のみ
+ */
 export default function ChoresList() {
   const { user } = useAuth()
   const { addNotification } = useNotifications()
   
   // useChoresフックを使用してデータ管理を統一
-  const { chores, loading, isAdding, addChore, toggleChore, deleteChore, realtimeEvents } = useChores()
+  const { 
+    chores, 
+    loading, 
+    isAdding, 
+    addChore, 
+    toggleChore, 
+    deleteChore, 
+    realtimeEvents,
+    setChores,
+    setRealtimeEvents,
+    refetch
+  } = useChores()
+  
+  // リアルタイム機能を統合
+  const realtimeState = useRealtime({
+    onChoreChange: (chores) => {
+      console.log('🔄 Realtime chore changes received:', chores.length, 'chores')
+      
+      // 🔄 リアルタイムイベントによる更新（即座更新との重複を避けるため、慎重に処理）
+      setChores(prevChores => {
+        // 現在のローカル状態と比較して、主要プロパティの差分がある場合のみ更新
+        const hasDiff =
+          prevChores.length !== chores.length ||
+          prevChores.some(prev => {
+            const next = chores.find(c => c.id === prev.id)
+            if (!next) return true
+            return (
+              prev.title !== next.title ||
+              prev.done !== next.done ||
+              prev.owner_id !== next.owner_id ||
+              prev.partner_id !== next.partner_id
+            )
+          })
+
+        if (hasDiff) {
+          console.log('🔄 Applying realtime chore changes with diff detected:', {
+            previousCount: prevChores.length,
+            newCount: chores.length
+          })
+          return chores
+        }
+
+        console.log('🔄 Skipping realtime update - no changes detected')
+        return prevChores
+      })
+      
+      // リアルタイムイベント情報を更新
+      setRealtimeEvents(prev => ({
+        ...prev,
+        updates: prev.updates + 1,
+        lastEvent: `Realtime update: ${chores.length} items`,
+        connectionStatus: 'connected'
+      }))
+    },
+    onPartnerChange: (partner) => {
+      console.log('👤 Partner change received:', partner)
+      // パートナー変更時の処理（必要に応じて）
+      
+      setRealtimeEvents(prev => ({
+        ...prev,
+        updates: prev.updates + 1,
+        lastEvent: `Partner updated: ${partner?.display_name || 'Unknown'}`,
+        connectionStatus: 'connected'
+      }))
+    }
+  })
   
   // アクセシビリティ機能
-  const { announce, announceSuccess, announceError, announceFormError } = useScreenReader()
+  const { announce, announceSuccess, announceError } = useScreenReader()
   const { saveFocus, restoreFocus, focusFirstElement } = useFocusManagement()
   const keyboardNavigation = useKeyboardNavigation({
     enabled: true,
@@ -47,107 +112,76 @@ export default function ChoresList() {
   })
   
   // ローカル状態
-  const [newChore, setNewChore] = useState('')
-  const [showThankYou, setShowThankYou] = useState<number | null>(null)
-  const [hasPartner, setHasPartner] = useState<boolean | null>(null)
   const [partnerInfo, setPartnerInfo] = useState<PartnerInfo | null>(null)
-  const [showRealtimeDetails, setShowRealtimeDetails] = useState(false)
+  const [isLoadingPartner, setIsLoadingPartner] = useState(true)
+  const [thankYouMessage, setThankYouMessage] = useState<ThankYou | null>(null)
 
   /**
-   * パートナー情報を取得する
+   * パートナー情報を取得
    */
   const fetchPartnerInfo = useCallback(async () => {
-    if (!user) {
-      console.log('👤 ユーザーが未ログインのため、パートナー情報取得をスキップ')
-      return
-    }
-    
-    console.log('🔍 パートナー情報を取得中...', user.id)
-    
+    if (!user) return
+
     try {
-      // プロフィール情報を取得
-      const { data: profile, error } = await supabase
+      setIsLoadingPartner(true)
+      // 自分のプロフィールから partner_id を取得
+      const { data: profile, error: profileError } = await supabase
         .from('profiles')
-        .select('partner_id, display_name')
+        .select('partner_id')
         .eq('id', user.id)
         .single()
-      
-      console.log('📊 プロフィール取得結果:', { profile, error })
-      
-      if (error) {
-        console.error('❌ パートナー情報取得エラー:', error)
-        setHasPartner(false)
-        setPartnerInfo(null)
+
+      if (profileError && profileError.code !== 'PGRST116') {
+        console.error('プロフィールの取得に失敗:', profileError)
         return
       }
 
+      // パートナーが設定されている場合は詳細情報を取得
       if (profile?.partner_id) {
-        console.log('✅ パートナーが存在:', profile.partner_id)
-        // パートナーの詳細情報を取得
-        const { data: partnerProfile, error: partnerError } = await supabase
+        const { data: partner, error: partnerError } = await supabase
           .from('profiles')
           .select('id, display_name')
           .eq('id', profile.partner_id)
           .single()
-        
-        if (partnerError) {
-          console.error('❌ パートナー詳細取得エラー:', partnerError)
-          setHasPartner(true)
-          setPartnerInfo({ id: profile.partner_id, name: 'パートナー' })
+
+        if (partnerError && partnerError.code !== 'PGRST116') {
+          console.error('パートナー情報の取得に失敗:', partnerError)
+          return
+        }
+
+        if (partner) {
+          setPartnerInfo({ id: partner.id, name: partner.display_name })
         } else {
-          console.log('✅ パートナー詳細取得成功:', partnerProfile)
-          setHasPartner(true)
-          setPartnerInfo({
-            id: partnerProfile.id,
-            name: partnerProfile.display_name || 'パートナー'
-          })
+          setPartnerInfo(null)
         }
       } else {
-        console.log('❌ パートナーが未設定')
-        setHasPartner(false)
         setPartnerInfo(null)
       }
     } catch (error) {
-      console.error('❌ パートナー情報取得で予期しないエラー:', error)
-      setHasPartner(false)
-      setPartnerInfo(null)
+      console.error('パートナー情報の取得中にエラー:', error)
+    } finally {
+      setIsLoadingPartner(false)
     }
   }, [user])
 
-  // パートナー連携完了時のハンドラー
-  const handlePartnerLinked = async () => {
-    await fetchPartnerInfo()
-  }
-
-  // 初期化
+  // 初期化処理
   useEffect(() => {
-    if (user) {
-      fetchPartnerInfo()
-    }
-  }, [user, fetchPartnerInfo])
+    fetchPartnerInfo()
+  }, [fetchPartnerInfo])
 
   /**
-   * 家事追加のハンドラー
+   * 家事追加処理
    */
-  const handleAddChore = async (e: React.FormEvent) => {
-    e.preventDefault()
-    
-    if (!newChore.trim()) {
-      announceFormError('家事名', '家事名を入力してください')
-      return
-    }
-
+  const handleAddChore = async (title: string) => {
     try {
-      await addChore(newChore.trim())
-      setNewChore('')
-      announceSuccess(`家事「${newChore.trim()}」を追加しました`)
+      await addChore(title)
+      announceSuccess(`家事「${title}」を追加しました`)
       addNotification({
         title: '家事を追加しました',
         type: 'success',
-        message: `家事「${newChore.trim()}」を追加しました`
+        message: `家事「${title}」を追加しました`
       })
     } catch (error) {
-      console.error('家事追加エラー:', error)
       announceError('家事の追加に失敗しました')
       addNotification({
         title: 'エラー',
@@ -158,329 +192,142 @@ export default function ChoresList() {
   }
 
   /**
-   * 家事完了切り替えのハンドラー
+   * 家事完了切り替え処理
    */
-  const handleToggleChore = async (choreId: string) => {
-    const chore = chores.find(c => c.id === choreId)
-    if (!chore) return
-    
+  const handleToggleChore = async (chore: Chore) => {
     try {
-      await toggleChore(choreId, chore.done)
-      const choreName = chore.title
-      announceSuccess(`家事「${choreName}」の状態を変更しました`)
-      addNotification({
-        title: '家事を更新しました',
-        type: 'success',
-        message: `家事「${choreName}」の状態を変更しました`
-      })
+      saveFocus()
+      // idはstring/number両対応、doneはboolean|nullの可能性に対応
+      const numericId = typeof chore.id === 'number' ? chore.id : Number(chore.id)
+      await toggleChore(numericId, !!chore.done)
+      
+      if (!chore.done) {
+        announceSuccess(`家事「${chore.title}」を完了しました`)
+        addNotification({
+          title: '家事を完了しました',
+          type: 'success',
+          message: `家事「${chore.title}」を完了しました`,
+          actionUrl: '/completed-chores'
+        })
+      } else {
+        announce(`家事「${chore.title}」を未完了に戻しました`)
+        addNotification({
+          title: '家事を更新しました',
+          type: 'info',
+          message: `家事「${chore.title}」を未完了に戻しました`
+        })
+      }
+      
+      setTimeout(restoreFocus, 100)
     } catch (error) {
-      console.error('家事状態変更エラー:', error)
       announceError('家事の状態変更に失敗しました')
       addNotification({
         title: 'エラー',
         type: 'error',
         message: '家事の状態変更に失敗しました'
       })
+      restoreFocus()
     }
   }
 
   /**
-   * 家事削除のハンドラー
+   * 家事削除処理
    */
   const handleDeleteChore = async (choreId: string) => {
-    const chore = chores.find(c => c.id === choreId)
+    const numericId = Number(choreId)
+    const chore = chores.find(c => c.id === numericId)
     if (!chore) return
-    
-    if (!confirm(`家事「${chore.title}」を削除しますか？`)) {
-      return
-    }
 
     try {
-      await deleteChore(choreId)
+      saveFocus()
+      await deleteChore(numericId)
       announceSuccess(`家事「${chore.title}」を削除しました`)
       addNotification({
         title: '家事を削除しました',
         type: 'success',
         message: `家事「${chore.title}」を削除しました`
       })
+      setTimeout(focusFirstElement, 100)
     } catch (error) {
-      console.error('家事削除エラー:', error)
       announceError('家事の削除に失敗しました')
       addNotification({
         title: 'エラー',
         type: 'error',
         message: '家事の削除に失敗しました'
       })
+      restoreFocus()
     }
   }
 
-  /**
-   * ありがとうメッセージ送信のハンドラー
-   */
-  const handleSendThankYou = async (choreId: string, message: string) => {
-    if (!user || !partnerInfo) return
-
-    try {
-      const { error } = await supabase
-        .from('thanks')
-        .insert({
-          from_user_id: user.id,
-          to_user_id: partnerInfo.id,
-          message: message,
-          chore_id: choreId
-        })
-
-      if (error) throw error
-
-      setShowThankYou(null)
-      announceSuccess('ありがとうメッセージを送信しました')
-      addNotification({
-        title: 'ありがとうメッセージを送信しました',
-        type: 'success',
-        message: 'ありがとうメッセージを送信しました'
-      })
-    } catch (error) {
-      console.error('ありがとうメッセージ送信エラー:', error)
-      announceError('ありがとうメッセージの送信に失敗しました')
-      addNotification({
-        title: 'エラー',
-        type: 'error',
-        message: 'ありがとうメッセージの送信に失敗しました'
-      })
-    }
-  }
-
-  // ローディング状態
   if (loading) {
     return (
       <div className="space-y-4">
-        <div className="flex gap-2">
-          <Skeleton className="h-10 flex-1" />
-          <Skeleton className="h-10 w-20" />
-        </div>
-        {[...Array(3)].map((_, i) => (
-          <Skeleton key={i} className="h-16 w-full" />
-        ))}
+        <Skeleton className="h-8 w-full" />
+        <Skeleton className="h-8 w-full" />
+        <Skeleton className="h-8 w-full" />
       </div>
     )
   }
 
-  // パートナー未設定の場合
-  if (hasPartner === false) {
-    return (
-      <div className="space-y-6">
-        <PartnerInvitation onPartnerLinked={handlePartnerLinked} />
-        
-        {/* 家事追加フォーム */}
-        <form onSubmit={handleAddChore} className="flex gap-2">
-          <Input
-            type="text"
-            placeholder="新しい家事を入力"
-            value={newChore}
-            onChange={(e) => setNewChore(e.target.value)}
-            disabled={isAdding}
-            className="flex-1"
-            aria-label="新しい家事名"
-          />
-          <Button type="submit" disabled={isAdding || !newChore.trim()}>
-            {isAdding ? '追加中...' : '追加'}
-          </Button>
-        </form>
-
-        {/* 家事一覧 */}
-        <div ref={keyboardNavigation.containerRef as React.RefObject<HTMLDivElement>} className="space-y-2" role="list" aria-label="家事一覧">
-          {chores.length === 0 ? (
-            <p className="text-gray-500 text-center py-8">
-              まだ家事が登録されていません
-            </p>
-          ) : (
-            chores.map((chore) => {
-              const isCompleted = chore.done
-              return (
-                <div
-                  key={chore.id}
-                  data-chore-name={chore.title}
-                  className={`p-4 border rounded-lg ${
-                    isCompleted ? 'bg-green-50 border-green-200' : 'bg-white border-gray-200'
-                  }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <button
-                      onClick={() => handleToggleChore(chore.id)}
-                      className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
-                        isCompleted
-                          ? 'bg-green-500 border-green-500 text-white'
-                          : 'border-gray-300 hover:border-green-400'
-                      }`}
-                      aria-label={`${chore.title}を${isCompleted ? '未完了' : '完了'}にする`}
-                      >
-                        {isCompleted && (
-                          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                          </svg>
-                        )}
-                      </button>
-                      <span className={isCompleted ? 'line-through text-gray-500' : ''}>
-                        {chore.title}
-                      </span>
-                    </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleDeleteChore(chore.id)}
-                      aria-label={`${chore.title}を削除`}
-                    >
-                      削除
-                    </Button>
-                  </div>
-                </div>
-              )
-            })
-          )}
-        </div>
-      </div>
-    )
-  }
-
-  // パートナー設定済みの場合
   return (
     <div className="space-y-6">
-      {/* 家事追加フォーム */}
-      {/* 家事追加フォーム */}
-      <form onSubmit={handleAddChore} className="flex flex-col sm:flex-row gap-2 sm:gap-3">
-        <Input
-          type="text"
-          placeholder="新しい家事を入力"
-          value={newChore}
-          onChange={(e) => setNewChore(e.target.value)}
-          disabled={isAdding}
-          className="flex-1 text-sm sm:text-base"
-          aria-label="新しい家事名"
-        />
-        <Button 
-          type="submit" 
-          disabled={isAdding || !newChore.trim()}
-          className="w-full sm:w-auto px-4 py-2 text-sm sm:text-base"
-        >
-          {isAdding ? '追加中...' : '追加'}
-        </Button>
-      </form>
+      {/* パートナー設定セクション */}
+      {/* <PartnerSetup 
+        hasPartner={!!partnerInfo}
+        onPartnerLinked={fetchPartnerInfo}
+      /> */}
 
-      {/* 家事一覧 */}
-      <div ref={keyboardNavigation.containerRef as React.RefObject<HTMLDivElement>} className="space-y-2" role="list" aria-label="家事一覧">
+      {/* 家事追加フォーム（検討段階のため一時的に非表示） */}
+      {/*
+      <ChoreAddForm 
+        onAddChore={handleAddChore}
+        isAdding={isAdding}
+      />
+      */}
+
+      {/* 家事リスト */}
+      <div 
+        ref={keyboardNavigation.containerRef as React.RefObject<HTMLDivElement>} 
+        className="grid grid-cols-2 gap-3 sm:gap-4 w-full border border-transparent rounded-lg"
+        role="list" 
+        aria-label="家事一覧"
+      >
         {chores.length === 0 ? (
           <p className="text-gray-500 text-center py-8">
-            まだ家事が登録されていません
+            まだ家事が登録されていません。上のフォームから追加してください。
           </p>
         ) : (
-          chores.map((chore) => {
-            const isCompleted = chore.done
-            const isOwnChore = chore.owner_id === user?.id
-            
-            return (
-              <div
-                key={chore.id}
-                data-chore-name={chore.title}
-                className={`p-3 sm:p-4 border rounded-lg ${
-                  isCompleted ? 'bg-green-50 border-green-200' : 'bg-white border-gray-200'
-                }`}
-              >
-                {/* モバイル対応レイアウト */}
-                <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-                  {/* 家事タイトルとチェックボックス */}
-                  <div className="flex items-center gap-3 flex-1 min-w-0">
-                    <button
-                      onClick={() => handleToggleChore(chore.id)}
-                      className={`w-6 h-6 sm:w-7 sm:h-7 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
-                        isCompleted
-                          ? 'bg-green-500 border-green-500 text-white'
-                          : 'border-gray-300 hover:border-green-400'
-                      }`}
-                      aria-label={`${chore.title}を${isCompleted ? '未完了' : '完了'}にする`}
-                    >
-                      {isCompleted && (
-                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                        </svg>
-                      )}
-                    </button>
-                    <div className="min-w-0 flex-1">
-                      <div className={`text-sm sm:text-base break-words ${
-                        isCompleted ? 'line-through text-gray-500' : ''
-                      }`}>
-                        {chore.title}
-                      </div>
-                      {!isOwnChore && (
-                        <div className="text-xs sm:text-sm text-blue-600 mt-1">
-                          ({partnerInfo?.name || 'パートナー'}の家事)
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                  
-                  {/* アクションボタン */}
-                  <div className="flex items-center gap-2 flex-shrink-0">
-                    {isCompleted && !isOwnChore && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setShowThankYou(parseInt(chore.id))}
-                        aria-label={`${chore.title}にありがとうメッセージを送る`}
-                        className="text-xs sm:text-sm px-2 sm:px-3"
-                      >
-                        ありがとう
-                      </Button>
-                    )}
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleDeleteChore(chore.id)}
-                      aria-label={`${chore.title}を削除`}
-                      className="text-xs sm:text-sm px-2 sm:px-3"
-                    >
-                      削除
-                    </Button>
-                  </div>
-                </div>
-                
-                {/* ありがとうメッセージフォーム */}
-                {showThankYou === parseInt(chore.id) && (
-                  <div className="mt-4 pt-4 border-t">
-                    <ThankYouMessage
-                      choreId={showThankYou?.toString() || ''}
-                      toUserId={partnerInfo?.id || ''}
-                      toUserName={partnerInfo?.name || 'パートナー'}
-                      onSuccess={() => setShowThankYou(null)}
-                      onCancel={() => setShowThankYou(null)}
-                    />
-                  </div>
-                )}
-              </div>
-            )
-          })
+          chores.map((chore) => (
+            <ChoreItem
+              key={chore.id}
+              chore={chore}
+              onToggle={() => handleToggleChore(chore)}
+              onDelete={() => handleDeleteChore(String(chore.id))}
+              isOwnChore={String(chore.owner_id) === String(user?.id || '')}
+              partnerName={partnerInfo?.name || 'パートナー'}
+              showThankYou={false}
+              onShowThankYou={() => {}}
+              onHideThankYou={() => {}}
+              partnerInfo={partnerInfo}
+              data-chore-name={chore.title}
+            />
+          ))
         )}
       </div>
 
-      {/* リアルタイム接続状況（デバッグ用） */}
-      {process.env.NODE_ENV === 'development' && (
-        <Accordion type="single" collapsible className="w-full">
-          <AccordionItem value="realtime-debug">
-            <AccordionTrigger className="text-sm">
-              リアルタイム接続状況 ({realtimeEvents.connectionStatus})
-            </AccordionTrigger>
-            <AccordionContent>
-              <div className="space-y-2 text-sm">
-                <div>接続状態: {realtimeEvents.connectionStatus}</div>
-                <div>挿入: {realtimeEvents.inserts}回</div>
-                <div>更新: {realtimeEvents.updates}回</div>
-                <div>削除: {realtimeEvents.deletes}回</div>
-                <div>最後のイベント: {realtimeEvents.lastEvent || 'なし'}</div>
-              </div>
-            </AccordionContent>
-          </AccordionItem>
-        </Accordion>
+      {/* サンクスメッセージ */}
+      {thankYouMessage && (
+        <ThankYouMessage
+          choreId={thankYouMessage.chore_id?.toString() || ''}
+          toUserId={thankYouMessage.to_id || ''}
+          toUserName={partnerInfo?.name || 'パートナー'}
+          onSuccess={() => setThankYouMessage(null)}
+          onCancel={() => setThankYouMessage(null)}
+        />
       )}
+
+      {/* リアルタイムデバッグパネル（開発環境のみ） */}
+      <RealtimeDebugPanel realtimeEvents={realtimeEvents} />
     </div>
   )
 }

@@ -1,111 +1,170 @@
 'use client'
 
-import { User, Session } from '@supabase/supabase-js'
+import { Session, AuthChangeEvent } from '@supabase/supabase-js'
 import { createSupabaseBrowserClient } from '@/lib/supabase'
 
+// 統一された返り値型
+type AuthResult<T = unknown> = { data: T | null; error: Error | null }
+
 /**
- * 認証操作を管理するサービスクラス
- * 単一責務: Supabaseの認証機能のラッパー
+ * 認証サービス
+ * Supabaseの認証機能をラップし、統一されたインターフェースを提供
+ * 全メソッドで { data, error } 形式の統一された返り値を使用
  */
 export class AuthService {
+  // HMR対策: createSupabaseBrowserClient側でメモ化しておくことを推奨
   private supabase = createSupabaseBrowserClient()
 
   /**
    * メールアドレスとパスワードでサインイン
    */
-  async signIn(email: string, password: string) {
-    const { error } = await this.supabase.auth.signInWithPassword({
-      email,
-      password,
-    })
-    return { error }
+  async signIn(email: string, password: string): Promise<AuthResult> {
+    try {
+      console.debug('🔐 Emailサインイン開始', { email })
+      const { data, error } = await this.supabase.auth.signInWithPassword({
+        email,
+        password,
+      })
+      if (error) {
+        console.error('❌ Emailサインインエラー', {
+          message: error.message,
+          name: (error as any).name,
+          status: (error as any).status,
+        })
+      } else {
+        console.debug('✅ Emailサインイン成功', { userId: data?.user?.id })
+      }
+      return { data, error }
+    } catch (e: any) {
+      console.error('❌ Emailサインイン例外', e)
+      return { data: null, error: e }
+    }
   }
 
   /**
    * メールアドレスとパスワードでサインアップ
    */
-  async signUp(email: string, password: string, name?: string) {
-    const { error } = await this.supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          name: name || '',
+  async signUp(email: string, password: string, name?: string): Promise<AuthResult> {
+    try {
+      console.debug('🆕 Emailサインアップ開始', { email })
+      const { data, error } = await this.supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            name: name ?? '',
+          },
         },
-      },
-    })
-    return { error }
+      })
+      if (error) {
+        console.error('❌ Emailサインアップエラー', {
+          message: error.message,
+          name: (error as any).name,
+          status: (error as any).status,
+        })
+      } else {
+        console.debug('✅ Emailサインアップ受付', { userId: data?.user?.id })
+      }
+      return { data, error }
+    } catch (e: any) {
+      console.error('❌ Emailサインアップ例外', e)
+      return { data: null, error: e }
+    }
   }
 
   /**
    * サインアウト
    */
-  async signOut() {
-    const { error } = await this.supabase.auth.signOut()
-    if (error) throw error
+  async signOut(): Promise<AuthResult<void>> {
+    try {
+      const { error } = await this.supabase.auth.signOut()
+      return { data: undefined, error }
+    } catch (e: any) {
+      return { data: undefined, error: e }
+    }
   }
 
   /**
-   * Googleでサインイン
+   * Googleアカウントでサインイン
    */
-  async signInWithGoogle() {
+  async signInWithGoogle(): Promise<AuthResult> {
     try {
-      console.log('Supabase Google OAuth開始...')
-      console.log('リダイレクトURL:', `${window.location.origin}/auth/callback`)
+      console.log('🔄 Google認証開始')
       
-      const { error } = await this.supabase.auth.signInWithOAuth({
+      const { data, error } = await this.supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
           redirectTo: `${window.location.origin}/auth/callback`,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          },
         },
       })
-      
+
       if (error) {
-        console.error('Supabase OAuth エラー:', error)
-      } else {
-        console.log('OAuth リダイレクト成功')
+        console.error('❌ Google認証エラー:', error)
+        return { data: null, error }
       }
-      
-      return { error }
-    } catch (err) {
-      console.error('OAuth 予期しないエラー:', err)
-      return { error: err }
+
+      console.log('✅ Google認証リクエスト送信完了')
+      return { data, error }
+    } catch (error) {
+      console.error('❌ Google認証失敗:', error)
+      return { data: null, error: error as Error }
     }
   }
 
   /**
-   * 現在のセッションを取得
+   * サインアップ確認メールを再送
    */
-  async getSession() {
-    const { data: { session } } = await this.supabase.auth.getSession()
-    
-    // テスト環境で認証がない場合、自動ログインを試行
-    if (!session && (process.env.NODE_ENV === 'test' || process.env.NEXT_PUBLIC_SKIP_AUTH === 'true')) {
-      console.log('テスト環境: 自動ログインを試行します')
-      try {
-        const { data, error } = await this.supabase.auth.signInWithPassword({
-          email: 'test@example.com',
-          password: 'testpassword123'
+  async resendConfirmation(email: string): Promise<AuthResult> {
+    try {
+      console.debug('📧 確認メール再送開始', { email })
+      const { data, error } = await this.supabase.auth.resend({
+        type: 'signup',
+        email,
+      })
+      if (error) {
+        console.error('❌ 確認メール再送エラー', {
+          message: error.message,
+          name: (error as any).name,
+          status: (error as any).status,
         })
-        
-        if (error) {
-          console.warn('テスト用自動ログイン失敗:', error.message)
-        } else {
-          console.log('テスト用自動ログイン成功')
-          return data.session
-        }
-      } catch (err) {
-        console.warn('テスト用自動ログイン例外:', err)
+      } else {
+        console.debug('✅ 確認メール再送完了')
       }
+      return { data, error }
+    } catch (error) {
+      console.error('❌ 確認メール再送失敗', error)
+      return { data: null, error: error as Error }
     }
-    
-    return session
+  }
+
+
+
+  /**
+   * 現在のセッションを取得
+   * セキュリティ上、自動ログイン機能は削除
+   */
+  async getSession(): Promise<Session | null> {
+    try {
+      const { data: { session } } = await this.supabase.auth.getSession()
+      return session
+    } catch (error) {
+      if (process.env.NODE_ENV !== 'production') {
+        console.error('❌ セッション取得エラー:', error)
+      }
+      return null
+    }
   }
 
   /**
    * 認証状態の変更を監視
+   * @param callback - 認証状態変更時のコールバック関数
+   * @returns subscription - 呼び出し側でsubscription.unsubscribe()を忘れずに実行してください
    */
-  onAuthStateChange(callback: (event: string, session: Session | null) => void) {
+  onAuthStateChange(callback: (event: AuthChangeEvent, session: Session | null) => void) {
     const { data: { subscription } } = this.supabase.auth.onAuthStateChange(callback)
     return subscription
   }

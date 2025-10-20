@@ -22,6 +22,10 @@ build/
 .env.test.local
 .env.production.local
 
+# Environment-specific files (contain secrets)
+.env.staging
+.env.production
+
 # Logs
 npm-debug.log*
 yarn-debug.log*
@@ -152,3 +156,4 @@ test-business-logic.js
 
 # Trae IDE
 .trae/
+

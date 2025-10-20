@@ -5,27 +5,20 @@
 
 /**
  * 家事データの型定義
+ * Supabaseの生成型（Tables<'chores'>）をベースにし、派生フィールドを追加
  */
-export type Chore = {
-  id: string
-  owner_id: string
-  partner_id: string | null
-  title: string
-  done: boolean
-  created_at: string
+import type { Tables, TablesInsert } from '@/lib/supabase'
+
+export type Chore = Tables<'chores'> & {
   owner_name?: string
   completed_at?: string
 }
 
 /**
  * 家事作成時のデータ型
+ * Supabase生成型に合わせる（必要項目は呼び出し側で必ず指定）
  */
-export type ChoreInsert = {
-  owner_id: string
-  partner_id?: string | null
-  title: string
-  done?: boolean
-}
+export type ChoreInsert = TablesInsert<'chores'>
 
 /**
  * リアルタイムイベントの追跡用型定義

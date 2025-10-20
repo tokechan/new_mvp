@@ -2,85 +2,81 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { Button } from '@/components/ui/Button'
+import { Card } from '@/components/ui/card'
+import { ChoreCompletionModal } from '@/components/ChoreCompletionModal'
+import { CongratulationsModal } from '@/components/CongratulationsModal'
+import ThankYouMessage from './ThankYouMessage'
 import { Chore } from '@/types/chore'
+import { RotateCcw, Heart, Trash2, Check } from 'lucide-react'
 
 interface ChoreItemProps {
   chore: Chore
   onToggle: (choreId: string, currentDone: boolean) => Promise<void>
   onDelete: (choreId: string) => Promise<void>
+  isOwnChore: boolean
+  partnerName: string
+  showThankYou: boolean
+  onShowThankYou: () => void
+  onHideThankYou: () => void
+  partnerInfo: any
   currentUserId?: string
 }
 
-/**
- * 個別の家事アイテムを表示するコンポーネント
- * 家事の表示、完了切り替え、削除の責務を担当
- */
-export function ChoreItem({ chore, onToggle, onDelete, currentUserId }: ChoreItemProps) {
-  const [isToggling, setIsToggling] = useState(false)
-  const [isDeleting, setIsDeleting] = useState(false)
+export function ChoreItem({ 
+  chore, 
+  onToggle, 
+  onDelete, 
+  isOwnChore, 
+  partnerName, 
+  showThankYou, 
+  onShowThankYou, 
+  onHideThankYou, 
+  partnerInfo,
+  currentUserId 
+}: ChoreItemProps) {
+  const [isLoading, setIsLoading] = useState(false)
+  const [showCompletionModal, setShowCompletionModal] = useState(false)
+  const [showCongratulationsModal, setShowCongratulationsModal] = useState(false)
   const router = useRouter()
 
   /**
-   * 家事の完了状態を切り替える
+   * 家事の完了/未完了を切り替える
    */
   const handleToggle = async () => {
-    if (isToggling) return
-    
-    setIsToggling(true)
-    try {
-      await onToggle(chore.id, chore.done ?? false)
-      
-      // 完了時にポップアップを表示し、完了ページに遷移
-      if (!chore.done) {
-        const shouldShowThankYou = confirm('家事が完了しました！\n\nありがとうメッセージを送りますか？')
-        if (shouldShowThankYou) {
-          router.push('/completed-chores')
-        }
+    if (isLoading) return
+
+    if (!chore.done) {
+      // 未完了の場合はモーダルを表示
+      setShowCompletionModal(true)
+    } else {
+      // 完了済みの場合は直接未完了に戻す
+      setIsLoading(true)
+      try {
+        await onToggle(chore.id as any, !!chore.done)
+      } catch (error) {
+        console.error('家事の状態更新に失敗しました:', error)
+      } finally {
+        setIsLoading(false)
       }
-    } catch (error) {
-      console.error('家事の完了状態変更に失敗:', error)
-      // エラーは親コンポーネントで処理される
-    } finally {
-      setIsToggling(false)
     }
   }
 
   /**
-   * 家事を削除する
+   * モーダルからの完了処理
    */
-  const handleDelete = async () => {
-    if (isDeleting) return
-    
-    if (!confirm('この家事を削除しますか？')) return
-    
-    setIsDeleting(true)
+  const handleConfirm = async () => {
+    setIsLoading(true)
     try {
-      await onDelete(chore.id)
+      await onToggle(chore.id as any, !!chore.done)
+      setShowCompletionModal(false)
+      // 完了後に「お疲れ様でした！」モーダルを表示
+      setShowCongratulationsModal(true)
     } catch (error) {
-      console.error('家事の削除に失敗:', error)
-      // エラーは親コンポーネントで処理される
+      console.error('家事の完了に失敗しました:', error)
     } finally {
-      setIsDeleting(false)
+      setIsLoading(false)
     }
-  }
-
-  /**
-   * 完了時刻の表示用フォーマット
-   */
-  const getCompletedTimeDisplay = () => {
-    if (!chore.completed_at) return null
-    return new Date(chore.completed_at).toLocaleString('ja-JP')
-  }
-
-  /**
-   * 完了者の表示名を取得
-   */
-  const getCompletedByText = () => {
-    if (!chore.done) return ''
-    if (!currentUserId) return 'ユーザー'
-    
-    const isCompletedByCurrentUser = chore.owner_id === currentUserId
-    return isCompletedByCurrentUser ? 'あなた' : 'パートナー'
   }
 
   /**
@@ -94,16 +90,13 @@ export function ChoreItem({ chore, onToggle, onDelete, currentUserId }: ChoreIte
     const diffInHours = (now.getTime() - date.getTime()) / (1000 * 60 * 60)
     
     if (diffInHours < 1) {
-      const diffInMinutes = Math.floor(diffInHours * 60)
-      return `${diffInMinutes}分前`
+      return '1時間以内'
     } else if (diffInHours < 24) {
       return `${Math.floor(diffInHours)}時間前`
     } else {
       return date.toLocaleDateString('ja-JP', {
         month: 'short',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
+        day: 'numeric'
       })
     }
   }
@@ -115,119 +108,121 @@ export function ChoreItem({ chore, onToggle, onDelete, currentUserId }: ChoreIte
     router.push(`/thank-you?choreId=${chore.id}`)
   }
 
-  /**
-   * ありがとうボタンを表示するかどうか
-   * 完了済みの家事の場合に表示
-   */
-  const shouldShowThankYouButton = () => {
-    return chore.done
-  }
-
   return (
-    <div 
-      data-testid="chore-item"
-      data-chore-id={chore.id}
-      className={`
-        p-4 border rounded-lg transition-all duration-200
+    <>
+      <Card className={`
+        p-4 transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.99]
+        cursor-pointer shadow-sm sm:shadow-md border-0
         ${chore.done 
-          ? 'bg-green-50 border-green-200 text-green-800' 
-          : 'bg-white border-gray-200 hover:border-gray-300'
+          ? 'bg-green-50 shadow-green-100/70 completion-animation' 
+          : 'bg-white hover:shadow-lg'
         }
+        rounded-xl
       `}>
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-3 flex-1">
-          {/* 完了チェックボックス */}
-          <button
-            data-testid="toggle-chore-button"
-            onClick={handleToggle}
-            disabled={isToggling}
-            role="checkbox"
-            aria-checked={chore.done ?? false}
-            aria-label={`${chore.title}の完了状態を切り替え`}
-            className={`
-              w-6 h-6 rounded-full border-2 flex items-center justify-center
-              transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500
-              ${chore.done
-                ? 'bg-green-500 border-green-500 text-white'
-                : 'border-gray-300 hover:border-green-400'
-              }
-              ${isToggling ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
-            `}
-          >
-            {isToggling ? (
-              <div className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
-            ) : chore.done ? (
-              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-              </svg>
-            ) : null}
-          </button>
-
-          {/* 家事タイトルと完了情報 */}
-          <div className="flex-1">
+        <div className="flex flex-col gap-3">
+          {/* 家事タイトルと完了情報（上部テキストコンテンツ） */}
+          <div className="w-full">
             <h3 className={`
-              font-medium transition-all duration-200
+              font-medium transition-all duration-200 break-words whitespace-normal text-center
               ${chore.done ? 'line-through text-green-700' : 'text-gray-900'}
             `}>
               {chore.title}
             </h3>
-            
-            {/* 完了情報 */}
-            {chore.done && (
-              <p className="text-sm text-green-600 mt-1">
-                {getCompletedByText()}が{formatCompletionDate()}に完了
-              </p>
+            {chore.done && chore.completed_at && (
+              <div className="flex items-center justify-center mt-2 animate-fade-in">
+                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-200">
+                  <span className="mr-1">✨</span>
+                  {formatCompletionDate()}に完了
+                </span>
+              </div>
             )}
-            
-            {/* 作成者情報 */}
-            <p className="text-xs text-gray-500 mt-1">
-              作成者: {chore.owner_id === currentUserId ? 'あなた' : 'パートナー'}
-            </p>
+          </div>
+
+          {/* ボタン群（下部） */}
+          <div className="flex flex-nowrap items-center gap-2 w-full justify-center sm:justify-start">
+            {/* 完了/未完了ボタン */}
+
+            <Button
+              type="button"
+              data-testid="toggle-chore-button"
+              onClick={handleToggle}
+              disabled={isLoading}
+              variant={chore.done ? "outline" : "default"}
+              size="icon"
+              aria-label={chore.done ? '未完了に戻す' : '完了する'}
+              className={`${
+                chore.done
+                  ? 'bg-green-50 border-green-300 text-green-700 hover:bg-green-100 hover:border-green-400'
+                  : 'bg-blue-50 border border-blue-300 text-blue-700 hover:bg-blue-100 hover:border-blue-400'
+              } h-9 w-9 sm:h-10 sm:w-10 p-0 grid place-items-center transition-all duration-200 ${
+                isLoading ? 'opacity-60 cursor-not-allowed transform scale-95' : 'hover:transform hover:scale-105'
+              } focus:ring-2 focus:ring-offset-2 ${chore.done ? 'focus:ring-green-500' : 'focus:ring-blue-500'}`}
+            >
+              {isLoading ? (
+                <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+              ) : chore.done ? (
+                <RotateCcw className="w-5 h-5" aria-hidden="true" />
+              ) : (
+                <Check className="w-5 h-5" aria-hidden="true" />
+              )}
+              <span className="sr-only">{chore.done ? '未完了に戻す' : '完了する'}</span>
+            </Button>
+
+
+            {chore.done && !isOwnChore && (
+              <Button
+                variant="outline"
+                size="icon"
+                aria-label="ありがとう"
+                onClick={onShowThankYou}
+                className="bg-pink-50 border-pink-300 text-pink-700 hover:bg-pink-100 hover:border-pink-400 h-9 w-9 sm:h-10 sm:w-10 p-0 grid place-items-center transition-all duration-200 hover:transform hover:scale-105 focus:ring-2 focus:ring-offset-2 focus:ring-pink-500 shadow-sm hover:shadow-md"
+              >
+                <Heart className="w-5 h-5" aria-hidden="true" />
+                <span className="sr-only">ありがとう</span>
+              </Button>
+            )}
+
+
+            <Button
+              variant="outline"
+              size="icon"
+              aria-label="削除"
+              onClick={() => onDelete(chore.id as any)}
+              className="bg-red-50 border-red-300 text-red-700 hover:bg-red-100 hover:border-red-400 h-9 w-9 sm:h-10 sm:w-10 p-0 grid place-items-center transition-all duration-200 hover:transform hover:scale-105 focus:ring-2 focus:ring-offset-2 focus:ring-red-500 shadow-sm hover:shadow-md"
+            >
+              <Trash2 className="w-5 h-5" aria-hidden="true" />
+              <span className="sr-only">削除</span>
+            </Button>
           </div>
         </div>
+        {/* ありがとうメッセージフォーム */}
+        {showThankYou && (
+          <div className="mt-4 pt-4 border-t">
+            <ThankYouMessage
+              choreId={String(chore.id)}
+              toUserId={partnerInfo?.id || ''}
+              toUserName={partnerInfo?.name || 'パートナー'}
+              onSuccess={onHideThankYou}
+              onCancel={onHideThankYou}
+            />
+          </div>
+        )}
+      </Card>
 
-        <div className="flex items-center space-x-2">
-          {/* ありがとうボタン */}
-          {shouldShowThankYouButton() && (
-            <button
-              data-testid="thank-you-button"
-              onClick={handleThankYou}
-              aria-label={`${chore.title}にありがとうを送る`}
-              className="
-                px-3 py-1 bg-pink-500 text-white text-sm rounded-lg
-                hover:bg-pink-600 transition-colors duration-200
-                focus:outline-none focus:ring-2 focus:ring-pink-500
-                cursor-pointer
-              "
-              title="ありがとうを送る"
-            >
-              ありがとう
-            </button>
-          )}
+      {/* 完了モーダル */}
+      <ChoreCompletionModal
+          isOpen={showCompletionModal}
+          onClose={() => setShowCompletionModal(false)}
+          chore={chore}
+          onConfirm={handleConfirm}
+        />
 
-          {/* 削除ボタン */}
-          <button
-            data-testid="delete-chore-button"
-            onClick={handleDelete}
-            disabled={isDeleting}
-            aria-label={`${chore.title}を削除`}
-            className={`
-              p-2 text-gray-400 hover:text-red-500 rounded-lg
-              transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-red-500
-              ${isDeleting ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
-            `}
-            title="家事を削除"
-          >
-            {isDeleting ? (
-              <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-            ) : (
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-              </svg>
-            )}
-          </button>
-        </div>
-      </div>
-    </div>
+      {/* お疲れ様でした！モーダル */}
+      <CongratulationsModal
+        isOpen={showCongratulationsModal}
+        onClose={() => setShowCongratulationsModal(false)}
+        chore={chore}
+      />
+    </>
   )
 }
