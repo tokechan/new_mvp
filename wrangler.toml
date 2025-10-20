@@ -24,7 +24,7 @@ workers_dev = true
 NEXT_PUBLIC_SUPABASE_URL = "https://njbormsqqfwnzwbigxuh.supabase.co"
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY = "sb_publishable_vPz2uxg31O02baWjpcKJ1g_wN9OX3HN"
 NEXT_PUBLIC_APP_URL = "https://mvp-staging.yutatokeshi.workers.dev"
-NEXT_PUBLIC_SKIP_AUTH = "true"
+NEXT_PUBLIC_SKIP_AUTH = "false"
 
 # Production環境設定
 [env.production]
