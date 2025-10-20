@@ -40,6 +40,11 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
   const instanceIdRef = useRef<string | null>(null)
   // StrictModeガードを撤廃して、毎回購読を確実に開始する
 
+  // 再購読トリガー（認証更新/可視化/オンライン復帰でインクリメント）
+  const [rtRevision, setRtRevision] = useState(0)
+  const authSubRef = useRef<{ unsubscribe: () => void } | null>(null)
+  const notifiedThanksIdsRef = useRef<Set<number>>(new Set())
+
   // 新しい通知を追加する関数
   const addNotification = useCallback((notification: Omit<Notification, 'id' | 'timestamp' | 'read'>) => {
     // シンプル方針: パートナーのアクションのみ通知として追加
@@ -116,9 +121,43 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
     }
   }, [])
 
+  // 認証状態の変化（特にトークン更新）に追随してRealtimeの認証を更新し、再購読トリガー
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      const rt: any = (supabase as any).realtime
+      if (session?.access_token && typeof rt?.setAuth === 'function') {
+        rt.setAuth(session.access_token)
+        console.log('[NotificationProvider] realtime auth updated on event:', event)
+      }
+      if (event === 'TOKEN_REFRESHED' || event === 'SIGNED_IN') {
+        setRtRevision(r => r + 1)
+      }
+    })
+    authSubRef.current = subscription
+    return () => {
+      try { authSubRef.current?.unsubscribe?.() } catch {}
+    }
+  }, [supabase])
+
+  // 可視状態・オンライン復帰で再購読
+  useEffect(() => {
+    const onVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        setRtRevision(r => r + 1)
+      }
+    }
+    const onOnline = () => setRtRevision(r => r + 1)
+    document.addEventListener('visibilitychange', onVisibility)
+    window.addEventListener('online', onOnline)
+    return () => {
+      document.removeEventListener('visibilitychange', onVisibility)
+      window.removeEventListener('online', onOnline)
+    }
+  }, [])
+
   // Supabaseリアルタイム機能でデータベースの変更を監視
   useEffect(() => {
-    console.log('[NotificationProvider] effect run, user:', user?.id || 'none')
+    console.log('[NotificationProvider] effect run, user:', user?.id || 'none', 'rtRevision:', rtRevision)
     if (!user) {
       console.log('[NotificationProvider] user not ready → skip subscribe')
       return
@@ -145,12 +184,10 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
           console.warn('[NotificationProvider] no access token available for realtime')
         }
 
-        // ユニークなチャンネル識別子（StrictModeの再購読でも衝突しないように）
-        if (!instanceIdRef.current) {
-          instanceIdRef.current = (typeof crypto !== 'undefined' && 'randomUUID' in crypto)
-            ? crypto.randomUUID()
-            : `i-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`
-        }
+        // ユニークなチャンネル識別子（毎回ユニークにして衝突/取りこぼしを避ける）
+        instanceIdRef.current = (typeof crypto !== 'undefined' && 'randomUUID' in crypto)
+          ? crypto.randomUUID()
+          : `i-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`
         const topicSuffix = `${instanceIdRef.current}`
         console.log('[NotificationProvider] topic suffix:', topicSuffix)
 
@@ -273,6 +310,10 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
                     source: 'partner',
                   })
                 }
+                // 受信済みIDとして記録（バックフィルの重複表示防止）
+                if (typeof payload.new?.id === 'number') {
+                  notifiedThanksIdsRef.current.add(payload.new.id)
+                }
               } catch (e) {
                 console.error('ありがとうメッセージ詳細補完時にエラー:', e)
                 addNotification({
@@ -290,6 +331,37 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
           })
     
         console.log('[NotificationProvider] thanks channel created')
+
+        // 直近のありがとうを軽くバックフィル（5分/最大5件）
+        try {
+          const since = new Date(Date.now() - 5 * 60 * 1000).toISOString()
+          const { data: recentThanks, error: backfillErr } = await supabase
+            .from('thanks')
+            .select(`id,message,created_at,from_id,to_id,from_user:profiles!thanks_from_id_fkey(display_name)`) // 軽量
+            .gte('created_at', since)
+            .eq('to_id', user.id)
+            .order('created_at', { ascending: false })
+            .limit(5)
+          if (backfillErr) {
+            console.warn('thanks backfill error:', backfillErr)
+          } else {
+            (recentThanks || []).forEach((row: any) => {
+              if (!row || typeof row.id !== 'number') return
+              if (notifiedThanksIdsRef.current.has(row.id)) return
+              addNotification({
+                title: 'ありがとうメッセージを受け取りました',
+                message: `${row?.from_user?.display_name || 'パートナー'}から: ${row?.message || ''}`,
+                type: 'success',
+                userId: user.id,
+                source: 'partner',
+              })
+              notifiedThanksIdsRef.current.add(row.id)
+            })
+          }
+        } catch (e) {
+          console.warn('thanks backfill exception:', e)
+        }
+
         // SKIP_AUTH（ステージング高速検証モード）時のフォールバック購読
         // サーバー側フィルタが解釈されない/権限でエラーになる場合に備え、クライアント側でto_idを判定
         if (process.env.NEXT_PUBLIC_SKIP_AUTH === 'true') {
@@ -459,7 +531,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
       if (completionsChannel) supabase.removeChannel(completionsChannel)
       if (thanksChannelNoFilter) supabase.removeChannel(thanksChannelNoFilter)
     }
-  }, [user, addNotification])
+  }, [user, addNotification, rtRevision])
 
   const value = {
     notifications,
