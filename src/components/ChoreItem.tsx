@@ -117,11 +117,11 @@ export function ChoreItem({
         }
         rounded-lg
       `}>
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
           {/* 家事タイトルと完了情報 */}
-          <div className="flex-1">
+          <div className="flex-1 w-full sm:w-auto">
             <h3 className={`
-              font-medium transition-all duration-200
+              font-medium transition-all duration-200 break-words whitespace-normal
               ${chore.done ? 'line-through text-green-700' : 'text-gray-900'}
             `}>
               {chore.title}
@@ -138,7 +138,7 @@ export function ChoreItem({
             )}
           </div>
 
-          <div className="flex items-center space-x-2">
+          <div className="mt-3 sm:mt-0 flex flex-wrap items-center gap-2">
             {/* 完了/未完了ボタン */}
             <Button
               type="button"
