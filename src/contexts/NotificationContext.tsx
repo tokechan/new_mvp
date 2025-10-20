@@ -44,6 +44,8 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
   const [rtRevision, setRtRevision] = useState(0)
   const authSubRef = useRef<{ unsubscribe: () => void } | null>(null)
   const notifiedThanksIdsRef = useRef<Set<number>>(new Set())
+  // すべてのチャンネルを集中管理するRef（レースを避ける）
+  const channelsRef = useRef<ReturnType<typeof supabase.channel>[]>([])
 
   // 新しい通知を追加する関数
   const addNotification = useCallback((notification: Omit<Notification, 'id' | 'timestamp' | 'read'>) => {
@@ -165,12 +167,17 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
 
     console.log('リアルタイム通知の監視を開始します...')
 
-    // チャンネル参照（クリーンアップ用）
-    let choresChannel: ReturnType<typeof supabase.channel> | null = null
-    let thanksChannel: ReturnType<typeof supabase.channel> | null = null
-    let completionsChannel: ReturnType<typeof supabase.channel> | null = null
-    // DEV向け: フィルタ無しの検証用チャンネル
-    let thanksChannelNoFilter: ReturnType<typeof supabase.channel> | null = null
+    // 既存チャンネルを先に全て解除（レース対策）
+    if (channelsRef.current.length > 0) {
+      console.log('[NotificationProvider] removing existing channels:', channelsRef.current.length)
+      try {
+        channelsRef.current.forEach(ch => {
+          try { supabase.removeChannel(ch) } catch {}
+        })
+      } finally {
+        channelsRef.current = []
+      }
+    }
 
     const setupRealtime = async () => {
       try {
@@ -192,7 +199,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
         console.log('[NotificationProvider] topic suffix:', topicSuffix)
 
         // 家事の変更を監視
-        choresChannel = supabase
+        const choresChannel = supabase
           .channel(`user-${user.id}-notif-chores-v1-${topicSuffix}`)
           .on(
             'postgres_changes',
@@ -256,12 +263,12 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
           .subscribe((status) => {
             console.log('chores channel status:', status)
           })
-
+        channelsRef.current.push(choresChannel)
         console.log('[NotificationProvider] chores channel created')
 
         // ありがとうメッセージの変更を監視（サーバー側フィルタ + 念のためクライアント側判定）
         console.log('[NotificationProvider] thanks channel setup with filter:', `to_id=eq.${user.id}`)
-        thanksChannel = supabase
+        const thanksChannel = supabase
           .channel(`user-${user.id}-notif-thanks-v2-${topicSuffix}`)
           .on(
             'postgres_changes',
@@ -329,7 +336,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
           .subscribe((status) => {
             console.log('thanks channel status:', status)
           })
-    
+        channelsRef.current.push(thanksChannel)
         console.log('[NotificationProvider] thanks channel created')
 
         // 直近のありがとうを軽くバックフィル（5分/最大5件）
@@ -429,11 +436,12 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
             .subscribe((status) => {
               console.log('[NotificationProvider] thanks fallback channel status:', status)
             })
+          channelsRef.current.push(thanksFallbackChannel)
         }
         // DEVのみ: フィルタ無しチャンネル（到達性の切り分け用）
         if (process.env.NODE_ENV === 'development') {
           console.log('[NotificationProvider][DEV] thanks channel without filter setup')
-          thanksChannelNoFilter = supabase
+          const thanksChannelNoFilter = supabase
             .channel(`user-${user.id}-notif-thanks-nofilter-${topicSuffix}`)
             .on(
               'postgres_changes',
@@ -471,10 +479,11 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
             .subscribe((status) => {
               console.log('[DEV] thanks no-filter channel status:', status)
             })
+          channelsRef.current.push(thanksChannelNoFilter)
         }
     
         // 完了通知はcompletionsのINSERTを監視（REPLICA IDENTITY依存を回避）
-        completionsChannel = supabase
+        const completionsChannel = supabase
           .channel(`user-${user.id}-notif-completions-v1-${topicSuffix}`)
           .on(
             'postgres_changes',
@@ -523,13 +532,16 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
 
     setupRealtime()
 
-    // クリーンアップ関数
+    // クリーンアップ関数（Ref内の最新チャンネルを必ず解除）
     return () => {
       console.log('リアルタイム通知の監視を停止します...')
-      if (choresChannel) supabase.removeChannel(choresChannel)
-      if (thanksChannel) supabase.removeChannel(thanksChannel)
-      if (completionsChannel) supabase.removeChannel(completionsChannel)
-      if (thanksChannelNoFilter) supabase.removeChannel(thanksChannelNoFilter)
+      try {
+        channelsRef.current.forEach(ch => {
+          try { supabase.removeChannel(ch) } catch {}
+        })
+      } finally {
+        channelsRef.current = []
+      }
     }
   }, [user, addNotification, rtRevision])
 
