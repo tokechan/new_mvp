@@ -103,29 +103,29 @@ export default function Home() {
                 <Bell className="w-[19px] h-[19px] sm:w-4 sm:h-4 mr-1" aria-hidden="true" />
                 <span className="hidden sm:inline">テスト通知</span>
               </Button>
-              <Button 
-                onClick={async () => {
-                  try {
-                    await signOut()
-                    router.push('/auth/signin')
-                  } catch (error) {
-                    console.error('ログアウトに失敗しました:', error)
-                  }
-                }}
-                variant="destructive"
-                size="sm"
-                aria-label="ログアウト"
-              >
-                <LogOut className="w-[19px] h-[19px] sm:w-4 sm:h-4 mr-1" aria-hidden="true" />
-                <span className="hidden sm:inline">ログアウト</span>
-              </Button>
+              <NotificationCenter />
             </div>
           </div>
         </div>
 
-        {/* 通知センター */}
+        {/* ログアウトアイコン（中段） */}
         <div className="mb-8">
-          <NotificationCenter />
+          <Button 
+            onClick={async () => {
+              try {
+                await signOut()
+                router.push('/auth/signin')
+              } catch (error) {
+                console.error('ログアウトに失敗しました:', error)
+              }
+            }}
+            variant="destructive"
+            size="sm"
+            aria-label="ログアウト"
+            className="p-2 rounded-full"
+          >
+            <LogOut className="w-5 h-5" aria-hidden="true" />
+          </Button>
         </div>
 
         {/* デバッグ: パートナー連携状態＆通知受信テスト */}
