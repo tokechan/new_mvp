@@ -7,6 +7,7 @@ import { sendThankYou } from '@/services/thankYouService'
 import { useAuthState } from '@/hooks/useAuthState'
 import Navigation from '@/components/Navigation'
 import { ThankYouModal } from '@/components/ThankYouModal'
+import { Smile, ThumbsUp, Heart, Handshake, Flame } from 'lucide-react'
 
 /**
  * 完了した家事一覧ページ
@@ -155,7 +156,7 @@ export default function CompletedChoresPage() {
       ) : (
         <div className="grid gap-4">
           {completedChores.map((chore) => (
-            <div key={chore.id} className="bg-green-50 border-green-200 rounded-lg border shadow-sm">
+            <div key={chore.id} className="bg-gray-50 border-green-200 rounded-lg border shadow-sm">
               <div className="p-6">
                 {/* H1タイトル */}
                 <h1 className="text-2xl font-bold text-green-800 mb-6 text-center">{chore.title}</h1>
@@ -165,42 +166,47 @@ export default function CompletedChoresPage() {
                   <button
                     onClick={() => handleIconClick(chore, '😊')}
                     disabled={isSending}
-                    className="w-12 h-12 bg-yellow-100 hover:bg-yellow-200 rounded-lg flex items-center justify-center text-2xl transition-colors disabled:opacity-50"
+                    className="w-12 h-12 bg-yellow-50 hover:bg-yellow-100 rounded-lg flex items-center justify-center text-yellow-600 transition-colors disabled:opacity-50"
                     title="嬉しい"
+                    aria-label="嬉しい"
                   >
-                    😊
+                    <Smile className="w-6 h-6" aria-hidden="true" />
                   </button>
                   <button
                     onClick={() => handleIconClick(chore, '👍')}
                     disabled={isSending}
-                    className="w-12 h-12 bg-blue-100 hover:bg-blue-200 rounded-lg flex items-center justify-center text-2xl transition-colors disabled:opacity-50"
+                    className="w-12 h-12 bg-blue-50 hover:bg-blue-100 rounded-lg flex items-center justify-center text-blue-600 transition-colors disabled:opacity-50"
                     title="いいね"
+                    aria-label="いいね"
                   >
-                    👍
+                    <ThumbsUp className="w-6 h-6" aria-hidden="true" />
                   </button>
                   <button
                     onClick={() => handleIconClick(chore, '❤️')}
                     disabled={isSending}
-                    className="w-12 h-12 bg-red-100 hover:bg-red-200 rounded-lg flex items-center justify-center text-2xl transition-colors disabled:opacity-50"
+                    className="w-12 h-12 bg-pink-50 hover:bg-pink-100 rounded-lg flex items-center justify-center text-pink-600 transition-colors disabled:opacity-50"
                     title="愛してる"
+                    aria-label="愛してる"
                   >
-                    ❤️
+                    <Heart className="w-6 h-6" aria-hidden="true" />
                   </button>
                   <button
                     onClick={() => handleIconClick(chore, '🙏')}
                     disabled={isSending}
-                    className="w-12 h-12 bg-purple-100 hover:bg-purple-200 rounded-lg flex items-center justify-center text-2xl transition-colors disabled:opacity-50"
+                    className="w-12 h-12 bg-purple-50 hover:bg-purple-100 rounded-lg flex items-center justify-center text-purple-600 transition-colors disabled:opacity-50"
                     title="お疲れさま"
+                    aria-label="お疲れさま"
                   >
-                    🙏
+                    <Handshake className="w-6 h-6" aria-hidden="true" />
                   </button>
                   <button
                     onClick={() => handleIconClick(chore, '🔥')}
                     disabled={isSending}
-                    className="w-12 h-12 bg-orange-100 hover:bg-orange-200 rounded-lg flex items-center justify-center text-2xl transition-colors disabled:opacity-50"
+                    className="w-12 h-12 bg-orange-50 hover:bg-orange-100 rounded-lg flex items-center justify-center text-orange-600 transition-colors disabled:opacity-50"
                     title="すごい"
+                    aria-label="すごい"
                   >
-                    🔥
+                    <Flame className="w-6 h-6" aria-hidden="true" />
                   </button>
                 </div>
                 
