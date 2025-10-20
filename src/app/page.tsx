@@ -198,9 +198,7 @@ export default function Home() {
         </div>
 
         {/* 家事管理メインコンテンツ */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <ChoresList />
-        </div>
+        <ChoresList />
       </main>
       
       {/* モバイル用の下部余白（ナビゲーションバーの分） */}
