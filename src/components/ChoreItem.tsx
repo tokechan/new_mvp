@@ -111,18 +111,19 @@ export function ChoreItem({
   return (
     <>
       <Card className={`
-        p-4 transition-all duration-300 transform hover:scale-[1.02] hover:shadow-lg
+        p-4 transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.99]
+        cursor-pointer shadow-sm sm:shadow-md border-0
         ${chore.done 
-          ? 'bg-green-50 border-green-300 shadow-green-100/50 completion-animation' 
-          : 'bg-white border-gray-200 hover:border-gray-300 shadow-md hover:shadow-xl'
+          ? 'bg-green-50 shadow-green-100/70 completion-animation' 
+          : 'bg-white hover:shadow-lg'
         }
-        rounded-lg
+        rounded-xl
       `}>
-        <div className="flex flex-col items-center justify-center sm:flex-row sm:items-center sm:justify-between">
-          {/* 家事タイトルと完了情報 */}
-          <div className="flex-1 w-full sm:w-auto">
+        <div className="flex flex-col gap-3">
+          {/* 家事タイトルと完了情報（上部テキストコンテンツ） */}
+          <div className="w-full">
             <h3 className={`
-              font-medium transition-all duration-200 break-words whitespace-normal text-center sm:text-left
+              font-medium transition-all duration-200 break-words whitespace-normal text-center
               ${chore.done ? 'line-through text-green-700' : 'text-gray-900'}
             `}>
               {chore.title}
@@ -137,7 +138,8 @@ export function ChoreItem({
             )}
           </div>
 
-          <div className="mt-3 sm:mt-0 flex flex-wrap items-center gap-2 justify-center sm:justify-end">
+          {/* ボタン群（下部） */}
+          <div className="grid grid-cols-2 gap-2 w-full">
             {/* 完了/未完了ボタン */}
             <Button
               type="button"
@@ -148,7 +150,7 @@ export function ChoreItem({
               size="sm"
               aria-label={chore.done ? '未完了に戻す' : '完了する'}
               className={`
-                text-xs sm:text-sm px-3 sm:px-4 py-2 font-medium transition-all duration-200
+                text-xs sm:text-sm px-3 sm:px-4 py-2 font-medium transition-all duration-200 w-full
                 ${chore.done 
                   ? 'bg-green-50 border-green-300 text-green-700 hover:bg-green-100 hover:border-green-400' 
                   : 'bg-blue-600 text-white hover:bg-blue-700 shadow-md hover:shadow-lg'
@@ -178,7 +180,7 @@ export function ChoreItem({
                 </>
               )}
             </Button>
-            
+
             {/* ありがとうボタン */}
             {chore.done && !isOwnChore && (
               <Button
@@ -188,7 +190,7 @@ export function ChoreItem({
                 onClick={onShowThankYou}
                 className="
                   bg-pink-50 border-pink-300 text-pink-700 hover:bg-pink-100 hover:border-pink-400
-                  text-xs sm:text-sm px-3 sm:px-4 py-2 font-medium transition-all duration-200
+                  text-xs sm:text-sm px-3 sm:px-4 py-2 font-medium transition-all duration-200 w-full
                   hover:transform hover:scale-105 focus:ring-2 focus:ring-offset-2 focus:ring-pink-500
                   shadow-sm hover:shadow-md
                 "
@@ -197,15 +199,15 @@ export function ChoreItem({
                 <span className="hidden sm:inline">ありがとう</span>
               </Button>
             )}
-            
-            {/* 削除ボタン */}
+
+            {/* 削除ボタン（パートナー家事でも表示） */}
             <Button
               variant="outline"
               size="sm"
               aria-label="削除"
               onClick={() => onDelete(chore.id as any)}
               className="
-                text-xs sm:text-sm px-3 sm:px-4 py-2 font-medium transition-all duration-200
+                text-xs sm:text-sm px-3 sm:px-4 py-2 font-medium transition-all duration-200 w-full
                 border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300
                 hover:transform hover:scale-105 focus:ring-2 focus:ring-offset-2 focus:ring-red-500
                 shadow-sm hover:shadow-md
@@ -216,7 +218,6 @@ export function ChoreItem({
             </Button>
           </div>
         </div>
-        
         {/* ありがとうメッセージフォーム */}
         {showThankYou && (
           <div className="mt-4 pt-4 border-t">

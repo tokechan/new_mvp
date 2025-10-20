@@ -288,7 +288,7 @@ export default function ChoresList() {
       {/* 家事リスト */}
       <div 
         ref={keyboardNavigation.containerRef as React.RefObject<HTMLDivElement>} 
-        className="space-y-2"
+        className="grid grid-cols-2 gap-3 sm:gap-4 w-full border border-amber-300 rounded-lg"
         role="list" 
         aria-label="家事一覧"
       >
