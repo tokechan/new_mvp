@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/Button'
 import { profileService } from '@/services/profileService'
 import { PartnerService } from '@/services/partnerService'
 import { supabase } from '@/lib/supabase'
+import { Bell, LogOut } from 'lucide-react'
 
 export default function Home() {
   const { user, loading, signOut } = useAuth()
@@ -80,12 +81,12 @@ export default function Home() {
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* ユーザー情報とアクション */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div>
+          <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+            <div className="flex items-baseline gap-2">
               <p className="text-sm text-gray-600">こんにちは</p>
               <p className="font-medium text-gray-900 truncate">{displayName || user.email?.split('@')[0] || 'ユーザー'}さん</p>
             </div>
-            <div className="flex flex-col sm:flex-row items-center gap-2">
+            <div className="flex items-center gap-2">
               <Button 
                 onClick={() => {
                   addNotification({
@@ -97,8 +98,10 @@ export default function Home() {
                 }}
                 variant="outline"
                 size="sm"
+                aria-label="テスト通知"
               >
-                テスト通知
+                <Bell className="w-[19px] h-[19px] sm:w-4 sm:h-4 mr-1" aria-hidden="true" />
+                <span className="hidden sm:inline">テスト通知</span>
               </Button>
               <Button 
                 onClick={async () => {
@@ -111,8 +114,10 @@ export default function Home() {
                 }}
                 variant="destructive"
                 size="sm"
+                aria-label="ログアウト"
               >
-                ログアウト
+                <LogOut className="w-[19px] h-[19px] sm:w-4 sm:h-4 mr-1" aria-hidden="true" />
+                <span className="hidden sm:inline">ログアウト</span>
               </Button>
             </div>
           </div>
