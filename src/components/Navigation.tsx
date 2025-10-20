@@ -231,10 +231,12 @@ export default function Navigation() {
               </button>
             )
           })}
-          {/* モバイル用通知センター */}
-          <div className="flex flex-col items-center space-y-1 px-3 py-2">
-            <NotificationCenter />
-          </div>
+          {/* モバイル用通知センター（メニュー開時は非表示） */}
+          {!isMenuOpen && (
+            <div className="flex flex-col items-center space-y-1 px-3 py-2">
+              <NotificationCenter />
+            </div>
+          )}
         </div>
       </div>
     </nav>
