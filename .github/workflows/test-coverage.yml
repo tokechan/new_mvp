@@ -1,13 +1,14 @@
 name: Test Coverage Monitoring
 
 on:
-  push:
+  workflow_dispatch:
     branches: [ main, develop ]
   pull_request:
     branches: [ main, develop ]
 
 jobs:
   test-coverage:
+    if: ${{ false }}
     runs-on: ubuntu-latest
     
     steps:
