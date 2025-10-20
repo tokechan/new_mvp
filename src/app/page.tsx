@@ -174,11 +174,15 @@ export default function Home() {
                   setThanksTesting(true)
                   setThanksTestResult(null)
                   try {
-                    const { error } = await supabase.from('thanks').insert({
-                      from_id: user.id,
-                      to_id: user.id,
-                      message: '通知受信テスト（自分宛）'
-                    })
+                    const { data, error, status } = await supabase
+                      .from('thanks')
+                      .insert({
+                        from_id: user.id,
+                        to_id: user.id,
+                        message: '通知受信テスト（自分宛）'
+                      })
+                      .select('*')
+                    console.info('insert result', { data, error, status })
                     if (error) {
                       setThanksTestResult(`挿入失敗: ${error.message}`)
                     } else {
