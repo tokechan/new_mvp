@@ -8,6 +8,7 @@ import { ChoreCompletionModal } from '@/components/ChoreCompletionModal'
 import { CongratulationsModal } from '@/components/CongratulationsModal'
 import ThankYouMessage from './ThankYouMessage'
 import { Chore } from '@/types/chore'
+import { RotateCcw, Heart, Trash2, Check } from 'lucide-react'
 
 interface ChoreItemProps {
   chore: Chore
@@ -117,19 +118,17 @@ export function ChoreItem({
         }
         rounded-lg
       `}>
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col items-center justify-center sm:flex-row sm:items-center sm:justify-between">
           {/* 家事タイトルと完了情報 */}
           <div className="flex-1 w-full sm:w-auto">
             <h3 className={`
-              font-medium transition-all duration-200 break-words whitespace-normal
+              font-medium transition-all duration-200 break-words whitespace-normal text-center sm:text-left
               ${chore.done ? 'line-through text-green-700' : 'text-gray-900'}
             `}>
               {chore.title}
             </h3>
-            
-            {/* 完了情報 */}
             {chore.done && chore.completed_at && (
-              <div className="flex items-center mt-2 animate-fade-in">
+              <div className="flex items-center justify-center mt-2 animate-fade-in">
                 <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-200">
                   <span className="mr-1">✨</span>
                   {formatCompletionDate()}に完了
@@ -138,7 +137,7 @@ export function ChoreItem({
             )}
           </div>
 
-          <div className="mt-3 sm:mt-0 flex flex-wrap items-center gap-2">
+          <div className="mt-3 sm:mt-0 flex flex-wrap items-center gap-2 justify-center sm:justify-end">
             {/* 完了/未完了ボタン */}
             <Button
               type="button"
@@ -147,6 +146,7 @@ export function ChoreItem({
               disabled={isLoading}
               variant={chore.done ? "outline" : "default"}
               size="sm"
+              aria-label={chore.done ? '未完了に戻す' : '完了する'}
               className={`
                 text-xs sm:text-sm px-3 sm:px-4 py-2 font-medium transition-all duration-200
                 ${chore.done 
@@ -166,13 +166,13 @@ export function ChoreItem({
                 <>
                   {chore.done ? (
                     <>
-                      <span className="mr-1">↩️</span>
-                      未完了に戻す
+                      <RotateCcw className="w-[19px] h-[19px] sm:w-4 sm:h-4 mr-1" aria-hidden="true" />
+                      <span className="hidden sm:inline">未完了に戻す</span>
                     </>
                   ) : (
                     <>
-                      <span className="mr-1">✅</span>
-                      完了する
+                      <Check className="w-[19px] h-[19px] sm:w-4 sm:h-4 mr-1" aria-hidden="true" />
+                      <span className="hidden sm:inline">完了する</span>
                     </>
                   )}
                 </>
@@ -184,6 +184,7 @@ export function ChoreItem({
               <Button
                 variant="outline"
                 size="sm"
+                aria-label="ありがとう"
                 onClick={onShowThankYou}
                 className="
                   bg-pink-50 border-pink-300 text-pink-700 hover:bg-pink-100 hover:border-pink-400
@@ -192,8 +193,8 @@ export function ChoreItem({
                   shadow-sm hover:shadow-md
                 "
               >
-                <span className="mr-1">💖</span>
-                ありがとう
+                <Heart className="w-[19px] h-[19px] sm:w-4 sm:h-4 mr-1" aria-hidden="true" />
+                <span className="hidden sm:inline">ありがとう</span>
               </Button>
             )}
             
@@ -201,6 +202,7 @@ export function ChoreItem({
             <Button
               variant="outline"
               size="sm"
+              aria-label="削除"
               onClick={() => onDelete(chore.id as any)}
               className="
                 text-xs sm:text-sm px-3 sm:px-4 py-2 font-medium transition-all duration-200
@@ -209,8 +211,8 @@ export function ChoreItem({
                 shadow-sm hover:shadow-md
               "
             >
-              <span className="mr-1">🗑️</span>
-              削除
+              <Trash2 className="w-[19px] h-[19px] sm:w-4 sm:h-4 mr-1" aria-hidden="true" />
+              <span className="hidden sm:inline">削除</span>
             </Button>
           </div>
         </div>
