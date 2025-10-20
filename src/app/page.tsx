@@ -103,7 +103,9 @@ export default function Home() {
                 <Bell className="w-[19px] h-[19px] sm:w-4 sm:h-4 mr-1" aria-hidden="true" />
                 <span className="hidden sm:inline">テスト通知</span>
               </Button>
-              <NotificationCenter />
+              <div className="hide-on-menu-open">
+                <NotificationCenter />
+              </div>
             </div>
           </div>
         </div>
@@ -193,36 +195,6 @@ export default function Home() {
               結果: {thanksTestResult}
             </div>
           )}
-        </div>
-
-        {/* CTAテキスト */}
-        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-6 mb-8 text-center dark:from-blue-950/30 dark:to-indigo-950/30 dark:border-blue-800">
-          <div className="flex items-center justify-center gap-3 mb-2">
-            <p className="text-lg font-medium text-gray-900 dark:text-white">
-              やることあった？？
-            </p>
-            <button
-              onClick={() => {
-                addNotification({
-                  title: 'リマインダー',
-                  message: '家事をチェックしてみましょう！',
-                  type: 'info',
-                  source: 'partner'
-                })
-              }}
-              className="p-2 rounded-full bg-blue-100 text-blue-600 hover:bg-blue-200 hover:text-blue-700 transition-colors duration-200 dark:bg-blue-900/50 dark:text-blue-400 dark:hover:bg-blue-800/70 dark:hover:text-blue-300"
-              title="リマインダー通知を送信"
-            >
-              <svg 
-                className="w-5 h-5" 
-                fill="currentColor" 
-                viewBox="0 0 20 20" 
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z" />
-              </svg>
-            </button>
-          </div>
         </div>
 
         {/* 家事管理メインコンテンツ */}

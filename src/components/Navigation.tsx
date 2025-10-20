@@ -85,6 +85,20 @@ export default function Navigation() {
     return () => document.removeEventListener('click', onClick)
   }, [isMenuOpen])
 
+  // メニュー開閉に合わせてグローバルクラスを付与・解除
+  useEffect(() => {
+    if (typeof document !== 'undefined') {
+      const root = document.documentElement
+      if (isMenuOpen) root.classList.add('menu-open')
+      else root.classList.remove('menu-open')
+    }
+    return () => {
+      try {
+        document.documentElement.classList.remove('menu-open')
+      } catch {}
+    }
+  }, [isMenuOpen])
+
   return (
     <nav 
       className="bg-white border-b border-gray-200 shadow-sm"
@@ -134,7 +148,9 @@ export default function Navigation() {
             </div>
 
             {/* 通知センター */}
+            <div className="hide-on-menu-open">
             <NotificationCenter />
+            </div>
           </div>
 
           {/* モバイル用: ハンバーガーと通知 */}

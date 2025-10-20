@@ -46,13 +46,14 @@ export function ChoreAddForm({ onAddChore, isAdding }: ChoreAddFormProps) {
         value={newChore}
         onChange={(e) => setNewChore(e.target.value)}
         disabled={isAdding}
-        className="flex-1 text-sm sm:text-base"
+        className="flex-1 h-10 text-base"
         aria-label="新しい家事名"
       />
       <Button 
         type="submit" 
         disabled={isAdding || !newChore.trim()}
-        className="w-full sm:w-auto px-4 py-2 text-sm sm:text-base"
+        size="lg"
+        className="w-full sm:w-auto px-4 py-2 text-base"
       >
         {isAdding ? '追加中...' : '追加'}
       </Button>
