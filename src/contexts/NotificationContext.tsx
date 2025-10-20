@@ -290,7 +290,74 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
           })
     
         console.log('[NotificationProvider] thanks channel created')
-
+        // SKIP_AUTH（ステージング高速検証モード）時のフォールバック購読
+        // サーバー側フィルタが解釈されない/権限でエラーになる場合に備え、クライアント側でto_idを判定
+        if (process.env.NEXT_PUBLIC_SKIP_AUTH === 'true') {
+          const thanksFallbackChannel = supabase
+            .channel(`user-${user.id}-notif-thanks-fallback-v1-${topicSuffix}`)
+            .on(
+              'postgres_changes',
+              {
+                event: 'INSERT',
+                schema: 'public',
+                table: 'thanks',
+              },
+              async (payload) => {
+                console.log('[NotificationProvider] thanks fallback event received:', payload)
+                // クライアント側で宛先判定
+                if (payload?.new?.to_id !== user.id) {
+                  console.log('[NotificationProvider] thanks fallback: 自分宛ではないためスキップ', {
+                    to_id: payload?.new?.to_id,
+                    my_id: user.id,
+                  })
+                  return
+                }
+                try {
+                  const { data, error } = await supabase
+                    .from('thanks')
+                    .select(`
+                        *,
+                        from_user:profiles!thanks_from_id_fkey(display_name),
+                        to_user:profiles!thanks_to_id_fkey(display_name)
+                      `)
+                    .eq('id', payload.new.id)
+                    .single()
+                  const senderName = data?.from_user?.display_name || 'パートナー'
+                  const messageText = data?.message ?? payload.new.message ?? ''
+                  if (error) {
+                    console.warn('[NotificationProvider] ありがとう詳細取得失敗（fallback）:', error)
+                    addNotification({
+                      title: 'ありがとうメッセージを受け取りました',
+                      message: `${messageText}`,
+                      type: 'success',
+                      userId: user.id,
+                      source: 'partner',
+                    })
+                  } else {
+                    addNotification({
+                      title: 'ありがとうメッセージを受け取りました',
+                      message: `${senderName}から: ${messageText}`,
+                      type: 'success',
+                      userId: user.id,
+                      source: 'partner',
+                    })
+                  }
+                } catch (e) {
+                  console.warn('[NotificationProvider] ありがとう詳細取得例外（fallback）:', e)
+                  addNotification({
+                    title: 'ありがとうメッセージを受け取りました',
+                    message: `${payload.new?.message ?? ''}`,
+                    type: 'success',
+                    userId: user.id,
+                    source: 'partner',
+                  })
+                }
+              }
+            )
+            .subscribe((status) => {
+              console.log('[NotificationProvider] thanks fallback channel status:', status)
+            })
+        }
         // DEVのみ: フィルタ無しチャンネル（到達性の切り分け用）
         if (process.env.NODE_ENV === 'development') {
           console.log('[NotificationProvider][DEV] thanks channel without filter setup')
