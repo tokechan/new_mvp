@@ -63,7 +63,7 @@ export default function FooterChoreInput() {
             type="submit"
             disabled={isAdding || !text.trim()}
             aria-label="家事を追加"
-            className="absolute right-1.5 top-1.5 h-8 w-8 rounded-full bg-blue-600 text-white hover:bg-blue-700 focus:ring-2 focus:ring-blue-500"
+            className="absolute right-1.5 top-1.5 h-8 w-8 rounded-full bg-blue-50 text-blue-700 border border-blue-300 hover:bg-blue-100 hover:border-blue-400 focus:ring-2 focus:ring-blue-400"
             variant="default"
             size="icon"
           >

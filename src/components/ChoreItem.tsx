@@ -153,7 +153,7 @@ export function ChoreItem({
               className={`${
                 chore.done
                   ? 'bg-green-50 border-green-300 text-green-700 hover:bg-green-100 hover:border-green-400'
-                  : 'bg-blue-600 text-white hover:bg-blue-700 shadow-md hover:shadow-lg'
+                  : 'bg-blue-50 border border-blue-300 text-blue-700 hover:bg-blue-100 hover:border-blue-400'
               } h-9 w-9 sm:h-10 sm:w-10 p-0 grid place-items-center transition-all duration-200 ${
                 isLoading ? 'opacity-60 cursor-not-allowed transform scale-95' : 'hover:transform hover:scale-105'
               } focus:ring-2 focus:ring-offset-2 ${chore.done ? 'focus:ring-green-500' : 'focus:ring-blue-500'}`}
@@ -188,7 +188,7 @@ export function ChoreItem({
               size="icon"
               aria-label="削除"
               onClick={() => onDelete(chore.id as any)}
-              className="border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 h-9 w-9 sm:h-10 sm:w-10 p-0 grid place-items-center transition-all duration-200 hover:transform hover:scale-105 focus:ring-2 focus:ring-offset-2 focus:ring-red-500 shadow-sm hover:shadow-md"
+              className="bg-red-50 border-red-300 text-red-700 hover:bg-red-100 hover:border-red-400 h-9 w-9 sm:h-10 sm:w-10 p-0 grid place-items-center transition-all duration-200 hover:transform hover:scale-105 focus:ring-2 focus:ring-offset-2 focus:ring-red-500 shadow-sm hover:shadow-md"
             >
               <Trash2 className="w-5 h-5" aria-hidden="true" />
               <span className="sr-only">削除</span>
