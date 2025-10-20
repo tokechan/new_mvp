@@ -108,25 +108,6 @@ export default function Home() {
           </div>
         </div>
 
-        {/* ログアウトアイコン（中段） */}
-        <div className="mb-8">
-          <Button 
-            onClick={async () => {
-              try {
-                await signOut()
-                router.push('/auth/signin')
-              } catch (error) {
-                console.error('ログアウトに失敗しました:', error)
-              }
-            }}
-            variant="destructive"
-            size="sm"
-            aria-label="ログアウト"
-            className="p-2 rounded-full"
-          >
-            <LogOut className="w-5 h-5" aria-hidden="true" />
-          </Button>
-        </div>
 
         {/* デバッグ: パートナー連携状態＆通知受信テスト */}
         <div className="bg-white rounded-lg shadow-sm border border-amber-300 p-4 mb-8">
