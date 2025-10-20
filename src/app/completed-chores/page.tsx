@@ -7,7 +7,7 @@ import { sendThankYou } from '@/services/thankYouService'
 import { useAuthState } from '@/hooks/useAuthState'
 import Navigation from '@/components/Navigation'
 import { ThankYouModal } from '@/components/ThankYouModal'
-import { Smile, ThumbsUp, Heart, Handshake, Flame } from 'lucide-react'
+import { Smile, ThumbsUp, Heart, Handshake, Flame, FileText, Clock } from 'lucide-react'
 
 /**
  * 完了した家事一覧ページ
@@ -212,19 +212,27 @@ export default function CompletedChoresPage() {
                 
                 {/* 詳細情報 */}
                 <div className="space-y-2 text-sm text-gray-600">
-                    <div className="flex items-center gap-2">
-                      <span>📝</span>
-                      <span>家事: {chore.title}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span>⏰</span>
-                      <span>作成: {new Date(chore.created_at).toLocaleString('ja-JP')}</span>
-                    </div>
-                    {chore.completions && chore.completions.length > 0 && (
-                      <div className="text-xs text-green-600">
-                        ✅ 完了記録: {chore.completions.length} 件
-                      </div>
-                    )}
+                  <div className="flex items-center gap-2">
+                    <span className="inline-flex items-center justify-center">
+                      <FileText className="w-4 h-4 text-black" aria-hidden="true" />
+                    </span>
+                    <span>家事: {chore.title}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="inline-flex items-center justify-center">
+                      <Clock className="w-4 h-4 text-black" aria-hidden="true" />
+                    </span>
+                    <span>
+                      完了: {new Date(
+                        (chore.completions && chore.completions.length > 0
+                          ? Math.max(
+                              ...chore.completions.map((c: any) => new Date(c.created_at).getTime())
+                            )
+                          : new Date(chore.created_at).getTime()
+                        )
+                      ).toLocaleString('ja-JP')}
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
