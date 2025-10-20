@@ -55,7 +55,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
       // フォールバック: 簡易的なランダムID生成
       return 'notification-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9)
     }
-    
+
     const newNotification: Notification = {
       ...notification,
       id: generateId(),
@@ -130,6 +130,8 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
     let choresChannel: ReturnType<typeof supabase.channel> | null = null
     let thanksChannel: ReturnType<typeof supabase.channel> | null = null
     let completionsChannel: ReturnType<typeof supabase.channel> | null = null
+    // DEV向け: フィルタ無しの検証用チャンネル
+    let thanksChannelNoFilter: ReturnType<typeof supabase.channel> | null = null
 
     const setupRealtime = async () => {
       try {
@@ -221,6 +223,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
         console.log('[NotificationProvider] chores channel created')
 
         // ありがとうメッセージの変更を監視（サーバー側フィルタ + 念のためクライアント側判定）
+        console.log('[NotificationProvider] thanks channel setup with filter:', `to_id=eq.${user.id}`)
         thanksChannel = supabase
           .channel(`user-${user.id}-notif-thanks-v2-${topicSuffix}`)
           .on(
@@ -287,6 +290,49 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
           })
     
         console.log('[NotificationProvider] thanks channel created')
+
+        // DEVのみ: フィルタ無しチャンネル（到達性の切り分け用）
+        if (process.env.NODE_ENV === 'development') {
+          console.log('[NotificationProvider][DEV] thanks channel without filter setup')
+          thanksChannelNoFilter = supabase
+            .channel(`user-${user.id}-notif-thanks-nofilter-${topicSuffix}`)
+            .on(
+              'postgres_changes',
+              {
+                event: 'INSERT',
+                schema: 'public',
+                table: 'thanks',
+              },
+              async (payload) => {
+                console.log('[DEV] thanks event (no filter):', payload)
+                // クライアント側で自分宛に限定
+                if (payload.new?.to_id !== user.id) return
+                try {
+                  const { data, error } = await supabase
+                    .from('thanks')
+                    .select('id,message')
+                    .eq('id', payload.new.id)
+                    .single()
+                  const messageText = data?.message ?? payload.new.message ?? ''
+                  if (error) {
+                    console.warn('[DEV] 詳細取得失敗(フィルタ無し):', error)
+                  }
+                  addNotification({
+                    title: 'ありがとうメッセージを受け取りました',
+                    message: `${messageText}`,
+                    type: 'success',
+                    userId: user.id,
+                    source: 'partner',
+                  })
+                } catch (e) {
+                  console.warn('[DEV] thanks no-filter 例外:', e)
+                }
+              }
+            )
+            .subscribe((status) => {
+              console.log('[DEV] thanks no-filter channel status:', status)
+            })
+        }
     
         // 完了通知はcompletionsのINSERTを監視（REPLICA IDENTITY依存を回避）
         completionsChannel = supabase
@@ -344,6 +390,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
       if (choresChannel) supabase.removeChannel(choresChannel)
       if (thanksChannel) supabase.removeChannel(thanksChannel)
       if (completionsChannel) supabase.removeChannel(completionsChannel)
+      if (thanksChannelNoFilter) supabase.removeChannel(thanksChannelNoFilter)
     }
   }, [user, addNotification])
 
