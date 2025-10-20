@@ -139,82 +139,59 @@ export function ChoreItem({
           </div>
 
           {/* ボタン群（下部） */}
-          <div className="grid grid-cols-2 gap-2 w-full">
+          <div className="flex flex-nowrap items-center gap-2 w-full justify-center sm:justify-start">
             {/* 完了/未完了ボタン */}
+
             <Button
               type="button"
               data-testid="toggle-chore-button"
               onClick={handleToggle}
               disabled={isLoading}
               variant={chore.done ? "outline" : "default"}
-              size="sm"
+              size="icon"
               aria-label={chore.done ? '未完了に戻す' : '完了する'}
-              className={`
-                text-xs sm:text-sm px-3 sm:px-4 py-2 font-medium transition-all duration-200 w-full
-                ${chore.done 
-                  ? 'bg-green-50 border-green-300 text-green-700 hover:bg-green-100 hover:border-green-400' 
+              className={`${
+                chore.done
+                  ? 'bg-green-50 border-green-300 text-green-700 hover:bg-green-100 hover:border-green-400'
                   : 'bg-blue-600 text-white hover:bg-blue-700 shadow-md hover:shadow-lg'
-                }
-                ${isLoading ? 'opacity-60 cursor-not-allowed transform scale-95' : 'hover:transform hover:scale-105'}
-                focus:ring-2 focus:ring-offset-2 ${chore.done ? 'focus:ring-green-500' : 'focus:ring-blue-500'}
-              `}
+              } h-9 w-9 sm:h-10 sm:w-10 p-0 grid place-items-center transition-all duration-200 ${
+                isLoading ? 'opacity-60 cursor-not-allowed transform scale-95' : 'hover:transform hover:scale-105'
+              } focus:ring-2 focus:ring-offset-2 ${chore.done ? 'focus:ring-green-500' : 'focus:ring-blue-500'}`}
             >
               {isLoading ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2" />
-                  処理中...
-                </>
+                <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+              ) : chore.done ? (
+                <RotateCcw className="w-5 h-5" aria-hidden="true" />
               ) : (
-                <>
-                  {chore.done ? (
-                    <>
-                      <RotateCcw className="w-[19px] h-[19px] sm:w-4 sm:h-4 mr-1" aria-hidden="true" />
-                      <span className="hidden sm:inline">未完了に戻す</span>
-                    </>
-                  ) : (
-                    <>
-                      <Check className="w-[19px] h-[19px] sm:w-4 sm:h-4 mr-1" aria-hidden="true" />
-                      <span className="hidden sm:inline">完了する</span>
-                    </>
-                  )}
-                </>
+                <Check className="w-5 h-5" aria-hidden="true" />
               )}
+              <span className="sr-only">{chore.done ? '未完了に戻す' : '完了する'}</span>
             </Button>
 
-            {/* ありがとうボタン */}
+
             {chore.done && !isOwnChore && (
               <Button
                 variant="outline"
-                size="sm"
+                size="icon"
                 aria-label="ありがとう"
                 onClick={onShowThankYou}
-                className="
-                  bg-pink-50 border-pink-300 text-pink-700 hover:bg-pink-100 hover:border-pink-400
-                  text-xs sm:text-sm px-3 sm:px-4 py-2 font-medium transition-all duration-200 w-full
-                  hover:transform hover:scale-105 focus:ring-2 focus:ring-offset-2 focus:ring-pink-500
-                  shadow-sm hover:shadow-md
-                "
+                className="bg-pink-50 border-pink-300 text-pink-700 hover:bg-pink-100 hover:border-pink-400 h-9 w-9 sm:h-10 sm:w-10 p-0 grid place-items-center transition-all duration-200 hover:transform hover:scale-105 focus:ring-2 focus:ring-offset-2 focus:ring-pink-500 shadow-sm hover:shadow-md"
               >
-                <Heart className="w-[19px] h-[19px] sm:w-4 sm:h-4 mr-1" aria-hidden="true" />
-                <span className="hidden sm:inline">ありがとう</span>
+                <Heart className="w-5 h-5" aria-hidden="true" />
+                <span className="sr-only">ありがとう</span>
               </Button>
             )}
 
-            {/* 削除ボタン（パートナー家事でも表示） */}
+
             <Button
               variant="outline"
-              size="sm"
+              size="icon"
               aria-label="削除"
               onClick={() => onDelete(chore.id as any)}
-              className="
-                text-xs sm:text-sm px-3 sm:px-4 py-2 font-medium transition-all duration-200 w-full
-                border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300
-                hover:transform hover:scale-105 focus:ring-2 focus:ring-offset-2 focus:ring-red-500
-                shadow-sm hover:shadow-md
-              "
+              className="border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 h-9 w-9 sm:h-10 sm:w-10 p-0 grid place-items-center transition-all duration-200 hover:transform hover:scale-105 focus:ring-2 focus:ring-offset-2 focus:ring-red-500 shadow-sm hover:shadow-md"
             >
-              <Trash2 className="w-[19px] h-[19px] sm:w-4 sm:h-4 mr-1" aria-hidden="true" />
-              <span className="hidden sm:inline">削除</span>
+              <Trash2 className="w-5 h-5" aria-hidden="true" />
+              <span className="sr-only">削除</span>
             </Button>
           </div>
         </div>
