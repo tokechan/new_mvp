@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/Button'
 import { Chore } from '@/types/chore'
-import { Check, X } from 'lucide-react'
+import { ThumbsUp, Undo2 } from 'lucide-react'
 
 interface ChoreCompletionModalProps {
   /** モーダルの表示状態 */
@@ -83,30 +83,36 @@ export function ChoreCompletionModal({
           </DialogDescription>
         </DialogHeader>
 
-        <DialogFooter className="flex flex-col sm:flex-row gap-2">
+        {/* 横並びで、左が完了（サムズアップ）、右がキャンセル（巻き戻し） */}
+        <DialogFooter className="flex flex-row items-center justify-center gap-3 sm:!justify-center">
+          {/* 完了（サムズアップ） */}
           <Button
-            variant="outline"
-            size="icon"
-            onClick={onClose}
-            disabled={isProcessing}
-            className="sm:h-10 sm:w-10 p-0 grid place-items-center"
-          >
-            <X className="w-5 h-5" aria-hidden="true" />
-            <span className="sr-only">キャンセル</span>
-          </Button>
-          <Button
+            aria-label="完了"
             onClick={handleConfirm}
             disabled={isProcessing}
             size="icon"
-            className="sm:h-10 sm:w-10 p-0 grid place-items-center bg-green-600 hover:bg-green-700"
+            className="h-12 w-12 rounded-full p-0 grid place-items-center text-white bg-green-600 hover:bg-green-700"
           >
             {isProcessing ? (
-              <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+              <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
             ) : (
-              <Check className="w-5 h-5" aria-hidden="true" />
+              <ThumbsUp className="w-6 h-6" aria-hidden="true" />
             )}
             <span className="sr-only">完了</span>
           </Button>
+
+          {/* キャンセル（巻き戻し） */}
+          <Button
+            aria-label="キャンセル"
+            size="icon"
+            onClick={onClose}
+            disabled={isProcessing}
+            className="h-12 w-12 rounded-full p-0 grid place-items-center bg-slate-200 text-slate-800 hover:bg-slate-300"
+          >
+            <Undo2 className="w-6 h-6" aria-hidden="true" />
+            <span className="sr-only">キャンセル</span>
+          </Button>
+
           {onThankYou && (
             <Button
               onClick={handleConfirmAndThankYou}
