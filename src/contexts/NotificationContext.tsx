@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState, useCallback, useRef, useMemo } from 'react'
 import { createSupabaseBrowserClient } from '@/lib/supabase'
+import { normalizeNullable } from '@/lib/utils'
 import { useAuth } from './AuthContext'
 
 // 通知の型定義
@@ -233,7 +234,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
                         .eq('chore_id', payload.new.id)
                         .order('created_at', { ascending: false })
                         .limit(1)
-                      const completedBy: string | undefined = latestCompletion?.[0]?.user_id
+                      const completedBy: string | undefined = normalizeNullable(latestCompletion?.[0]?.user_id)
                       const isCompletedByPartner = !!completedBy && completedBy !== user.id
                       if (compErr) {
                         console.warn('完了者取得に失敗:', compErr)

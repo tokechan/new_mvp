@@ -21,3 +21,11 @@ export function getFocusableElements(container: HTMLElement): HTMLElement[] {
   
   return Array.from(container.querySelectorAll(focusableSelectors)) as HTMLElement[]
 }
+
+/**
+ * null/undefined を境界で統一して undefined に正規化する
+ * 型安全にアプリ内部の条件分岐を最小化するためのヘルパー
+ */
+export function normalizeNullable<T>(value: T | null | undefined): T | undefined {
+  return value ?? undefined
+}
