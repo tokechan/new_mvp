@@ -1,57 +1,40 @@
 import { createBrowserClient } from '@supabase/ssr'
 
-// 環境変数の存在チェックと取得
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-const supabasePublishableKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
-const supabaseSecretKey = process.env.SUPABASE_SECRET_KEY
+// ブラウザ用Supabase環境変数の取得（Publishable Keyを使用）
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const supabasePublishableKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
 
 if (!supabaseUrl || !supabasePublishableKey) {
   const missing = [
     !supabaseUrl && 'NEXT_PUBLIC_SUPABASE_URL',
     !supabasePublishableKey && 'NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY',
   ].filter(Boolean).join(', ')
-
-  const hint = `\nヒント: .env に以下を設定してください\nNEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co\nNEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=your_publishable_key`
-
-  // 開発時にわかりやすいログを表示し、明示的にエラーを投げる
-  console.error(`Supabase環境変数が未設定です: ${missing}${hint}`)
+  console.error(`Supabase環境変数が未設定です: ${missing}`)
   throw new Error(`Supabase環境変数が未設定です: ${missing}`)
 }
 
-// テスト環境かどうかを判定
-const isTestEnvironment = process.env.NODE_ENV === 'test' || process.env.NEXT_PUBLIC_SKIP_AUTH === 'true'
-
-// ブラウザ環境ではSecret Keyは使用できないため、常にPublishable Keyを使用
-// テスト環境では認証状態をモックで管理
-export const supabase = createBrowserClient(
-  supabaseUrl, 
+// ブラウザクライアントの単一インスタンス
+export const supabase = createBrowserClient<Database>(
+  supabaseUrl,
   supabasePublishableKey,
   {
     auth: {
-      // PKCEフローの設定を明示的に指定
       autoRefreshToken: true,
       persistSession: true,
       detectSessionInUrl: true,
-      // セッション保存の設定
       storage: typeof window !== 'undefined' ? window.localStorage : undefined,
     },
-    realtime: {
-      params: {
-        eventsPerSecond: 10
-      }
-    }
+    realtime: { params: { eventsPerSecond: 10 } },
   }
 )
 
 // デバッグ用にグローバルに公開
 if (typeof window !== 'undefined') {
-  (window as any).supabase = supabase
+  ;(window as any).supabase = supabase
 }
 
 // 互換性維持のためのヘルパー（常に同じインスタンスを返す）
-export const createSupabaseBrowserClient = () => {
-  return supabase
-}
+export const createSupabaseBrowserClient = () => supabase
 
 // 最新のSupabaseから生成された型定義
 export type Json =

@@ -60,7 +60,7 @@ jest.mock('next/navigation', () => ({
   usePathname: () => '/'
 }))
 
-// テスト用の環境変数設定
+// 環境変数のモック
 process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://test.supabase.co'
 process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY = 'test-publishable-key'
 
