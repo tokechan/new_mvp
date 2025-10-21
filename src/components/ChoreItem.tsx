@@ -139,7 +139,7 @@ export function ChoreItem({
           </div>
 
           {/* ボタン群（下部） */}
-          <div className="flex flex-nowrap items-center gap-2 w-full justify-center sm:justify-start">
+          <div className="flex flex-nowrap items-center gap-2 w-full justify-center">
             {/* 完了/未完了ボタン */}
 
             <Button

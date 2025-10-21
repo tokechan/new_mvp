@@ -32,6 +32,57 @@ export default function ThankYouCelebration({
   const startTimeRef = useRef<number>(0)
   const [showMessage, setShowMessage] = useState(false)
 
+  // 絵文字抽出とテーマ判定
+  const EMOJI_ORDER = ['😊', '👍', '❤️', '🙏', '🔥'] as const
+  const extractPrimaryEmoji = (msg: string) => {
+    const s = (msg || '').trim()
+    for (const e of EMOJI_ORDER) {
+      if (s.includes(e)) return e
+    }
+    // 先頭が絵文字のケースにも対応
+    const first = s.charAt(0)
+    return EMOJI_ORDER.includes(first as any) ? (first as (typeof EMOJI_ORDER)[number]) : null
+  }
+  const deriveThemeFromEmoji = (emoji: string | null) => {
+    switch (emoji) {
+      case '😊':
+        return 'yellow'
+      case '👍':
+        return 'blue'
+      case '❤️':
+        return 'pink'
+      case '🙏':
+        return 'purple'
+      case '🔥':
+        return 'orange'
+      default:
+        return 'multi'
+    }
+  }
+
+  const primaryEmoji = extractPrimaryEmoji(message)
+  const theme = deriveThemeFromEmoji(primaryEmoji)
+
+  // 背景グラデーションのクラス（Tailwind のパージ回避のため列挙）
+  const themeGradient: Record<string, string> = {
+    multi: 'bg-gradient-to-br from-yellow-100 via-pink-100 to-blue-100',
+    yellow: 'bg-gradient-to-br from-yellow-50 via-amber-100 to-orange-50',
+    blue: 'bg-gradient-to-br from-blue-50 via-indigo-100 to-cyan-50',
+    pink: 'bg-gradient-to-br from-pink-50 via-rose-100 to-fuchsia-50',
+    purple: 'bg-gradient-to-br from-purple-50 via-violet-100 to-fuchsia-50',
+    orange: 'bg-gradient-to-br from-orange-50 via-amber-100 to-yellow-50',
+  }
+
+  // コンフェッティの配色をテーマに合わせる
+  const confettiPalette: Record<string, string[]> = {
+    multi: ['#FF6B6B', '#FFD93D', '#6BCB77', '#4D96FF', '#B28DFF'],
+    yellow: ['#FDE68A', '#FCD34D', '#FBBF24', '#FB923C', '#FEF3C7'],
+    blue: ['#93C5FD', '#60A5FA', '#3B82F6', '#22D3EE', '#A5B4FC'],
+    pink: ['#FBCFE8', '#F472B6', '#FB7185', '#EC4899', '#FECDD3'],
+    purple: ['#D8B4FE', '#C084FC', '#A78BFA', '#F472B6', '#9333EA'],
+    orange: ['#FED7AA', '#FDBA74', '#FB923C', '#F59E0B', '#FCD34D'],
+  }
+
   // パーティクル型
   type Particle = {
     x: number
@@ -57,7 +108,7 @@ export default function ThankYouCelebration({
     }
     resize()
 
-    const colors = ['#FF6B6B', '#FFD93D', '#6BCB77', '#4D96FF', '#B28DFF']
+    const colors = confettiPalette[theme] || confettiPalette.multi
     const particles: Particle[] = []
 
     const spawnBurst = (count = 160) => {
@@ -161,13 +212,13 @@ export default function ThankYouCelebration({
         ctx2?.clearRect(0, 0, c.width, c.height)
       }
     }
-  }, [open, durationMs])
+  }, [open, durationMs, theme])
 
   if (!open) return null
 
   return createPortal(
     <div
-      className="fixed inset-0 z-[9999] flex items-center justify-center bg-gradient-to-br from-yellow-100 via-pink-100 to-blue-100"
+      className={`fixed inset-0 z-[9999] flex items-center justify-center ${themeGradient[theme]}`}
       role="dialog"
       aria-modal="true"
       aria-label="ありがとうのお祝い"
@@ -175,23 +226,26 @@ export default function ThankYouCelebration({
       {/* コンフェッティ */}
       <canvas ref={canvasRef} className="absolute inset-0" />
 
-      {/* 中央メッセージ */}
+      {/* 中央アイコンのみ表示 */}
       <div className="relative z-10 text-center px-6 max-w-3xl">
         <div className="inline-flex items-center justify-center mb-6 animate-pop-burst">
           <PartyPopper className="w-16 h-16 text-pink-600" aria-hidden="true" />
         </div>
-        <p className="font-extrabold text-3xl sm:text-4xl md:text-5xl text-gray-900 tracking-tight leading-tight">
-          {message}
-        </p>
+        <div className="flex justify-center">
+          <span className="text-6xl sm:text-7xl md:text-8xl select-none" aria-hidden="true">
+            {primaryEmoji || '🎉'}
+          </span>
+          <span className="sr-only">ありがとうメッセージのアイコン</span>
+        </div>
         {showMessage && (
           <div className="mt-6 flex justify-center">
             <button
               onClick={onClose}
-              className="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-pink-600 text-white shadow-md hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-pink-400"
+              className="h-12 w-12 rounded-full p-0 grid place-items-center bg-pink-600 text-white shadow-md hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-pink-400"
               aria-label="閉じる"
             >
-              <X className="w-5 h-5" aria-hidden="true" />
-              閉じる
+              <X className="w-6 h-6" aria-hidden="true" />
+              <span className="sr-only">閉じる</span>
             </button>
           </div>
         )}
