@@ -275,3 +275,15 @@
     );
   }
 }
+
+/* クラッカーの弾ける演出 */
+@keyframes popBurst {
+  0% { transform: scale(0.7) rotate(-8deg); opacity: 0; }
+  40% { transform: scale(1.25) rotate(6deg); opacity: 1; }
+  70% { transform: scale(0.95) rotate(-2deg); }
+  100% { transform: scale(1) rotate(0deg); }
+}
+
+.animate-pop-burst {
+  animation: popBurst 600ms cubic-bezier(0.22, 1, 0.36, 1);
+}
