@@ -103,6 +103,24 @@ export default function Home() {
                 <Bell className="w-[19px] h-[19px] sm:w-4 sm:h-4 mr-1" aria-hidden="true" />
                 <span className="hidden sm:inline">テスト通知</span>
               </Button>
+              {process.env.NODE_ENV !== 'production' && (
+                <Button 
+                  onClick={() => {
+                    addNotification({
+                      title: 'ありがとうメッセージを受け取りました',
+                      message: 'パートナーから: ありがとう！助かったよ✨',
+                      type: 'success',
+                      source: 'partner'
+                    })
+                  }}
+                  variant="outline"
+                  size="sm"
+                  aria-label="ありがとう通知テスト"
+                  className="ml-2"
+                >
+                  <span className="hidden sm:inline">ありがとう通知テスト</span>
+                </Button>
+              )}
               <div className="hide-on-menu-open">
                 <NotificationCenter />
               </div>
