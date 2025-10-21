@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/Button'
 import { Chore } from '@/types/chore'
+import { Check, X } from 'lucide-react'
 
 interface ChoreCompletionModalProps {
   /** モーダルの表示状態 */
@@ -72,7 +73,7 @@ export function ChoreCompletionModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md rounded-lg">
         <DialogHeader>
           <DialogTitle className="text-lg font-semibold text-gray-900">
             家事を完了しますか？
@@ -85,18 +86,26 @@ export function ChoreCompletionModal({
         <DialogFooter className="flex flex-col sm:flex-row gap-2">
           <Button
             variant="outline"
+            size="icon"
             onClick={onClose}
             disabled={isProcessing}
-            className="w-full sm:w-auto"
+            className="sm:h-10 sm:w-10 p-0 grid place-items-center"
           >
-            キャンセル
+            <X className="w-5 h-5" aria-hidden="true" />
+            <span className="sr-only">キャンセル</span>
           </Button>
           <Button
             onClick={handleConfirm}
             disabled={isProcessing}
-            className="w-full sm:w-auto bg-green-600 hover:bg-green-700"
+            size="icon"
+            className="sm:h-10 sm:w-10 p-0 grid place-items-center bg-green-600 hover:bg-green-700"
           >
-            {isProcessing ? '処理中...' : '完了'}
+            {isProcessing ? (
+              <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+            ) : (
+              <Check className="w-5 h-5" aria-hidden="true" />
+            )}
+            <span className="sr-only">完了</span>
           </Button>
           {onThankYou && (
             <Button

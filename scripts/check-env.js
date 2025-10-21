@@ -8,10 +8,10 @@
 // .envファイルを読み込み
 require('dotenv').config();
 
-const requiredVars = [
+const requiredEnvVars = [
   'NEXT_PUBLIC_SUPABASE_URL',
   'NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY',
-  'SUPABASE_SECRET_KEY'
+  'SUPABASE_SECRET_KEY',
 ];
 
 const optionalEnvVars = [
