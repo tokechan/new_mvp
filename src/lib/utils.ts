@@ -29,3 +29,14 @@ export function getFocusableElements(container: HTMLElement): HTMLElement[] {
 export function normalizeNullable<T>(value: T | null | undefined): T | undefined {
   return value ?? undefined
 }
+
+export function normalizeNumericId(value: string | number | null | undefined): number | undefined {
+  if (value === null || value === undefined) return undefined
+  if (typeof value === 'number') {
+    return Number.isFinite(value) ? Math.trunc(value) : undefined
+  }
+  const trimmed = value.trim()
+  if (!/^[0-9]+$/.test(trimmed)) return undefined
+  const parsed = Number(trimmed)
+  return Number.isFinite(parsed) ? parsed : undefined
+}

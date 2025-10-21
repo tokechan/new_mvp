@@ -10,6 +10,7 @@ import {
   AcceptInvitationRequest,
   PartnerInvitation,
 } from '@/types/invitation'
+import { normalizeNumericId } from '@/lib/utils'
 
 /**
  * パートナー招待を作成する
@@ -152,11 +153,15 @@ export const acceptInvitation = async (
 /**
  * 招待をキャンセルする
  */
-export const cancelInvitation = async (invitationId: string): Promise<void> => {
+export const cancelInvitation = async (invitationId: string | number): Promise<void> => {
+  const idNum = normalizeNumericId(invitationId)
+  if (idNum === undefined) {
+    throw new Error('不正な招待IDです')
+  }
   const { error } = await supabase
     .from('partner_invitations')
     .update({ status: 'cancelled' })
-    .eq('id', invitationId)
+    .eq('id', idNum)
 
   if (error) {
     throw new Error(`招待のキャンセルに失敗しました: ${error.message}`)
