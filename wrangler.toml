@@ -19,8 +19,8 @@ compatibility_date = "2024-11-21"
 compatibility_flags = ["nodejs_compat"]
 workers_dev = true
 
-# NEXT_PUBLIC_SUPABASE_ANON_KEY
-# SUPABASE_SERVICE_ROLE_KEY
+# NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+# SUPABASE_SECRET_KEY
 NEXT_PUBLIC_SUPABASE_URL = "https://njbormsqqfwnzwbigxuh.supabase.co"
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY = "sb_publishable_vPz2uxg31O02baWjpcKJ1g_wN9OX3HN"
 NEXT_PUBLIC_APP_URL = "https://mvp-staging.yutatokeshi.workers.dev"

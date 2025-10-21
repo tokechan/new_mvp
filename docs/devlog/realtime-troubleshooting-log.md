@@ -114,8 +114,8 @@
    - Realtime設定が有効になっているか
 
 5. **環境変数の再確認**
-   - .env.local の SUPABASE_URL が正しいか
-   - SUPABASE_ANON_KEY が有効期限内か
+   - .env.local の NEXT_PUBLIC_SUPABASE_URL が正しいか
+   - NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY が正しいか
 
 ### 🔧 解決策
 **✅ 完了**: SupabaseのSQL Editorで以下のSQLを実行済み

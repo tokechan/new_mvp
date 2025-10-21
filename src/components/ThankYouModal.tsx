@@ -1,7 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { X } from 'lucide-react'
+import { Undo2, Send } from 'lucide-react'
+import { Button } from '@/components/ui/Button'
 
 interface ThankYouModalProps {
   isOpen: boolean
@@ -49,32 +50,22 @@ export function ThankYouModal({
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
         {/* ヘッダー */}
-        <div className="flex items-center justify-between p-6 border-b">
+        <div className="flex items-center justify-center p-6 border-b">
           <h2 className="text-lg font-semibold text-gray-800">
-            ありがとうメッセージ
+            メッセージを送る
           </h2>
-          <button
-            onClick={handleClose}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
-            disabled={isSending}
-          >
-            <X size={24} />
-          </button>
         </div>
 
         {/* コンテンツ */}
         <div className="p-6">
-          <div className="mb-4">
-            <p className="text-sm text-gray-600 mb-2">
-              家事: <span className="font-medium text-gray-800">{choreTitle}</span>
+          <div className="mb-4 flex justify-center">
+            <p className="text-sm sm:text-base text-gray-600 mb-2 text-center">
+              家事: <span className="font-medium text-gray-800 break-words inline-block max-w-[80vw] sm:max-w-md">{choreTitle}</span>
             </p>
           </div>
 
           {/* メッセージ入力 */}
           <div className="mb-6">
-            <label htmlFor="thank-you-message" className="block text-sm font-medium text-gray-700 mb-2">
-              メッセージ
-            </label>
             <textarea
               id="thank-you-message"
               value={message}
@@ -90,22 +81,32 @@ export function ThankYouModal({
             </div>
           </div>
 
-          {/* ボタン */}
-          <div className="flex gap-3 justify-end">
-            <button
+          {/* ボタン（アイコン） */}
+          <div className="flex items-center justify-center gap-3">
+            <Button
+              aria-label="キャンセル"
               onClick={handleClose}
               disabled={isSending}
-              className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 transition-colors"
+              size="icon"
+              className="h-12 w-12 rounded-full p-0 grid place-items-center bg-slate-200 text-slate-800 hover:bg-slate-300 disabled:opacity-50"
             >
-              キャンセル
-            </button>
-            <button
+              <Undo2 className="w-6 h-6" aria-hidden="true" />
+              <span className="sr-only">キャンセル</span>
+            </Button>
+            <Button
+              aria-label="送信"
               onClick={handleSend}
               disabled={isSending || !message.trim()}
-              className="px-4 py-2 bg-pink-500 text-white rounded-md hover:bg-pink-600 disabled:opacity-50 transition-colors"
+              size="icon"
+              className="h-12 w-12 rounded-full p-0 grid place-items-center bg-pink-500 text-white hover:bg-pink-600 disabled:opacity-50"
             >
-              {isSending ? '送信中...' : '送信'}
-            </button>
+              {isSending ? (
+                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <Send className="w-6 h-6" aria-hidden="true" />
+              )}
+              <span className="sr-only">送信</span>
+            </Button>
           </div>
         </div>
       </div>
