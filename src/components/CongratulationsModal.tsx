@@ -3,6 +3,7 @@
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/Button'
 import { Chore } from '@/types/chore'
+import { ThumbsUp, X } from 'lucide-react'
 
 interface CongratulationsModalProps {
   /** モーダルの表示状態 */
@@ -32,12 +33,11 @@ export function CongratulationsModal({
           </DialogTitle>
         </DialogHeader>
 
-        <div className="py-6">
-          <div className="flex items-center space-x-3 p-4 bg-green-50 rounded-lg border border-green-200">
+        <div className="py-6 flex justify-center">
+          <div className="inline-flex items-center space-x-3 p-4 bg-green-50 rounded-lg border border-green-200">
             <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center animate-bounce">
-              <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-              </svg>
+              {/* サムズアップアイコンに変更 */}
+              <ThumbsUp className="w-6 h-6 text-white" aria-hidden="true" />
             </div>
             <div className="flex-1">
               <p className="font-medium text-green-800">{chore.title}</p>
@@ -46,12 +46,15 @@ export function CongratulationsModal({
           </div>
         </div>
 
-        <DialogFooter>
+        <DialogFooter className="justify-center sm:!justify-center">
           <Button
+            aria-label="閉じる"
             onClick={onClose}
-            className="w-full bg-green-600 hover:bg-green-700"
+            size="icon"
+            className="h-12 w-12 rounded-full p-0 grid place-items-center text-white bg-green-600 hover:bg-green-700"
           >
-            閉じる
+            <X className="w-6 h-6" aria-hidden="true" />
+            <span className="sr-only">閉じる</span>
           </Button>
         </DialogFooter>
       </DialogContent>
