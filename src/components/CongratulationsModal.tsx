@@ -26,7 +26,7 @@ export function CongratulationsModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md rounded-2xl sm:rounded-2xl [&>button]:hidden">
         <DialogHeader>
           <DialogTitle className="text-lg font-semibold text-gray-900 text-center">
             家事を完了しました！
@@ -46,7 +46,7 @@ export function CongratulationsModal({
           </div>
         </div>
 
-        <DialogFooter className="justify-center sm:!justify-center">
+        <DialogFooter className="flex !flex-row !justify-center !items-center sm:!justify-center sm:!items-center gap-0">
           <Button
             aria-label="閉じる"
             onClick={onClose}
