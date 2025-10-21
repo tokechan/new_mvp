@@ -304,7 +304,7 @@ describe('invitationService', () => {
       await expect(cancelInvitation(invitationId)).resolves.toBeUndefined()
 
       expect(mockSupabase.from).toHaveBeenCalledWith('partner_invitations')
-      expect(mockUpdate.eq).toHaveBeenCalledWith('id', invitationId)
+      expect(mockUpdate.eq).toHaveBeenCalledWith('id', 123)
     })
 
     it('データベースエラーの場合は例外を投げる', async () => {
