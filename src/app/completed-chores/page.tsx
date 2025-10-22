@@ -253,12 +253,7 @@ export default function CompletedChoresPage() {
               <span className="sr-only">ホームへ戻る</span>
             </button>
           </div>
-          {/* 画面最下部の安全余白（固定表示せず、スクロール末尾でもボタンが見えるように） */}
-          <div
-            aria-hidden="true"
-            className="pointer-events-none"
-            style={{ height: 'calc(env(safe-area-inset-bottom) + 20px)' }}
-          />
+
         </div>
       )}
       </div>
