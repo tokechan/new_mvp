@@ -275,7 +275,7 @@ export default function ThankYouCelebration({
           <IconView emoji={primaryEmoji} className={`w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 ${accentClass}`} />
         </div>
         {showMessage && (
-          <p className="font-extrabold text-2xl sm:text-3xl md:text-4xl text-gray-700 tracking-tight leading-tight whitespace-pre-wrap break-words">
+          <p className="font-extrabold text-2xl sm:text-3xl md:text-4xl text-neutral-600 tracking-tight leading-tight whitespace-pre-wrap break-words">
             メッセージ：{sanitizedMessage}
           </p>
         )}
