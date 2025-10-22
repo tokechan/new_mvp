@@ -4,6 +4,8 @@ import './globals.css'
 import { AuthProvider } from '@/contexts/AuthContext'
 import { NotificationProvider } from '@/contexts/NotificationContext'
 import { ToastProvider } from '@/components/ui/toast'
+import Navigation from '@/components/Navigation'
+import FooterChoreInput from '@/components/FooterChoreInput'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -41,7 +43,13 @@ export default function RootLayout({
         <AuthProvider>
           <NotificationProvider>
             <ToastProvider>
-              {children}
+              <div className="min-h-screen bg-gray-50">
+                <Navigation />
+                <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-20 sm:pb-0">
+                  {children}
+                </main>
+                <FooterChoreInput />
+              </div>
             </ToastProvider>
           </NotificationProvider>
         </AuthProvider>
