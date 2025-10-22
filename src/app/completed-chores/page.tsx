@@ -8,6 +8,7 @@ import { useAuthState } from '@/hooks/useAuthState'
 import Navigation from '@/components/Navigation'
 import { ThankYouModal } from '@/components/ThankYouModal'
 import { Smile, ThumbsUp, Heart, Handshake, Flame, FileText, Clock, Home } from 'lucide-react'
+import { useToast } from '@/components/ui/toast'
 
 /**
  * 完了した家事一覧ページ
@@ -16,6 +17,7 @@ import { Smile, ThumbsUp, Heart, Handshake, Flame, FileText, Clock, Home } from 
 export default function CompletedChoresPage() {
   const { user } = useAuthState()
   const router = useRouter()
+  const { showToast } = useToast()
   const [completedChores, setCompletedChores] = useState<ExtendedChore[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [selectedChore, setSelectedChore] = useState<ExtendedChore | null>(null)
@@ -73,6 +75,9 @@ export default function CompletedChoresPage() {
       
       // 完了した家事一覧を再取得
       await fetchCompletedChores()
+
+      // 送信確認トーストを表示
+      showToast({ message: 'メッセージが送信されました', variant: 'success' })
     } catch (error) {
       console.error('ありがとうメッセージの送信に失敗:', error)
     } finally {
