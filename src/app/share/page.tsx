@@ -4,7 +4,6 @@ import { useAuth } from '@/contexts/AuthContext'
 import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
 import PartnerInvitation from '@/components/PartnerInvitation'
-import Navigation from '@/components/Navigation'
 
 /**
  * パートナー招待・共有ページ
@@ -45,9 +44,6 @@ export default function SharePage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* ナビゲーション */}
-      <Navigation />
-      
       {/* メインコンテンツ */}
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
@@ -66,9 +62,6 @@ export default function SharePage() {
           <PartnerInvitation onPartnerLinked={handlePartnerLinked} />
         </div>
       </main>
-      
-      {/* モバイル用の下部余白（ナビゲーションバーの分） */}
-      <div className="h-20 sm:h-0" />
     </div>
   )
 }
