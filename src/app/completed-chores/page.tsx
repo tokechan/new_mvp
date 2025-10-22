@@ -7,7 +7,7 @@ import { sendThankYou } from '@/services/thankYouService'
 import { useAuthState } from '@/hooks/useAuthState'
 import Navigation from '@/components/Navigation'
 import { ThankYouModal } from '@/components/ThankYouModal'
-import { Smile, ThumbsUp, Heart, Handshake, Flame, FileText, Clock } from 'lucide-react'
+import { Smile, ThumbsUp, Heart, Handshake, Flame, FileText, Clock, Home } from 'lucide-react'
 
 /**
  * 完了した家事一覧ページ
@@ -237,6 +237,19 @@ export default function CompletedChoresPage() {
               </div>
             </div>
           ))}
+
+          {/* リスト最下部：ホームへ戻るボタン */}
+          <div className="flex justify-center pt-4 pb-6">
+            <button
+              type="button"
+              onClick={() => router.push('/')}
+              className="h-12 w-12 rounded-full p-0 grid place-items-center text-neutral-600 border border-neutral-300 bg-neutral-100 hover:bg-neutral-200 shadow-sm focus:outline-none focus:ring-2 focus:ring-neutral-300"
+              aria-label="ホームへ戻る"
+            >
+              <Home className="w-6 h-6" aria-hidden="true" />
+              <span className="sr-only">ホームへ戻る</span>
+            </button>
+          </div>
         </div>
       )}
       </div>
