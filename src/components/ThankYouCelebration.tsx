@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { X, PartyPopper } from 'lucide-react'
+import { X, PartyPopper, Smile, ThumbsUp, Heart, Handshake, Flame } from 'lucide-react'
 
 interface ThankYouCelebrationProps {
   /** 表示状態 */
@@ -71,6 +71,46 @@ export default function ThankYouCelebration({
     pink: 'bg-gradient-to-br from-pink-50 via-rose-100 to-fuchsia-50',
     purple: 'bg-gradient-to-br from-purple-50 via-violet-100 to-fuchsia-50',
     orange: 'bg-gradient-to-br from-orange-50 via-amber-100 to-yellow-50',
+  }
+
+  // アクセントカラー（アイコン色）
+  const themeAccent: Record<string, string> = {
+    multi: 'text-pink-600',
+    yellow: 'text-amber-500',
+    blue: 'text-blue-600',
+    pink: 'text-pink-600',
+    purple: 'text-violet-600',
+    orange: 'text-orange-500',
+  }
+  const accentClass = themeAccent[theme] || themeAccent.multi
+
+  // メッセージ表示用：プレフィックス除去＋絵文字除去（ES5互換）
+  const sanitizedMessage = sanitizePartnerMessage(message)
+
+  // 閉じるボタン背景色（テーマに調和する同系色・彩度控えめ）
+  const buttonBgTone: Record<string, string> = {
+    multi: 'bg-pink-300',
+    yellow: 'bg-amber-300',
+    blue: 'bg-blue-300',
+    pink: 'bg-pink-300',
+    purple: 'bg-violet-300',
+    orange: 'bg-orange-300',
+  }
+  const buttonHoverTone: Record<string, string> = {
+    multi: 'hover:bg-pink-400',
+    yellow: 'hover:bg-amber-400',
+    blue: 'hover:bg-blue-400',
+    pink: 'hover:bg-pink-400',
+    purple: 'hover:bg-violet-400',
+    orange: 'hover:bg-orange-400',
+  }
+  const buttonRingTone: Record<string, string> = {
+    multi: 'focus:ring-pink-300',
+    yellow: 'focus:ring-amber-300',
+    blue: 'focus:ring-blue-300',
+    pink: 'focus:ring-pink-300',
+    purple: 'focus:ring-violet-300',
+    orange: 'focus:ring-orange-300',
   }
 
   // コンフェッティの配色をテーマに合わせる
@@ -226,25 +266,27 @@ export default function ThankYouCelebration({
       {/* コンフェッティ */}
       <canvas ref={canvasRef} className="absolute inset-0" />
 
-      {/* 中央アイコンのみ表示 */}
+      {/* 中央アイコン +（アニメーション後に）メッセージ表示 */}
       <div className="relative z-10 text-center px-6 max-w-3xl">
         <div className="inline-flex items-center justify-center mb-6 animate-pop-burst">
-          <PartyPopper className="w-16 h-16 text-pink-600" aria-hidden="true" />
+          <PartyPopper className={`w-16 h-16 ${accentClass}`} aria-hidden="true" />
         </div>
-        <div className="flex justify-center">
-          <span className="text-6xl sm:text-7xl md:text-8xl select-none" aria-hidden="true">
-            {primaryEmoji || '🎉'}
-          </span>
-          <span className="sr-only">ありがとうメッセージのアイコン</span>
+        <div className="flex justify-center mb-2">
+          <IconView emoji={primaryEmoji} className={`w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 ${accentClass}`} />
         </div>
+        {showMessage && (
+          <p className="font-extrabold text-2xl sm:text-3xl md:text-4xl text-gray-700 tracking-tight leading-tight whitespace-pre-wrap break-words">
+            メッセージ：{sanitizedMessage}
+          </p>
+        )}
         {showMessage && (
           <div className="mt-6 flex justify-center">
             <button
               onClick={onClose}
-              className="h-12 w-12 rounded-full p-0 grid place-items-center bg-pink-600 text-white shadow-md hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-pink-400"
+              className={`h-12 w-12 rounded-full p-0 grid place-items-center ${buttonBgTone[theme]} shadow-md ${buttonHoverTone[theme]} focus:outline-none focus:ring-2 ${buttonRingTone[theme]}`}
               aria-label="閉じる"
             >
-              <X className="w-6 h-6" aria-hidden="true" />
+              <X className="w-6 h-6 text-white" aria-hidden="true" />
               <span className="sr-only">閉じる</span>
             </button>
           </div>
@@ -253,4 +295,36 @@ export default function ThankYouCelebration({
     </div>,
     document.body
   )
+}
+
+
+// アイコン描画（絵文字→適切なアイコン）
+const IconView = ({ emoji, className }: { emoji: string | null; className: string }) => {
+  const common = { className, 'aria-hidden': true } as const
+  switch (emoji) {
+    case '😊':
+      return <Smile {...common} />
+    case '👍':
+      return <ThumbsUp {...common} />
+    case '❤️':
+      return <Heart {...common} />
+    case '🙏':
+      return <Handshake {...common} />
+    case '🔥':
+      return <Flame {...common} />
+    default:
+      return <PartyPopper {...common} />
+  }
+}
+
+
+// 絵文字やプレフィックスを除去するヘルパー
+function sanitizePartnerMessage(input: string): string {
+  const src = input || ''
+  // 先頭の「◯◯から:」または「◯◯から：」を除去（ES5互換）
+  const withoutPrefix = src.replace(/^\s*[^:：]+から[:：]\s*/, '')
+  // 絵文字を構成するサロゲートペア、VS(\uFE0F)、ZWJ(\u200D)を除去（ES5互換）
+  const noEmoji = withoutPrefix.replace(/[\uD800-\uDBFF\uDC00-\uDFFF]|\uFE0F|\u200D/g, '')
+  // 連続スペースを1つにまとめる
+  return noEmoji.replace(/\s{2,}/g, ' ').trim()
 }

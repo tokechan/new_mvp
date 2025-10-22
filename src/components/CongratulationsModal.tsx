@@ -51,9 +51,9 @@ export function CongratulationsModal({
             aria-label="閉じる"
             onClick={onClose}
             size="icon"
-            className="h-12 w-12 rounded-full p-0 grid place-items-center text-white bg-green-600 hover:bg-green-700"
+            className="h-10 w-10 rounded-full p-0 grid place-items-center text-white bg-green-600 hover:bg-green-700"
           >
-            <X className="w-6 h-6" aria-hidden="true" />
+            <X className="w-5 h-5" aria-hidden="true" />
             <span className="sr-only">閉じる</span>
           </Button>
         </DialogFooter>
