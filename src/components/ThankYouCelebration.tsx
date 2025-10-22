@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { X, PartyPopper, Smile, ThumbsUp, Heart, Handshake, Flame } from 'lucide-react'
+import { X, Smile, ThumbsUp, Heart, Handshake, Flame } from 'lucide-react'
 
 interface ThankYouCelebrationProps {
   /** 表示状態 */
@@ -73,8 +73,12 @@ export default function ThankYouCelebration({
     orange: 'bg-gradient-to-br from-orange-50 via-amber-100 to-yellow-50',
   }
 
-  // アクセントカラー（アイコン色）
-  const themeAccent: Record<string, string> = {
+
+  // メッセージ表示用：プレフィックス除去＋絵文字除去（ES5互換）
+  const sanitizedMessage = sanitizePartnerMessage(message)
+
+  // アイコンのアクセントカラー（テーマに調和）
+  const iconAccentTone: Record<string, string> = {
     multi: 'text-pink-600',
     yellow: 'text-amber-500',
     blue: 'text-blue-600',
@@ -82,11 +86,7 @@ export default function ThankYouCelebration({
     purple: 'text-violet-600',
     orange: 'text-orange-500',
   }
-  const accentClass = themeAccent[theme] || themeAccent.multi
-
-  // メッセージ表示用：プレフィックス除去＋絵文字除去（ES5互換）
-  const sanitizedMessage = sanitizePartnerMessage(message)
-
+  const iconAccentClass = iconAccentTone[theme] || iconAccentTone.multi
   // 閉じるボタン背景色（テーマに調和する同系色・彩度控えめ）
   const buttonBgTone: Record<string, string> = {
     multi: 'bg-pink-300',
@@ -268,11 +268,13 @@ export default function ThankYouCelebration({
 
       {/* 中央アイコン +（アニメーション後に）メッセージ表示 */}
       <div className="relative z-10 text-center px-6 max-w-3xl">
-        <div className="inline-flex items-center justify-center mb-6 animate-pop-burst">
-          <PartyPopper className={`w-16 h-16 ${accentClass}`} aria-hidden="true" />
-        </div>
         <div className="flex justify-center mb-2">
-          <IconView emoji={primaryEmoji} className={`w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 ${accentClass}`} />
+          {primaryEmoji === '😊' && <Smile className={`w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 ${iconAccentClass}`} aria-hidden="true" />}
+          {primaryEmoji === '👍' && <ThumbsUp className={`w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 ${iconAccentClass}`} aria-hidden="true" />}
+          {primaryEmoji === '❤️' && <Heart className={`w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 ${iconAccentClass}`} aria-hidden="true" />}
+          {primaryEmoji === '🙏' && <Handshake className={`w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 ${iconAccentClass}`} aria-hidden="true" />}
+          {primaryEmoji === '🔥' && <Flame className={`w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 ${iconAccentClass}`} aria-hidden="true" />}
+          {!primaryEmoji && <Heart className={`w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 ${iconAccentClass}`} aria-hidden="true" />}
         </div>
         {showMessage && (
           <p className="font-extrabold text-2xl sm:text-3xl md:text-4xl text-neutral-600 tracking-tight leading-tight whitespace-pre-wrap break-words">
@@ -298,24 +300,6 @@ export default function ThankYouCelebration({
 }
 
 
-// アイコン描画（絵文字→適切なアイコン）
-const IconView = ({ emoji, className }: { emoji: string | null; className: string }) => {
-  const common = { className, 'aria-hidden': true } as const
-  switch (emoji) {
-    case '😊':
-      return <Smile {...common} />
-    case '👍':
-      return <ThumbsUp {...common} />
-    case '❤️':
-      return <Heart {...common} />
-    case '🙏':
-      return <Handshake {...common} />
-    case '🔥':
-      return <Flame {...common} />
-    default:
-      return <PartyPopper {...common} />
-  }
-}
 
 
 // 絵文字やプレフィックスを除去するヘルパー
@@ -323,8 +307,8 @@ function sanitizePartnerMessage(input: string): string {
   const src = input || ''
   // 先頭の「◯◯から:」または「◯◯から：」を除去（ES5互換）
   const withoutPrefix = src.replace(/^\s*[^:：]+から[:：]\s*/, '')
-  // 絵文字を構成するサロゲートペア、VS(\uFE0F)、ZWJ(\u200D)を除去（ES5互換）
-  const noEmoji = withoutPrefix.replace(/[\uD800-\uDBFF\uDC00-\uDFFF]|\uFE0F|\u200D/g, '')
+  // 絵文字を構成するサロゲートペア、VS(\uFE0F)、ZWJ(\u200D)、BMP絵文字領域（Misc Symbols, Dingbats 等）も除去（ES5互換）
+  const noEmoji = withoutPrefix.replace(/[\uD800-\uDBFF\uDC00-\uDFFF]|\uFE0F|\u200D|[\u2600-\u26FF\u2700-\u27BF]/g, '')
   // 連続スペースを1つにまとめる
   return noEmoji.replace(/\s{2,}/g, ' ').trim()
 }
