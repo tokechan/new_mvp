@@ -8,6 +8,7 @@ import { useAuthState } from '@/hooks/useAuthState'
 import { ThankYouModal } from '@/components/ThankYouModal'
 import { Smile, ThumbsUp, Heart, Handshake, Flame, FileText, Clock, Home } from 'lucide-react'
 import { useToast } from '@/components/ui/toast'
+import { Button } from '@/components/ui/Button'
 
 /**
  * 完了した家事一覧ページ
@@ -100,8 +101,8 @@ export default function CompletedChoresPage() {
     const date = new Date(dateString)
     return date.toLocaleDateString('ja-JP', {
       year: 'numeric',
-      month: 'short',
-      day: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
       hour: '2-digit',
       minute: '2-digit'
     })
@@ -161,97 +162,110 @@ export default function CompletedChoresPage() {
           {completedChores.map((chore) => (
             <div key={chore.id} className="bg-card border border-border rounded-lg shadow-sm">
               <div className="p-6">
-                {/* H1タイトル */}
-                <h1 className="text-2xl font-bold text-primary mb-6 text-center">{chore.title}</h1>
-                
-                {/* アイコンボタン */}
-                <div className="flex gap-3 justify-center mb-6">
-                  <button
+                {/* カードヘッダー：タイトル + 完了バッジ + 日付 */}
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-xl font-semibold text-foreground break-words whitespace-normal">{chore.title}</h2>
+                  <div className="flex items-center gap-2">
+                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-primary/10 text-success border border-success/40">
+                      完了済み
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      {formatDate(
+                        (chore.completions && chore.completions.length > 0
+                          ? new Date(Math.max(...chore.completions.map((c: any) => new Date(c.created_at).getTime()))).toISOString()
+                          : chore.created_at
+                        ) as any
+                      )}
+                    </span>
+                  </div>
+                </div>
+
+                {/* リアクションボタン */}
+                <div className="flex flex-wrap gap-3 justify-center mb-4">
+                  <Button
                     onClick={() => handleIconClick(chore, '😊')}
                     disabled={isSending}
-                    className="w-12 h-12 rounded-lg flex items-center justify-center border border-primary/40 bg-primary/10 text-primary hover:bg-primary/20 hover:border-primary/50 transition-colors disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+                    size="icon"
+                    className="h-10 w-10 rounded-full p-0 grid place-items-center bg-primary/10 border border-primary/40 text-primary hover:bg-primary/20 hover:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
                     title="嬉しい"
                     aria-label="嬉しい"
                   >
-                    <Smile className="w-6 h-6" aria-hidden="true" />
-                  </button>
-                  <button
+                    <Smile className="w-5 h-5" aria-hidden="true" />
+                  </Button>
+                  <Button
                     onClick={() => handleIconClick(chore, '👍')}
                     disabled={isSending}
-                    className="w-12 h-12 rounded-lg flex items-center justify-center border border-primary/40 bg-primary/10 text-primary hover:bg-primary/20 hover:border-primary/50 transition-colors disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+                    size="icon"
+                    className="h-10 w-10 rounded-full p-0 grid place-items-center bg-primary/10 border border-primary/40 text-primary hover:bg-primary/20 hover:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
                     title="いいね"
                     aria-label="いいね"
                   >
-                    <ThumbsUp className="w-6 h-6" aria-hidden="true" />
-                  </button>
-                  <button
+                    <ThumbsUp className="w-5 h-5" aria-hidden="true" />
+                  </Button>
+                  <Button
                     onClick={() => handleIconClick(chore, '❤️')}
                     disabled={isSending}
-                    className="w-12 h-12 rounded-lg flex items-center justify-center border border-primary/40 bg-primary/10 text-primary hover:bg-primary/20 hover:border-primary/50 transition-colors disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+                    size="icon"
+                    className="h-10 w-10 rounded-full p-0 grid place-items-center bg-primary/10 border border-primary/40 text-primary hover:bg-primary/20 hover:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
                     title="愛してる"
                     aria-label="愛してる"
                   >
-                    <Heart className="w-6 h-6" aria-hidden="true" />
-                  </button>
-                  <button
+                    <Heart className="w-5 h-5" aria-hidden="true" />
+                  </Button>
+                  <Button
                     onClick={() => handleIconClick(chore, '🙏')}
                     disabled={isSending}
-                    className="w-12 h-12 rounded-lg flex items-center justify-center border border-primary/40 bg-primary/10 text-primary hover:bg-primary/20 hover:border-primary/50 transition-colors disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+                    size="icon"
+                    className="h-10 w-10 rounded-full p-0 grid place-items-center bg-primary/10 border border-primary/40 text-primary hover:bg-primary/20 hover:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
                     title="お疲れさま"
                     aria-label="お疲れさま"
                   >
-                    <Handshake className="w-6 h-6" aria-hidden="true" />
-                  </button>
-                  <button
+                    <Handshake className="w-5 h-5" aria-hidden="true" />
+                  </Button>
+                  <Button
                     onClick={() => handleIconClick(chore, '🔥')}
                     disabled={isSending}
-                    className="w-12 h-12 rounded-lg flex items-center justify-center border border-primary/40 bg-primary/10 text-primary hover:bg-primary/20 hover:border-primary/50 transition-colors disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+                    size="icon"
+                    className="h-10 w-10 rounded-full p-0 grid place-items-center bg-primary/10 border border-primary/40 text-primary hover:bg-primary/20 hover:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
                     title="すごい"
                     aria-label="すごい"
                   >
-                    <Flame className="w-6 h-6" aria-hidden="true" />
-                  </button>
+                    <Flame className="w-5 h-5" aria-hidden="true" />
+                  </Button>
                 </div>
-               
+
                 {/* 詳細情報 */}
                 <div className="space-y-2 text-sm text-muted-foreground">
                   <div className="flex items-center gap-2">
-                    <span className="inline-flex items-center justify-center">
-                      <FileText className="w-4 h-4 text-foreground" aria-hidden="true" />
-                    </span>
+                    <FileText className="w-4 h-4 text-foreground" aria-hidden="true" />
                     <span>家事: {chore.title}</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="inline-flex items-center justify-center">
-                      <Clock className="w-4 h-4 text-foreground" aria-hidden="true" />
-                    </span>
-                    <span>
-                      完了: {new Date(
-                        (chore.completions && chore.completions.length > 0
-                          ? Math.max(
-                              ...chore.completions.map((c: any) => new Date(c.created_at).getTime())
-                            )
-                          : new Date(chore.created_at).getTime()
-                        )
-                      ).toLocaleString('ja-JP')}
-                    </span>
+                    <Clock className="w-4 h-4 text-foreground" aria-hidden="true" />
+                    <span>完了: {formatDate(
+                      (chore.completions && chore.completions.length > 0
+                        ? new Date(Math.max(...chore.completions.map((c: any) => new Date(c.created_at).getTime()))).toISOString()
+                        : chore.created_at
+                      ) as any
+                    )}</span>
                   </div>
                 </div>
               </div>
             </div>
           ))}
-          
+
           {/* リスト最下部：ホームへ戻るボタン */}
           <div className="flex justify-center pt-4 pb-6">
-            <button
+            <Button
               type="button"
               onClick={() => router.push('/')}
+              size="icon"
               className="h-12 w-12 rounded-full p-0 grid place-items-center text-primary border border-primary/40 bg-primary/10 hover:bg-primary/20 hover:border-primary/50 shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
               aria-label="ホームへ戻る"
             >
               <Home className="w-6 h-6" aria-hidden="true" />
               <span className="sr-only">ホームへ戻る</span>
-            </button>
+            </Button>
           </div>
           
         </div>
@@ -265,6 +279,7 @@ export default function CompletedChoresPage() {
         onSend={handleSendThankYou}
         choreTitle={selectedChore?.title || ''}
         isSending={isSending}
+        selectedIcon={selectedIcon}
       />
     </div>
   )

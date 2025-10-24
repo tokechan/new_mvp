@@ -10,6 +10,7 @@ interface ThankYouModalProps {
   onSend: (message: string) => void
   choreTitle: string
   isSending: boolean
+  selectedIcon?: string
 }
 
 /**
@@ -21,7 +22,8 @@ export function ThankYouModal({
   onClose,
   onSend,
   choreTitle,
-  isSending
+  isSending,
+  selectedIcon
 }: ThankYouModalProps) {
   const [message, setMessage] = useState('')
 
@@ -64,13 +66,23 @@ export function ThankYouModal({
             </p>
           </div>
 
+          {/* 選択中リアクション表示 */}
+          {selectedIcon && (
+            <div className="mb-3 flex items-center justify-center">
+              <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-foreground border border-primary/30 text-sm">
+                <span aria-hidden="true">{selectedIcon}</span>
+                <span className="text-xs text-muted-foreground">選択中のリアクション</span>
+              </span>
+            </div>
+          )}
+
           {/* メッセージ入力 */}
           <div className="mb-6">
             <textarea
               id="thank-you-message"
               value={message}
               onChange={(e) => setMessage(e.target.value)}
-              placeholder="ありがとうメッセージを入力してください..."
+              placeholder={selectedIcon ? `${selectedIcon} ありがとうメッセージを入力してください...` : 'ありがとうメッセージを入力してください...'}
               className="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-none"
               rows={4}
               disabled={isSending}
