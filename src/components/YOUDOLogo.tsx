@@ -46,11 +46,11 @@ export function YOUDOLogo({
       </text>
 
       {/* DO 背景 */}
-      <rect x={56} y={6} rx={8} ry={8} width={38} height={24} fill={accentColor} />
+      <rect x={46} y={6} rx={8} ry={8} width={38} height={24} fill={accentColor} />
 
       {/* DO テキスト（背景上に白文字）*/}
       <text
-        x={75}
+        x={65}
         y={24}
         fontFamily="system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif"
         fontSize={16}
