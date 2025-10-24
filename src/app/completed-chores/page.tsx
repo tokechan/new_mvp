@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation'
 import { ChoreService, ExtendedChore } from '@/services/choreService'
 import { sendThankYou } from '@/services/thankYouService'
 import { useAuthState } from '@/hooks/useAuthState'
-import Navigation from '@/components/Navigation'
 import { ThankYouModal } from '@/components/ThankYouModal'
 import { Smile, ThumbsUp, Heart, Handshake, Flame, FileText, Clock, Home } from 'lucide-react'
 import { useToast } from '@/components/ui/toast'
@@ -132,8 +131,7 @@ export default function CompletedChoresPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Navigation />
-      <div className="container mx-auto p-4 max-w-4xl pt-20">
+      <div className="container mx-auto p-4 max-w-4xl">
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-gray-800">完了した家事</h1>
           <p className="text-gray-600 mt-2">
@@ -255,12 +253,7 @@ export default function CompletedChoresPage() {
               <span className="sr-only">ホームへ戻る</span>
             </button>
           </div>
-          {/* 画面最下部の安全余白（固定表示せず、スクロール末尾でもボタンが見えるように） */}
-          <div
-            aria-hidden="true"
-            className="pointer-events-none"
-            style={{ height: 'calc(env(safe-area-inset-bottom) + 20px)' }}
-          />
+
         </div>
       )}
       </div>

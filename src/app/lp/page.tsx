@@ -5,7 +5,6 @@
 
 import { useRouter } from 'next/navigation'
 import PartnerInvitation from '@/components/PartnerInvitation'
-import Navigation from '@/components/Navigation'
 
 /**
  * ランディングページ - パートナー招待
@@ -24,9 +23,6 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-zinc-900 dark:to-zinc-800">
-      {/* ナビゲーション */}
-      <Navigation />
-      
       {/* ヒーローセクション */}
       <section className="relative overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24">
@@ -136,9 +132,6 @@ export default function LandingPage() {
           </button>
         </div>
       </section>
-      
-      {/* モバイル用の下部余白（ナビゲーションバーの分） */}
-      <div className="h-20 sm:h-0" />
     </div>
   )
 }

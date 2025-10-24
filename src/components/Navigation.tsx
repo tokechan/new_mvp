@@ -7,7 +7,6 @@ import NotificationCenter from '@/components/NotificationCenter'
 import UserMenu from '@/components/UserMenu'
 import { useState, useEffect, useRef } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
-import FooterChoreInput from './FooterChoreInput'
 import Link from 'next/link'
 import { Bell } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -196,9 +195,6 @@ export default function Navigation() {
           </div>
         </div>
       </div>
-
-      {/* フッター入力（PCにも適用、画面左右いっぱい） */}
-      <FooterChoreInput />
     </nav>
   )
 }
