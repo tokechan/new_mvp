@@ -4,6 +4,7 @@ import { useRouter, usePathname } from 'next/navigation'
 import { Button } from '@/components/ui/Button'
 import { Home, CheckSquare, Share2, Menu, X, LogOut } from 'lucide-react'
 import NotificationCenter from '@/components/NotificationCenter'
+import UserMenu from '@/components/UserMenu'
 import { useState, useEffect, useRef } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import FooterChoreInput from './FooterChoreInput'
@@ -138,6 +139,10 @@ export default function Navigation() {
           </div>
 
           {/* 右側ナビゲーション（PC）は削除済み：ハンバーガーに統一 */}
+          <div className="ml-auto flex items-center gap-3">
+            <NotificationCenter />
+            <UserMenu />
+          </div>
         </div>
 
         {/* メニューパネル（全サイズ） */}
