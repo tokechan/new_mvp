@@ -151,7 +151,7 @@ export default function ThankYouHistory({
             className={`${compact ? 'p-3' : 'p-4'} rounded-lg border ${
               isReceived 
                 ? 'bg-info/10 border-info/30' 
-                : 'bg-success/10 border-success/30'
+                : 'bg-primary/10 border-success/30'
             }`}
           >
             <div className="flex items-start justify-between">
@@ -160,7 +160,7 @@ export default function ThankYouHistory({
                   <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
                     isReceived 
                       ? 'bg-info/20 text-info' 
-                      : 'bg-success/20 text-success'
+                      : 'bg-primary/20 text-success'
                   }`}>
                     {isReceived ? '受信' : '送信'}
                   </span>
@@ -182,7 +182,7 @@ export default function ThankYouHistory({
               
               <div className="ml-4">
                 <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                  isReceived ? 'bg-info/20' : 'bg-success/20'
+                  isReceived ? 'bg-info/20' : 'bg-primary/20'
                 }`}>
                   <svg className={`w-4 h-4 ${
                     isReceived ? 'text-info' : 'text-success'

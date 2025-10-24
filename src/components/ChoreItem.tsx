@@ -114,7 +114,7 @@ export function ChoreItem({
         p-4 transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.99]
         cursor-pointer shadow-sm sm:shadow-md border-0
         ${chore.done 
-          ? 'bg-success/10 shadow-green-100/70 completion-animation' 
+          ? 'bg-primary/10 shadow-green-100/70 completion-animation' 
           : 'bg-primary/5 hover:bg-primary/10 hover:shadow-lg'
         }
         rounded-xl
@@ -130,7 +130,7 @@ export function ChoreItem({
             </h3>
             {chore.done && chore.completed_at && (
               <div className="flex items-center justify-center mt-2 animate-fade-in">
-                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-success/10 text-success border border-success/40">
+                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-primary/10 text-success border border-success/40">
                   <Sparkles className="w-3 h-3 mr-1" aria-hidden="true" />
                   {formatCompletionDate()}に完了
                 </span>

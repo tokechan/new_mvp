@@ -268,7 +268,7 @@ export default function InvitePage({ params }: InvitePageProps) {
                       const currentUrl = window.location.href
                       window.location.href = `/auth/signin?redirect=${encodeURIComponent(currentUrl)}`
                     }}
-                    className="w-full px-4 py-3 bg-success text-success-foreground rounded-lg hover:bg-success/90 transition-colors font-medium"
+                    className="w-full px-4 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors font-medium"
                   >
                     ログインして招待を受諾
                   </button>

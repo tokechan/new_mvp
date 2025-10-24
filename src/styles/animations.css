@@ -238,7 +238,7 @@
   background: linear-gradient(
     90deg,
     transparent,
-    rgba(34, 197, 94, 0.3),
+    hsla(var(--primary) / 0.3),
     transparent
   );
   animation: shimmer 1.5s ease-out;
@@ -270,7 +270,7 @@
     background: linear-gradient(
       90deg,
       transparent,
-      rgba(34, 197, 94, 0.2),
+      hsla(var(--primary) / 0.2),
       transparent
     );
   }

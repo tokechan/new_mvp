@@ -111,7 +111,7 @@ export default function ThankYouMessage({
       {/* 成功メッセージ */}
       {successMessage && (
         <div
-          className="mb-4 p-3 bg-success/10 border border-success/50 text-success rounded"
+          className="mb-4 p-3 bg-primary/10 border border-success/50 text-success rounded"
           role="status"
           data-testid="success-message"
         >

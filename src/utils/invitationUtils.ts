@@ -102,7 +102,7 @@ export function getInvitationStatusColor(status: string): string {
     case 'pending':
       return 'text-yellow-600 bg-yellow-100'
     case 'accepted':
-      return 'text-green-600 bg-green-100'
+      return 'text-green-600 bg-primary/10'
     case 'expired':
       return 'text-gray-600 bg-gray-100'
     case 'cancelled':

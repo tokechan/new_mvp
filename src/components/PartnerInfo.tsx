@@ -33,7 +33,7 @@ export function PartnerInfo({ hasPartner, partnerInfo, onUnlinkPartner }: Partne
   }
 
   return (
-    <div className="bg-green-50 p-4 rounded-lg">
+    <div className="bg-primary/10 p-4 rounded-lg">
       <div className="flex items-center justify-between">
         <div>
           <p className="text-green-800 font-medium">
