@@ -6,6 +6,7 @@ import { NotificationProvider } from '@/contexts/NotificationContext'
 import { ToastProvider } from '@/components/ui/toast'
 import Navigation from '@/components/Navigation'
 import FooterChoreInput from '@/components/FooterChoreInput'
+import ThemeProvider from '@/components/ThemeProvider'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -41,21 +42,23 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="ja">
+    <html lang="ja" suppressHydrationWarning>
       <body className={inter.className}>
-        <AuthProvider>
-          <NotificationProvider>
-            <ToastProvider>
-              <div className="min-h-screen bg-background">
-                <Navigation />
-                <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-20 sm:pb-0">
-                  {children}
-                </main>
-                <FooterChoreInput />
-              </div>
-            </ToastProvider>
-          </NotificationProvider>
-        </AuthProvider>
+        <ThemeProvider>
+          <AuthProvider>
+            <NotificationProvider>
+              <ToastProvider>
+                <div className="min-h-screen bg-background">
+                  <Navigation />
+                  <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-20 sm:pb-0">
+                    {children}
+                  </main>
+                  <FooterChoreInput />
+                </div>
+              </ToastProvider>
+            </NotificationProvider>
+          </AuthProvider>
+        </ThemeProvider>
       </body>
     </html>
   )
