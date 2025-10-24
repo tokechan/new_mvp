@@ -62,7 +62,7 @@ export default function FooterChoreInput() {
               onChange={(e) => setText(e.target.value)}
               disabled={isAdding}
               aria-label="新しい家事名"
-              className="w-full h-12 pr-16 rounded-full text-base bg-transparent text-primary-foreground placeholder:text-primary-foreground/80 focus:outline-none"
+              className="w-full h-12 pr-16 rounded-full text-base bg-transparent text-primary-foreground placeholder:text-primary-foreground/80 focus:outline-none border-none shadow-none focus-visible:ring-0 focus:ring-0"
             />
             <Button
               type="submit"

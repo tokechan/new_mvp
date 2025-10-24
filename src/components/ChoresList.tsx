@@ -10,7 +10,6 @@ import { supabase } from '@/lib/supabase'
 import { Database } from '@/lib/supabase'
 import ThankYouMessage from './ThankYouMessage'
 import { ChoreItem } from './ChoreItem'
-import { ChoreAddForm } from './ChoreAddForm'
 import { PartnerSetup } from './PartnerSetup'
 import { RealtimeDebugPanel } from './RealtimeDebugPanel'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -278,11 +277,7 @@ export default function ChoresList() {
       /> */}
 
       {/* 家事追加フォーム（検討段階のため一時的に非表示） */}
-      <ChoreAddForm 
-        onAddChore={handleAddChore}
-        isAdding={isAdding}
-      />
-
+      
       {/* 家事リスト */}
       <div 
         ref={keyboardNavigation.containerRef as React.RefObject<HTMLDivElement>} 
@@ -292,7 +287,7 @@ export default function ChoresList() {
       >
         {chores.length === 0 ? (
           <p className="text-gray-500 text-center py-8">
-            まだ家事が登録されていません。上のフォームから追加してください。
+            まだ家事が登録されていません。下の入力欄から追加してください。
           </p>
         ) : (
           chores.map((chore) => (
