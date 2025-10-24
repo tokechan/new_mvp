@@ -23,9 +23,9 @@ export function PartnerInfo({ hasPartner, partnerInfo, onUnlinkPartner }: Partne
 
   if (!hasPartner) {
     return (
-      <div className="bg-blue-50 p-4 rounded-lg">
-        <p className="text-blue-800 font-medium">パートナーが未設定です</p>
-        <p className="text-blue-600 text-sm mt-1">
+      <div className="bg-primary/10 p-4 rounded-lg">
+        <p className="text-primary font-medium">パートナーが未設定です</p>
+        <p className="text-primary text-sm mt-1">
           下の招待機能を使ってパートナーを招待してください
         </p>
       </div>

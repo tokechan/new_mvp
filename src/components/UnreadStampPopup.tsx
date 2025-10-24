@@ -208,7 +208,7 @@ export function UnreadStampPopup({
           
           <Button
             onClick={handleMarkCurrentAsRead}
-            className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700"
+            className="w-full sm:w-auto bg-primary hover:bg-primary/90"
           >
             確認
           </Button>

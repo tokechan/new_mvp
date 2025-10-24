@@ -133,7 +133,7 @@ export default function CompletedChoresPage() {
     <div className="min-h-screen bg-background">
       <div className="container mx-auto p-4 max-w-4xl">
         <div className="mb-6">
-          <h1 className="text-2xl font-bold text-foreground">完了した家事</h1>
+          <h1 className="text-2xl font-bold text-primary">完了した家事</h1>
           <p className="text-muted-foreground mt-2">
             完了した家事一覧です。ありがとうメッセージを送ることができます。
           </p>
@@ -162,14 +162,14 @@ export default function CompletedChoresPage() {
             <div key={chore.id} className="bg-card border border-border rounded-lg shadow-sm">
               <div className="p-6">
                 {/* H1タイトル */}
-                <h1 className="text-2xl font-bold text-success mb-6 text-center">{chore.title}</h1>
+                <h1 className="text-2xl font-bold text-primary mb-6 text-center">{chore.title}</h1>
                 
                 {/* アイコンボタン */}
                 <div className="flex gap-3 justify-center mb-6">
                   <button
                     onClick={() => handleIconClick(chore, '😊')}
                     disabled={isSending}
-                    className="w-12 h-12 bg-muted hover:bg-muted/80 rounded-lg flex items-center justify-center text-muted-foreground transition-colors disabled:opacity-50"
+                    className="w-12 h-12 rounded-lg flex items-center justify-center border border-primary/40 bg-primary/10 text-primary hover:bg-primary/20 hover:border-primary/50 transition-colors disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
                     title="嬉しい"
                     aria-label="嬉しい"
                   >
@@ -178,7 +178,7 @@ export default function CompletedChoresPage() {
                   <button
                     onClick={() => handleIconClick(chore, '👍')}
                     disabled={isSending}
-                    className="w-12 h-12 bg-muted hover:bg-muted/80 rounded-lg flex items-center justify-center text-muted-foreground transition-colors disabled:opacity-50"
+                    className="w-12 h-12 rounded-lg flex items-center justify-center border border-primary/40 bg-primary/10 text-primary hover:bg-primary/20 hover:border-primary/50 transition-colors disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
                     title="いいね"
                     aria-label="いいね"
                   >
@@ -187,7 +187,7 @@ export default function CompletedChoresPage() {
                   <button
                     onClick={() => handleIconClick(chore, '❤️')}
                     disabled={isSending}
-                    className="w-12 h-12 bg-muted hover:bg-muted/80 rounded-lg flex items-center justify-center text-muted-foreground transition-colors disabled:opacity-50"
+                    className="w-12 h-12 rounded-lg flex items-center justify-center border border-primary/40 bg-primary/10 text-primary hover:bg-primary/20 hover:border-primary/50 transition-colors disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
                     title="愛してる"
                     aria-label="愛してる"
                   >
@@ -196,7 +196,7 @@ export default function CompletedChoresPage() {
                   <button
                     onClick={() => handleIconClick(chore, '🙏')}
                     disabled={isSending}
-                    className="w-12 h-12 bg-muted hover:bg-muted/80 rounded-lg flex items-center justify-center text-muted-foreground transition-colors disabled:opacity-50"
+                    className="w-12 h-12 rounded-lg flex items-center justify-center border border-primary/40 bg-primary/10 text-primary hover:bg-primary/20 hover:border-primary/50 transition-colors disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
                     title="お疲れさま"
                     aria-label="お疲れさま"
                   >
@@ -205,14 +205,14 @@ export default function CompletedChoresPage() {
                   <button
                     onClick={() => handleIconClick(chore, '🔥')}
                     disabled={isSending}
-                    className="w-12 h-12 bg-muted hover:bg-muted/80 rounded-lg flex items-center justify-center text-muted-foreground transition-colors disabled:opacity-50"
+                    className="w-12 h-12 rounded-lg flex items-center justify-center border border-primary/40 bg-primary/10 text-primary hover:bg-primary/20 hover:border-primary/50 transition-colors disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
                     title="すごい"
                     aria-label="すごい"
                   >
                     <Flame className="w-6 h-6" aria-hidden="true" />
                   </button>
                 </div>
-                
+               
                 {/* 詳細情報 */}
                 <div className="space-y-2 text-sm text-muted-foreground">
                   <div className="flex items-center gap-2">
@@ -240,20 +240,20 @@ export default function CompletedChoresPage() {
               </div>
             </div>
           ))}
-
+          
           {/* リスト最下部：ホームへ戻るボタン */}
           <div className="flex justify-center pt-4 pb-6">
             <button
               type="button"
               onClick={() => router.push('/')}
-              className="h-12 w-12 rounded-full p-0 grid place-items-center text-muted-foreground border border-border bg-muted hover:bg-muted/80 shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+              className="h-12 w-12 rounded-full p-0 grid place-items-center text-primary border border-primary/40 bg-primary/10 hover:bg-primary/20 hover:border-primary/50 shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
               aria-label="ホームへ戻る"
             >
               <Home className="w-6 h-6" aria-hidden="true" />
               <span className="sr-only">ホームへ戻る</span>
             </button>
           </div>
-
+          
         </div>
       )}
       </div>
