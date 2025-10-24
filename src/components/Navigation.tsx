@@ -143,11 +143,20 @@ export default function Navigation() {
           </div>
         </div>
 
+        {/* メニュー開時の背景オーバーレイ */}
+        {isMenuOpen && (
+          <div
+            aria-hidden="true"
+            onClick={() => setIsMenuOpen(false)}
+            className="fixed inset-0 bg-background/60 backdrop-blur-sm z-[1000]"
+          />
+        )}
+
         {/* メニューパネル（全サイズ） */}
         <div className="relative" ref={menuRef}>
           <div
             id="mobile-nav-panel"
-            className={`absolute left-0 right-0 mt-2 bg-card border border-border rounded-lg shadow-lg overflow-hidden transform origin-top transition-all duration-200 ${
+            className={`absolute left-0 right-0 mt-2 bg-card border border-border rounded-lg shadow-lg overflow-hidden transform origin-top transition-all duration-200 z-[1001] ${
               isMenuOpen ? 'scale-y-100 opacity-100' : 'scale-y-0 opacity-0 pointer-events-none'
             }`}
           >
