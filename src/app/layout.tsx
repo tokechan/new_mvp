@@ -10,13 +10,13 @@ import FooterChoreInput from '@/components/FooterChoreInput'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'ThankYou Chores - 家事管理アプリ',
+  title: 'UDo - 家事共有アプリ',
   description: 'パートナーと一緒に家事を管理し、感謝を伝えるアプリ',
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
-    title: 'ThankYou Chores',
+    title: 'UDo',
   },
   icons: {
     icon: '/icon-192x192.svg',
