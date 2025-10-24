@@ -10,6 +10,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import Link from 'next/link'
 import { Bell } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { YOUDOLogo } from '@/components/YOUDOLogo'
 
 /**
  * ナビゲーションコンポーネント
@@ -125,16 +126,14 @@ export default function Navigation() {
               {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
             {/* PC表示用ロゴ（左寄せ） */}
-            <h1 className="hidden sm:block text-xl font-bold text-primary select-none">
-              UDo
-            </h1>
+            <div className="hidden sm:block select-none">
+              <YOUDOLogo width={100} height={36} />
+            </div>
           </div>
 
           {/* 中央：モバイル用ロゴ（PCでは非表示） */}
-          <div className="absolute left-1/2 -translate-x-1/2 sm:hidden">
-            <h1 className="text-xl font-bold text-primary select-none">
-              UDo
-            </h1>
+          <div className="absolute left-1/2 -translate-x-1/2 sm:hidden select-none">
+            <YOUDOLogo width={100} height={36} />
           </div>
 
           {/* 右側ナビゲーション（PC）は削除済み：ハンバーガーに統一 */}
