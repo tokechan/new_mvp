@@ -91,7 +91,7 @@ export function ChoreCompletionModal({
             onClick={handleConfirm}
             disabled={isProcessing}
             size="icon"
-            className="h-12 w-12 rounded-full p-0 grid place-items-center bg-secondary text-success-foreground hover:bg-secondary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+            className="h-12 w-12 rounded-full p-0 grid place-items-center bg-primary text-primary-foreground hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
           >
             {isProcessing ? (
               <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />

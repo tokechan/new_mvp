@@ -115,7 +115,7 @@ export function ChoreItem({
         cursor-pointer shadow-sm sm:shadow-md border-0
         ${chore.done 
           ? 'bg-success/10 shadow-green-100/70 completion-animation' 
-          : 'bg-card hover:shadow-lg'
+          : 'bg-primary/5 hover:bg-primary/10 hover:shadow-lg'
         }
         rounded-xl
       `}>
@@ -124,7 +124,7 @@ export function ChoreItem({
           <div className="w-full">
             <h3 className={`
               font-medium transition-all duration-200 break-words whitespace-normal text-center
-              ${chore.done ? 'line-through text-success' : 'text-foreground'}
+              ${chore.done ? 'line-through text-primary' : 'text-foreground'}
             `}>
               {chore.title}
             </h3>
@@ -152,11 +152,11 @@ export function ChoreItem({
               aria-label={chore.done ? '未完了に戻す' : '完了する'}
               className={`${
                 chore.done
-                  ? 'bg-success/10 border-success/40 text-success hover:bg-success/20 hover:border-success/50'
+                  ? 'bg-primary/10 border border-primary/40 text-primary hover:bg-primary/20 hover:border-primary/50'
                   : 'bg-primary/10 border border-primary/40 text-primary hover:bg-primary/20 hover:border-primary/50'
               } h-9 w-9 sm:h-10 sm:w-10 p-0 grid place-items-center transition-all duration-200 ${
                 isLoading ? 'opacity-60 cursor-not-allowed transform scale-95' : 'hover:transform hover:scale-105'
-              } focus:ring-2 focus:ring-offset-2 ${chore.done ? 'focus:ring-success' : 'focus:ring-primary'}`}
+              } focus:ring-2 focus:ring-offset-2 focus:ring-primary`}
             >
               {isLoading ? (
                 <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
@@ -175,7 +175,7 @@ export function ChoreItem({
                 size="icon"
                 aria-label="ありがとう"
                 onClick={onShowThankYou}
-                className="bg-success/10 border-success/40 text-success hover:bg-success/20 hover:border-success/50 h-9 w-9 sm:h-10 sm:w-10 p-0 grid place-items-center transition-all duration-200 hover:transform hover:scale-105 focus:ring-2 focus:ring-offset-2 focus:ring-success shadow-sm hover:shadow-md"
+                className="bg-primary/10 border border-primary/40 text-primary hover:bg-primary/20 hover:border-primary/50 h-9 w-9 sm:h-10 sm:w-10 p-0 grid place-items-center transition-all duration-200 hover:transform hover:scale-105 focus:ring-2 focus:ring-offset-2 focus:ring-primary shadow-sm"
               >
                 <Heart className="w-5 h-5" aria-hidden="true" />
                 <span className="sr-only">ありがとう</span>
