@@ -45,7 +45,7 @@ export function RealtimeTestPanel({
           <button
             onClick={onTestConnection}
             disabled={isConnected === null}
-            className="px-3 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="px-3 py-2 bg-primary text-white rounded hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             接続テスト
           </button>

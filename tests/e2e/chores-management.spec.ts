@@ -118,7 +118,7 @@ test.describe('家事管理機能', () => {
     
     // 家事の状態が「未完了」であることを確認（完了ボタンが青系）
     const completeButton = card.getByRole('button', { name: '完了する' });
-    await expect(completeButton).toHaveClass(/bg-blue-50/);
+    await expect(completeButton).toHaveClass(/bg-primary\/10/);
   });
 
   /**
@@ -150,7 +150,7 @@ test.describe('家事管理機能', () => {
     await page.waitForTimeout(1000);
     const completedButton = card.getByRole('button', { name: '未完了に戻す' });
     await expect(completedButton).toBeVisible({ timeout: 5000 });
-    await expect(completedButton).toHaveClass(/bg-green-50/);
+    await expect(completedButton).toHaveClass(/bg-success\/10/);
     
     // 再度クリックして未完了に戻す
     await completedButton.click();
@@ -159,7 +159,7 @@ test.describe('家事管理機能', () => {
     await page.waitForTimeout(1000);
     const newCompleteButton = card.getByRole('button', { name: '完了する' });
     await expect(newCompleteButton).toBeVisible({ timeout: 5000 });
-    await expect(newCompleteButton).toHaveClass(/bg-blue-50/);
+    await expect(newCompleteButton).toHaveClass(/bg-primary\/10/);
   });
 
   /**
@@ -221,14 +221,14 @@ test.describe('家事管理機能', () => {
     await page.waitForTimeout(1000);
     const firstCompletedButton = firstCard.getByRole('button', { name: '未完了に戻す' });
     await expect(firstCompletedButton).toBeVisible({ timeout: 5000 });
-    await expect(firstCompletedButton).toHaveClass(/bg-green-50/);
+    await expect(firstCompletedButton).toHaveClass(/bg-success\/10/);
     
     // 他の家事は未完了状態のままであることを確認
     for (let i = 1; i < chores.length; i++) {
       const card = page.getByText(chores[i]).locator('..').locator('..');
       const choreCompleteButton = card.getByRole('button', { name: '完了する' });
       await expect(choreCompleteButton).toBeVisible();
-      await expect(choreCompleteButton).toHaveClass(/bg-blue-50/);
+      await expect(choreCompleteButton).toHaveClass(/bg-primary\/10/);
     }
   });
 });

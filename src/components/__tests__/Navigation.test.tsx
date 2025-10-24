@@ -73,8 +73,8 @@ describe('Navigation', () => {
       const homeButton = screen.getByRole('button', { name: /home/i })
       
       // アクティブ状態のスタイルが適用されているかを確認
-      // 実際のスタイルクラス名は実装に依存するため、適切に調整が必要
-      expect(homeButton).toHaveClass('bg-blue-100') // 例: アクティブ時のクラス
+      expect(homeButton).toHaveClass('bg-secondary')
+      expect(homeButton).toHaveClass('text-primary')
     })
 
     it('should highlight done-list button when on completed-chores page', () => {
@@ -84,7 +84,8 @@ describe('Navigation', () => {
 
       const doneListButton = screen.getByRole('button', { name: /donelist/i })
       
-      expect(doneListButton).toHaveClass('bg-blue-100')
+      expect(doneListButton).toHaveClass('bg-secondary')
+      expect(doneListButton).toHaveClass('text-primary')
     })
 
     it('should highlight share button when on share page', () => {
@@ -94,7 +95,8 @@ describe('Navigation', () => {
 
       const shareButton = screen.getByRole('button', { name: /share/i })
       
-      expect(shareButton).toHaveClass('bg-blue-100')
+      expect(shareButton).toHaveClass('bg-secondary')
+      expect(shareButton).toHaveClass('text-primary')
     })
 
     it('should handle nested paths correctly', () => {
@@ -104,7 +106,8 @@ describe('Navigation', () => {
 
       const doneListButton = screen.getByRole('button', { name: /donelist/i })
       
-      expect(doneListButton).toHaveClass('bg-blue-100')
+      expect(doneListButton).toHaveClass('bg-secondary')
+      expect(doneListButton).toHaveClass('text-primary')
     })
   })
 

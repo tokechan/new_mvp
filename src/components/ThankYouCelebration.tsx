@@ -65,9 +65,9 @@ export default function ThankYouCelebration({
 
   // 背景グラデーションのクラス（Tailwind のパージ回避のため列挙）
   const themeGradient: Record<string, string> = {
-    multi: 'bg-gradient-to-br from-yellow-100 via-pink-100 to-blue-100',
+    multi: 'bg-gradient-to-br from-yellow-100 via-pink-100 to-primary/10',
     yellow: 'bg-gradient-to-br from-yellow-50 via-amber-100 to-orange-50',
-    blue: 'bg-gradient-to-br from-blue-50 via-indigo-100 to-cyan-50',
+    blue: 'bg-gradient-to-br from-primary/10 via-primary/20 to-primary/30',
     pink: 'bg-gradient-to-br from-pink-50 via-rose-100 to-fuchsia-50',
     purple: 'bg-gradient-to-br from-purple-50 via-violet-100 to-fuchsia-50',
     orange: 'bg-gradient-to-br from-orange-50 via-amber-100 to-yellow-50',
@@ -81,7 +81,7 @@ export default function ThankYouCelebration({
   const iconAccentTone: Record<string, string> = {
     multi: 'text-pink-600',
     yellow: 'text-amber-500',
-    blue: 'text-blue-600',
+    blue: 'text-primary',
     pink: 'text-pink-600',
     purple: 'text-violet-600',
     orange: 'text-orange-500',
@@ -91,7 +91,7 @@ export default function ThankYouCelebration({
   const buttonBgTone: Record<string, string> = {
     multi: 'bg-pink-300',
     yellow: 'bg-amber-300',
-    blue: 'bg-blue-300',
+    blue: 'bg-primary',
     pink: 'bg-pink-300',
     purple: 'bg-violet-300',
     orange: 'bg-orange-300',
@@ -99,7 +99,7 @@ export default function ThankYouCelebration({
   const buttonHoverTone: Record<string, string> = {
     multi: 'hover:bg-pink-400',
     yellow: 'hover:bg-amber-400',
-    blue: 'hover:bg-blue-400',
+    blue: 'hover:bg-primary/90',
     pink: 'hover:bg-pink-400',
     purple: 'hover:bg-violet-400',
     orange: 'hover:bg-orange-400',
@@ -107,7 +107,7 @@ export default function ThankYouCelebration({
   const buttonRingTone: Record<string, string> = {
     multi: 'focus:ring-pink-300',
     yellow: 'focus:ring-amber-300',
-    blue: 'focus:ring-blue-300',
+    blue: 'focus:ring-primary',
     pink: 'focus:ring-pink-300',
     purple: 'focus:ring-violet-300',
     orange: 'focus:ring-orange-300',
