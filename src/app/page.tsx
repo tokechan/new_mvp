@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/Button'
 import { profileService } from '@/services/profileService'
 import { PartnerService } from '@/services/partnerService'
 import { supabase } from '@/lib/supabase'
-import { Bell, LogOut } from 'lucide-react'
+import { Bell, LogOut, FileText } from 'lucide-react'
 
 export default function Home() {
   const { user, loading, signOut } = useAuth()
@@ -100,8 +100,15 @@ export default function Home() {
         </div>
       </div>
 
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-foreground mb-2 flex items-center">
+          <FileText className="w-6 h-6 mr-2 text-primary" aria-hidden="true" />
+          YOUDO List
+        </h1>
+      </div>
+
       {/* デバッグ機能 */}
-      <div className="bg-surface rounded-lg shadow-sm border border-amber-300 p-4 mb-8">
+      {/* <div className="bg-surface rounded-lg shadow-sm border border-amber-300 p-4 mb-8">
         <div className="flex items-center justify-between">
           <p className="font-medium text-gray-900">リアルタイム通知の挙動確認</p>
           <NotificationCenter />
@@ -140,7 +147,7 @@ export default function Home() {
             結果: {thanksTestResult}
           </div>
         )}
-      </div>
+      </div> */}
 
       {/* 家事管理メインコンテンツ */}
       <ChoresList />
