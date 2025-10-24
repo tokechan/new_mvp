@@ -111,7 +111,7 @@ export default function Navigation() {
     >
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* ヘッダー行：左にロゴ（PC）、中央にロゴ（モバイル）、右にナビ（PC） */}
-        <div className="relative flex items-center h-16">
+        <div className="relative flex items-center justify-between h-16">
           {/* 左側：ハンバーガー（全サイズ） + PCロゴ */}
           <div className="flex items-center gap-3">
             {/* ハンバーガーメニュー（全サイズで表示） */}
@@ -138,7 +138,7 @@ export default function Navigation() {
           </div>
 
           {/* 右側ナビゲーション（PC）は削除済み：ハンバーガーに統一 */}
-          <div className="ml-auto flex items-center gap-3">
+          <div className="flex items-center gap-3">
             <NotificationCenter />
             <UserMenu />
           </div>

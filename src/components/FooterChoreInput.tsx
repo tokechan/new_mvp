@@ -47,28 +47,34 @@ export default function FooterChoreInput() {
   }, [text, addChore, announceFormError, announceSuccess, announceError, addNotification])
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-gray-50 z-50">
-      <form onSubmit={handleSubmit} className="px-3 py-2">
-        <div className="relative">
-          <Input
-            type="text"
-            placeholder="新しい家事を入力"
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-            disabled={isAdding}
-            aria-label="新しい家事名"
-            className="w-full h-11 pr-12 rounded-full text-base"
-          />
-          <Button
-            type="submit"
-            disabled={isAdding || !text.trim()}
-            aria-label="家事を追加"
-            className="absolute right-1.5 top-1.5 h-8 w-8 rounded-full bg-primary/10 text-primary border border-input hover:bg-primary/20 hover:border-primary/50 focus:ring-2 focus:ring-primary"
-            variant="default"
-            size="icon"
-          >
-            <Plus className="w-5 h-5" />
-          </Button>
+    <div className="fixed bottom-0 left-0 right-0 z-50">
+      <form onSubmit={handleSubmit} className="px-3 py-3">
+        <div className="mx-auto max-w-3xl">
+          <div className="relative overflow-hidden rounded-2xl bg-primary/20 backdrop-blur-md ring-1 ring-primary/40 shadow-xl focus-within:ring-2 focus-within:ring-primary/60 transition-colors">
+            {/* Liquid装飾（半透明のバブル） */}
+            <div className="absolute -top-8 -left-6 w-32 h-32 bg-primary/30 rounded-full blur-2xl opacity-60 pointer-events-none" />
+            <div className="absolute -bottom-10 -right-8 w-44 h-44 bg-primary/25 rounded-full blur-3xl opacity-50 pointer-events-none" />
+
+            <Input
+              type="text"
+              placeholder="新しい家事を入力"
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              disabled={isAdding}
+              aria-label="新しい家事名"
+              className="w-full h-12 pr-16 rounded-full text-base bg-transparent text-primary-foreground placeholder:text-primary-foreground/80 focus:outline-none"
+            />
+            <Button
+              type="submit"
+              disabled={isAdding || !text.trim()}
+              aria-label="家事を追加"
+              className="absolute right-2 top-2 h-8 w-8 rounded-full bg-primary/40 text-primary-foreground border border-primary/50 shadow-md hover:bg-primary/50 focus:ring-2 focus:ring-primary/70 transition"
+              variant="default"
+              size="icon"
+            >
+              <Plus className="w-5 h-5" />
+            </Button>
+          </div>
         </div>
       </form>
     </div>

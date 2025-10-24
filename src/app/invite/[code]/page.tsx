@@ -266,7 +266,7 @@ export default function InvitePage({ params }: InvitePageProps) {
                     onClick={() => {
                       // 認証ページにリダイレクト（招待コードを保持）
                       const currentUrl = window.location.href
-                      window.location.href = `/auth?redirect=${encodeURIComponent(currentUrl)}`
+                      window.location.href = `/auth/signin?redirect=${encodeURIComponent(currentUrl)}`
                     }}
                     className="w-full px-4 py-3 bg-success text-success-foreground rounded-lg hover:bg-success/90 transition-colors font-medium"
                   >

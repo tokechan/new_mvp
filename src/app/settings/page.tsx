@@ -59,30 +59,30 @@ export default function SettingsPage() {
                     role="radio"
                     aria-checked={isSelected('light')}
                     onClick={() => setTheme('light')}
-                    className={`inline-flex items-center justify-center gap-2 px-3 py-2 rounded-md border border-border transition-colors focus:outline-none focus:ring-2 focus:ring-primary ${isSelected('light') ? 'bg-primary text-primary-foreground' : 'bg-secondary text-foreground hover:bg-secondary/80'}`}
+                    className={`inline-flex flex-col items-center justify-center gap-1 sm:gap-2 px-3 py-3 rounded-md border border-border text-center transition-colors focus:outline-none focus:ring-2 focus:ring-primary ${isSelected('light') ? 'bg-primary text-primary-foreground' : 'bg-secondary text-foreground hover:bg-secondary/80'}`}
                   >
-                    <Sun className="w-4 h-4" />
-                    <span className="text-sm">ライト</span>
+                    <Sun className="w-5 h-5 sm:w-4 sm:h-4" />
+                    <span className="text-xs sm:text-sm">ライト</span>
                   </button>
 
                   <button
                     role="radio"
                     aria-checked={isSelected('dark')}
                     onClick={() => setTheme('dark')}
-                    className={`inline-flex items-center justify-center gap-2 px-3 py-2 rounded-md border border-border transition-colors focus:outline-none focus:ring-2 focus:ring-primary ${isSelected('dark') ? 'bg-primary text-primary-foreground' : 'bg-secondary text-foreground hover:bg-secondary/80'}`}
+                    className={`inline-flex flex-col items-center justify-center gap-1 sm:gap-2 px-3 py-3 rounded-md border border-border text-center transition-colors focus:outline-none focus:ring-2 focus:ring-primary ${isSelected('dark') ? 'bg-primary text-primary-foreground' : 'bg-secondary text-foreground hover:bg-secondary/80'}`}
                   >
-                    <Moon className="w-4 h-4" />
-                    <span className="text-sm">ダーク</span>
+                    <Moon className="w-5 h-5 sm:w-4 sm:h-4" />
+                    <span className="text-xs sm:text-sm">ダーク</span>
                   </button>
 
                   <button
                     role="radio"
                     aria-checked={isSelected('system')}
                     onClick={() => setTheme('system')}
-                    className={`inline-flex items-center justify-center gap-2 px-3 py-2 rounded-md border border-border transition-colors focus:outline-none focus:ring-2 focus:ring-primary ${isSelected('system') ? 'bg-primary text-primary-foreground' : 'bg-secondary text-foreground hover:bg-secondary/80'}`}
+                    className={`inline-flex flex-col items-center justify-center gap-1 sm:gap-2 px-3 py-3 rounded-md border border-border text-center transition-colors focus:outline-none focus:ring-2 focus:ring-primary ${isSelected('system') ? 'bg-primary text-primary-foreground' : 'bg-secondary text-foreground hover:bg-secondary/80'}`}
                   >
-                    <Laptop className="w-4 h-4" />
-                    <span className="text-sm">システム</span>
+                    <Laptop className="w-5 h-5 sm:w-4 sm:h-4" />
+                    <span className="text-xs sm:text-sm">システム</span>
                   </button>
                 </div>
                 <p className="text-xs text-muted-foreground">現在の見た目: <span className="font-medium text-foreground">{resolvedTheme}</span></p>
