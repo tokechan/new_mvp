@@ -29,7 +29,10 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
-  themeColor: '#edebd8',
+  themeColor: [
+    { media: '(prefers-color-scheme: dark)', color: 'hsl(222.2 84% 4.9%)' },
+    { media: '(prefers-color-scheme: light)', color: 'hsl(210 40% 96.1%)' },
+  ],
 }
 
 export default function RootLayout({
@@ -43,7 +46,7 @@ export default function RootLayout({
         <AuthProvider>
           <NotificationProvider>
             <ToastProvider>
-              <div className="min-h-screen bg-gray-50">
+              <div className="min-h-screen bg-background">
                 <Navigation />
                 <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-20 sm:pb-0">
                   {children}

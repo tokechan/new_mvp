@@ -87,12 +87,12 @@ function AuthCallbackContent() {
   }, [router, searchParams, supabase])
 
   return (
-    <div className="min-h-screen flex items-center justify-center">
+    <div className="min-h-screen flex items-center justify-center bg-background">
       <div className="text-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-        <p className="text-gray-600">認証処理中...</p>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+        <p className="text-muted-foreground">認証処理中...</p>
         {!isProcessing && (
-          <p className="text-sm text-gray-500 mt-2">
+          <p className="text-sm text-muted-foreground mt-2">
             処理に時間がかかっています。しばらくお待ちください。
           </p>
         )}
@@ -108,10 +108,10 @@ function AuthCallbackContent() {
 export default function AuthCallback() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">読み込み中...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">読み込み中...</p>
         </div>
       </div>
     }>

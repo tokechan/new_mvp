@@ -105,7 +105,7 @@ export default function Navigation() {
 
   return (
     <nav 
-      className="bg-gray-50"
+      className="bg-background"
       role="navigation"
       aria-label="メインナビゲーション"
     >
@@ -117,7 +117,7 @@ export default function Navigation() {
             {/* ハンバーガーメニュー（全サイズで表示） */}
             <button
               onClick={() => setIsMenuOpen((prev) => !prev)}
-              className="p-2 rounded-lg text-gray-700 hover:text-blue-600 hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="p-2 rounded-lg text-foreground hover:text-primary hover:bg-secondary focus:outline-none focus:ring-2 focus:ring-primary"
               aria-label="メニューを開閉"
               aria-controls="mobile-nav-panel"
               aria-expanded={isMenuOpen}
@@ -125,14 +125,14 @@ export default function Navigation() {
               {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
             {/* PC表示用ロゴ（左寄せ） */}
-            <h1 className="hidden sm:block text-xl font-bold text-blue-600 select-none">
+            <h1 className="hidden sm:block text-xl font-bold text-primary select-none">
               UDo
             </h1>
           </div>
 
           {/* 中央：モバイル用ロゴ（PCでは非表示） */}
           <div className="absolute left-1/2 -translate-x-1/2 sm:hidden">
-            <h1 className="text-xl font-bold text-blue-600 select-none">
+            <h1 className="text-xl font-bold text-primary select-none">
               UDo
             </h1>
           </div>
@@ -148,7 +148,7 @@ export default function Navigation() {
         <div className="relative" ref={menuRef}>
           <div
             id="mobile-nav-panel"
-            className={`absolute left-0 right-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden transform origin-top transition-all duration-200 ${
+            className={`absolute left-0 right-0 mt-2 bg-card border border-border rounded-lg shadow-lg overflow-hidden transform origin-top transition-all duration-200 ${
               isMenuOpen ? 'scale-y-100 opacity-100' : 'scale-y-0 opacity-0 pointer-events-none'
             }`}
           >
@@ -161,7 +161,7 @@ export default function Navigation() {
                     key={`mobile-panel-${item.id}`}
                     onClick={() => handleNavigation(item.path)}
                     className={`flex items-center gap-3 px-4 py-3 text-left transition-colors ${
-                      active ? 'text-blue-700 bg-blue-50' : 'text-gray-700 hover:bg-gray-50'
+                      active ? 'text-primary bg-secondary' : 'text-foreground hover:bg-secondary'
                     }`}
                     aria-label={item.description}
                     aria-current={active ? 'page' : undefined}
@@ -173,7 +173,7 @@ export default function Navigation() {
               })}
 
               {/* 区切り線 */}
-              <div className="border-t border-gray-200 my-1" />
+              <div className="border-t border-border my-1" />
               {/* ログアウト */}
               <button
                 key={`mobile-panel-logout`}
@@ -185,7 +185,7 @@ export default function Navigation() {
                     console.error('ログアウトに失敗しました:', error)
                   }
                 }}
-                className={`flex items-center gap-3 px-4 py-3 text-left text-gray-700 hover:bg-gray-50`}
+                className={`flex items-center gap-3 px-4 py-3 text-left text-foreground hover:bg-secondary`}
                 aria-label="ログアウト"
               >
                 <LogOut className="w-5 h-5" />

@@ -43,16 +43,16 @@ export default function SharePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       {/* メインコンテンツ */}
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div className="bg-card rounded-lg shadow-sm border border-border p-6">
           {/* ページヘッダー */}
           <div className="mb-8">
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">
+            <h1 className="text-2xl font-bold text-foreground mb-2">
               パートナー招待・共有
             </h1>
-            <p className="text-gray-600">
+            <p className="text-muted-foreground">
               パートナーを招待して、家事を一緒に管理しましょう。
               招待リンクやQRコードを使って簡単に連携できます。
             </p>

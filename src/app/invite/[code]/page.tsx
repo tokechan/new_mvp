@@ -108,10 +108,10 @@ export default function InvitePage({ params }: InvitePageProps) {
   // ローディング中
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-zinc-900">
+      <div className="min-h-screen flex items-center justify-center bg-muted dark:bg-background">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
-          <p className="text-gray-600 dark:text-zinc-400">招待情報を確認中...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground dark:text-muted-foreground">招待情報を確認中...</p>
         </div>
       </div>
     )
@@ -120,22 +120,22 @@ export default function InvitePage({ params }: InvitePageProps) {
   // 受諾完了画面
   if (acceptanceResult) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-zinc-900">
+      <div className="min-h-screen flex items-center justify-center bg-muted dark:bg-background">
         <div className="max-w-md w-full mx-4">
-          <div className="bg-white rounded-lg shadow-lg p-8 text-center dark:bg-zinc-800">
+          <div className="bg-card rounded-lg shadow-lg p-8 text-center dark:bg-card">
             <div className="text-6xl mb-4">🎉</div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-4 dark:text-zinc-100">
+            <h1 className="text-2xl font-bold text-foreground mb-4">
               パートナー連携完了！
             </h1>
-            <div className="space-y-3 text-gray-600 dark:text-zinc-400">
+            <div className="space-y-3 text-muted-foreground">
               <p>
-                <span className="font-medium text-gray-900 dark:text-zinc-100">
+                <span className="font-medium text-foreground">
                   {acceptanceResult.partner_name}
                 </span>
                 さんとの連携が完了しました
               </p>
               <p>
-                共有された家事: <span className="font-bold text-blue-600">{acceptanceResult.shared_chores_count}件</span>
+                共有された家事: <span className="font-bold text-primary">{acceptanceResult.shared_chores_count}件</span>
               </p>
               <p className="text-sm">
                 これから一緒に家事を管理しましょう！
@@ -144,12 +144,12 @@ export default function InvitePage({ params }: InvitePageProps) {
             <div className="mt-6">
               <button
                 onClick={() => router.push('/')}
-                className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                className="px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
               >
                 家事一覧を見る
               </button>
             </div>
-            <p className="text-xs text-gray-500 mt-4 dark:text-zinc-500">
+            <p className="text-xs text-muted-foreground mt-4">
               3秒後に自動的にリダイレクトします
             </p>
           </div>
@@ -161,26 +161,26 @@ export default function InvitePage({ params }: InvitePageProps) {
   // エラー画面
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-zinc-900">
+      <div className="min-h-screen flex items-center justify-center bg-muted dark:bg-background">
         <div className="max-w-md w-full mx-4">
-          <div className="bg-white rounded-lg shadow-lg p-8 text-center dark:bg-zinc-800">
+          <div className="bg-card rounded-lg shadow-lg p-8 text-center dark:bg-card">
             <div className="text-6xl mb-4">❌</div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-4 dark:text-zinc-100">
+            <h1 className="text-2xl font-bold text-foreground mb-4">
               招待エラー
             </h1>
-            <p className="text-red-600 mb-6 dark:text-red-400">
+            <p className="text-destructive mb-6">
               {error}
             </p>
             <div className="space-y-3">
               <button
                 onClick={fetchInvitationInfo}
-                className="w-full px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                className="w-full px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
               >
                 再試行
               </button>
               <button
                 onClick={() => router.push('/')}
-                className="w-full px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
+                className="w-full px-4 py-2 bg-secondary text-secondary-foreground rounded-lg hover:bg-secondary/80 transition-colors"
               >
                 ホームに戻る
               </button>
@@ -193,40 +193,40 @@ export default function InvitePage({ params }: InvitePageProps) {
 
   // 招待情報表示・受諾画面
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-zinc-900">
+    <div className="min-h-screen flex items-center justify-center bg-muted dark:bg-background">
       <div className="max-w-md w-full mx-4">
-        <div className="bg-white rounded-lg shadow-lg p-8 dark:bg-zinc-800">
+        <div className="bg-card rounded-lg shadow-lg p-8 dark:bg-card">
           <div className="text-center mb-6">
             <div className="text-6xl mb-4">🤝</div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-2 dark:text-zinc-100">
+            <h1 className="text-2xl font-bold text-foreground mb-2">
               パートナー招待
             </h1>
-            <p className="text-gray-600 dark:text-zinc-400">
+            <p className="text-muted-foreground">
               家事管理アプリへの招待が届いています
             </p>
           </div>
 
           {invitationData && (
             <div className="space-y-4">
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 dark:bg-blue-950/30 dark:border-blue-800">
-                <h3 className="font-medium text-blue-800 mb-2 dark:text-blue-400">
+              <div className="bg-info/10 border border-info/30 rounded-lg p-4 dark:bg-info/10 dark:border-info/40">
+                <h3 className="font-medium text-info mb-2">
                   招待者情報
                 </h3>
-                <div className="text-sm text-blue-700 dark:text-blue-300">
+                <div className="text-sm text-info">
                   <p><span className="font-medium">名前:</span> {invitationData.inviter_name}</p>
                   <p><span className="font-medium">メール:</span> {invitationData.inviter_email}</p>
                 </div>
               </div>
 
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 dark:bg-yellow-950/30 dark:border-yellow-800">
-                <h3 className="font-medium text-yellow-800 mb-2 dark:text-yellow-400">
+              <div className="bg-warning/10 border border-warning/30 rounded-lg p-4 dark:bg-warning/10 dark:border-warning/40">
+                <h3 className="font-medium text-warning mb-2">
                   有効期限
                 </h3>
-                <div className="text-sm text-yellow-700 dark:text-yellow-300">
+                <div className="text-sm text-warning">
                   {(() => {
                     const timeLeft = getTimeUntilExpiration(invitationData.expires_at)
                     if (timeLeft.expired) {
-                      return <span className="text-red-600 dark:text-red-400">期限切れです</span>
+                      return <span className="text-destructive">期限切れです</span>
                     }
                     if (timeLeft.days > 0) {
                       return `あと ${timeLeft.days}日 ${timeLeft.hours}時間`
@@ -239,7 +239,7 @@ export default function InvitePage({ params }: InvitePageProps) {
                 </div>
               </div>
 
-              <div className="text-center text-sm text-gray-600 dark:text-zinc-400">
+              <div className="text-center text-sm text-muted-foreground">
                 <p>👫 一緒に家事を管理しませんか？</p>
                 <p>招待を受諾すると、家事の追加・完了・削除がリアルタイムで共有されます。</p>
               </div>
@@ -249,11 +249,11 @@ export default function InvitePage({ params }: InvitePageProps) {
                   <button
                     onClick={handleAcceptInvitation}
                     disabled={isAccepting}
-                    className="w-full px-4 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
+                    className="w-full px-4 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
                   >
                     {isAccepting ? '招待を受諾中...' : '招待を受諾する'}
                   </button>
-                  <p className="text-xs text-gray-500 text-center dark:text-zinc-500">
+                  <p className="text-xs text-muted-foreground text-center">
                     現在のアカウント: {user.email}
                   </p>
                 </div>
@@ -265,11 +265,11 @@ export default function InvitePage({ params }: InvitePageProps) {
                       const currentUrl = window.location.href
                       window.location.href = `/auth?redirect=${encodeURIComponent(currentUrl)}`
                     }}
-                    className="w-full px-4 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors font-medium"
+                    className="w-full px-4 py-3 bg-success text-success-foreground rounded-lg hover:bg-success/90 transition-colors font-medium"
                   >
                     ログインして招待を受諾
                   </button>
-                  <p className="text-xs text-gray-500 text-center dark:text-zinc-500">
+                  <p className="text-xs text-muted-foreground text-center">
                     招待を受諾するにはログインが必要です
                   </p>
                 </div>
