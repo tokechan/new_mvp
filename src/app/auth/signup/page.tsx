@@ -123,7 +123,7 @@ export default function SignUp() {
 
         {/* 成功メッセージ */}
         {success && (
-          <div className="bg-success/10 border border-success/40 text-success px-4 py-3 rounded">
+          <div className="bg-primary/10 border border-success/40 text-success px-4 py-3 rounded">
             {success}
           </div>
         )}

@@ -4,6 +4,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
 import PartnerInvitation from '@/components/PartnerInvitation'
+import { Handshake } from 'lucide-react'
 
 /**
  * パートナー招待・共有ページ
@@ -49,12 +50,12 @@ export default function SharePage() {
         <div className="bg-card rounded-lg shadow-sm border border-border p-6">
           {/* ページヘッダー */}
           <div className="mb-8">
-            <h1 className="text-2xl font-bold text-foreground mb-2">
-              パートナー招待・共有
+            <h1 className="text-2xl font-bold text-foreground mb-2 flex items-center">
+              <Handshake className="w-6 h-6 mr-2 text-primary" aria-hidden="true" />
+              パートナー招待
             </h1>
             <p className="text-muted-foreground">
-              パートナーを招待して、家事を一緒に管理しましょう。
-              招待リンクやQRコードを使って簡単に連携できます。
+              パートナーを招待して、家事を一緒に管理しましょう。招待リンクやQRコードを使って簡単に連携できます。
             </p>
           </div>
 

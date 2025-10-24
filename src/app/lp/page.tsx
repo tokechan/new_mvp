@@ -79,7 +79,7 @@ export default function LandingPage() {
             </div>
             
             <div className="text-center">
-              <div className="w-16 h-16 bg-success/10 dark:bg-success/30 rounded-full flex items-center justify-center mx-auto mb-4">
+              <div className="w-16 h-16 bg-primary/10 dark:bg-primary/30 rounded-full flex items-center justify-center mx-auto mb-4">
                 <span className="text-2xl">✅</span>
               </div>
               <h3 className="text-xl font-semibold text-foreground dark:text-foreground mb-2">
