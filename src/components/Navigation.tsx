@@ -126,14 +126,14 @@ export default function Navigation() {
             </button>
             {/* PC表示用ロゴ（左寄せ） */}
             <h1 className="hidden sm:block text-xl font-bold text-blue-600 select-none">
-              ThankYou Chores
+              UDo
             </h1>
           </div>
 
           {/* 中央：モバイル用ロゴ（PCでは非表示） */}
           <div className="absolute left-1/2 -translate-x-1/2 sm:hidden">
             <h1 className="text-xl font-bold text-blue-600 select-none">
-              ThankYou Chores
+              UDo
             </h1>
           </div>
 

@@ -278,12 +278,10 @@ export default function ChoresList() {
       /> */}
 
       {/* 家事追加フォーム（検討段階のため一時的に非表示） */}
-      {/*
       <ChoreAddForm 
         onAddChore={handleAddChore}
         isAdding={isAdding}
       />
-      */}
 
       {/* 家事リスト */}
       <div 
