@@ -92,15 +92,15 @@ export default function ThankYouMessage({
     }
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-6 max-w-md mx-auto">
-      <h3 className="text-lg font-semibold text-gray-900 mb-4">
+    <div className="bg-card rounded-lg shadow-md p-6 max-w-md mx-auto">
+      <h3 className="text-lg font-semibold text-foreground mb-4">
         {toUserName ? `${toUserName}さんに` : ''}ありがとうメッセージを送る
       </h3>
 
       {/* エラーメッセージ */}
       {error && (
         <div
-          className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded"
+          className="mb-4 p-3 bg-destructive/10 border border-destructive/50 text-destructive rounded"
           role="alert"
           data-testid="error-message"
         >
@@ -111,7 +111,7 @@ export default function ThankYouMessage({
       {/* 成功メッセージ */}
       {successMessage && (
         <div
-          className="mb-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded"
+          className="mb-4 p-3 bg-success/10 border border-success/50 text-success rounded"
           role="status"
           data-testid="success-message"
         >
@@ -122,7 +122,7 @@ export default function ThankYouMessage({
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* カスタムメッセージ入力（Tab移動で最初にフォーカスされる順序に配置） */}
         <div>
-          <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-2">
+          <label htmlFor="message" className="block text-sm font-medium text-muted-foreground mb-2">
             メッセージ
           </label>
           <textarea
@@ -131,7 +131,7 @@ export default function ThankYouMessage({
             onChange={(e) => setMessage(e.target.value)}
             placeholder="ありがとうメッセージを入力してください..."
             rows={3}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
             disabled={isSubmitting}
             aria-label="メッセージ"
             data-testid="custom-message-input"
@@ -140,7 +140,7 @@ export default function ThankYouMessage({
 
         {/* 定型メッセージ選択 */}
         <fieldset>
-          <legend className="block text-sm font-medium text-gray-700 mb-2">
+          <legend className="block text-sm font-medium text-muted-foreground mb-2">
             定型メッセージから選択
           </legend>
           <div className="grid grid-cols-1 gap-2">
@@ -149,7 +149,7 @@ export default function ThankYouMessage({
                 key={index}
                 type="button"
                 onClick={() => selectPredefinedMessage(predefinedMessage)}
-                className="text-left p-2 text-sm bg-gray-50 hover:bg-gray-100 rounded border transition-colors"
+                className="text-left p-2 text-sm bg-secondary hover:bg-secondary/80 rounded border border-border transition-colors"
                 aria-label={`定型メッセージを選択: ${predefinedMessage}`}
                 data-testid={`predefined-message-${index}`}
               >
@@ -168,7 +168,7 @@ export default function ThankYouMessage({
           <button
             type="submit"
             disabled={isSubmitting}
-            className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="flex-1 bg-primary text-primary-foreground py-2 px-4 rounded-md hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             data-testid="send-thank-you-button"
             aria-describedby="send-thank-you-desc"
           >
@@ -180,7 +180,7 @@ export default function ThankYouMessage({
               type="button"
               onClick={onCancel}
               disabled={isSubmitting}
-              className="flex-1 bg-gray-300 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="flex-1 bg-secondary text-muted-foreground py-2 px-4 rounded-md hover:bg-secondary/80 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               キャンセル
             </button>

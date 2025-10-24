@@ -48,14 +48,14 @@ export function AddChoreForm({ onAddChore, isLoading }: AddChoreFormProps) {
   const isDisabled = isLoading || isSubmitting || !newChoreTitle.trim()
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow-sm border">
-      <h2 className="text-lg font-semibold text-gray-800 mb-4">
+    <div className="bg-card p-6 rounded-lg shadow-sm border border-border">
+      <h2 className="text-lg font-semibold text-foreground mb-4">
         ✨ 新しい家事を追加
       </h2>
       
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label htmlFor="chore-title" className="block text-sm font-medium text-gray-700 mb-2">
+          <label htmlFor="chore-title" className="block text-sm font-medium text-muted-foreground mb-2">
             家事の内容
           </label>
           <input
@@ -65,11 +65,11 @@ export function AddChoreForm({ onAddChore, isLoading }: AddChoreFormProps) {
             onChange={(e) => setNewChoreTitle(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="例: 洗濯物を干す、食器を洗う"
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
             disabled={isLoading || isSubmitting}
             maxLength={100}
           />
-          <p className="text-xs text-gray-500 mt-1">
+          <p className="text-xs text-muted-foreground mt-1">
             {newChoreTitle.length}/100文字
           </p>
         </div>
@@ -77,11 +77,11 @@ export function AddChoreForm({ onAddChore, isLoading }: AddChoreFormProps) {
         <button
           type="submit"
           disabled={isDisabled}
-          className="w-full px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+          className="w-full px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
         >
           {isSubmitting ? (
             <>
-              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+              <div className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin"></div>
               追加中...
             </>
           ) : (
@@ -93,7 +93,7 @@ export function AddChoreForm({ onAddChore, isLoading }: AddChoreFormProps) {
         </button>
       </form>
       
-      <p className="text-sm text-gray-600 mt-3">
+      <p className="text-sm text-muted-foreground mt-3">
         💡 ヒント: Enterキーでも追加できます
       </p>
     </div>

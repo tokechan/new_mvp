@@ -61,13 +61,13 @@ export default function UserMenu() {
         aria-haspopup="menu"
         aria-expanded={open}
         aria-label="ユーザーメニュー"
-        className="flex items-center justify-center w-9 h-9 rounded-full border border-gray-200 bg-white hover:bg-gray-50 shadow-sm overflow-hidden"
+        className="flex items-center justify-center w-9 h-9 rounded-full border border-border bg-card hover:bg-secondary shadow-sm overflow-hidden focus:outline-none focus:ring-2 focus:ring-primary"
       >
         {avatarUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={avatarUrl} alt="アバター" className="w-full h-full object-cover" />
         ) : (
-          <UserRound className="w-5 h-5 text-gray-700" />
+          <UserRound className="w-5 h-5 text-muted-foreground" />
         )}
       </button>
 
@@ -76,21 +76,21 @@ export default function UserMenu() {
         <div
           role="menu"
           aria-label="ユーザーメニューポップアップ"
-          className="absolute right-0 mt-2 w-64 bg-white border border-gray-200 rounded-xl shadow-xl z-[1200]"
+          className="absolute right-0 mt-2 w-64 bg-card border border-border rounded-xl shadow-xl z-[1200]"
         >
           {/* ヘッダー */}
-          <div className="flex items-center gap-3 p-3 border-b border-gray-100">
-            <div className="w-9 h-9 rounded-full overflow-hidden border border-gray-200">
+          <div className="flex items-center gap-3 p-3 border-b border-border">
+            <div className="w-9 h-9 rounded-full overflow-hidden border border-border">
               {avatarUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={avatarUrl} alt="アバター" className="w-full h-full object-cover" />
               ) : (
-                <UserRound className="w-5 h-5 m-2 text-gray-700" />
+                <UserRound className="w-5 h-5 m-2 text-muted-foreground" />
               )}
             </div>
             <div className="min-w-0">
-              <div className="text-sm font-semibold text-gray-900 truncate">{displayName}</div>
-              {email && <div className="text-xs text-gray-500 truncate">{email}</div>}
+              <div className="text-sm font-semibold text-foreground truncate">{displayName}</div>
+              {email && <div className="text-xs text-muted-foreground truncate">{email}</div>}
             </div>
           </div>
 
@@ -99,26 +99,26 @@ export default function UserMenu() {
             <button
               role="menuitem"
               onClick={handleProfileEdit}
-              className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+              className="w-full flex items-center gap-3 px-4 py-2 text-sm text-foreground hover:bg-secondary"
             >
-              <UserRound className="w-4 h-4" />
+              <UserRound className="w-4 h-4 text-muted-foreground" />
               プロフィール編集
             </button>
             <button
               role="menuitem"
               onClick={handleSettings}
-              className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+              className="w-full flex items-center gap-3 px-4 py-2 text-sm text-foreground hover:bg-secondary"
             >
-              <Settings className="w-4 h-4" />
+              <Settings className="w-4 h-4 text-muted-foreground" />
               設定
             </button>
-            <div className="border-t border-gray-100 my-1" />
+            <div className="border-t border-border my-1" />
             <button
               role="menuitem"
               onClick={handleLogout}
-              className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+              className="w-full flex items-center gap-3 px-4 py-2 text-sm text-foreground hover:bg-secondary"
             >
-              <LogOut className="w-4 h-4" />
+              <LogOut className="w-4 h-4 text-destructive" />
               ログアウト
             </button>
           </div>
