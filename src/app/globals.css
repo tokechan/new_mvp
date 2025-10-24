@@ -59,6 +59,7 @@
     --border: 55 12% 80%;
     --input: 187 27% 69%;
     --ring: 187 27% 69%;
+    --surface: 55 12% 80%;
     /* Charts (harmonized set) */
     --chart-1: 187 27% 69%;  /* teal */
     --chart-2: 30 80% 60%;   /* orange */
@@ -95,6 +96,7 @@
     --border: 217.2 32.6% 17.5%;
     --input: 187 27% 69%;
     --ring: 187 27% 69%;
+    --surface: 55 12% 80%;
     --chart-1: 187 27% 72%;
     --chart-2: 160 60% 45%;
     --chart-3: 30 80% 55%;

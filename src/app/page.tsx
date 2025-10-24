@@ -57,7 +57,7 @@ export default function Home() {
   return (
     <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* ユーザー情報とアクション */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
+      <div className="bg-surface rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
         <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
           <div className="flex items-baseline gap-2">
             <p className="text-sm text-gray-600">こんにちは</p>
@@ -101,7 +101,7 @@ export default function Home() {
       </div>
 
       {/* デバッグ機能 */}
-      <div className="bg-white rounded-lg shadow-sm border border-amber-300 p-4 mb-8">
+      <div className="bg-surface rounded-lg shadow-sm border border-amber-300 p-4 mb-8">
         <div className="flex items-center justify-between">
           <p className="font-medium text-gray-900">リアルタイム通知の挙動確認</p>
           <NotificationCenter />
