@@ -168,34 +168,20 @@ export function useChores() {
 
       console.log('📝 Inserting chore data:', choreData)
 
-      const { data, error } = await supabase
-        .from('chores')
-        .insert([choreData])
-        .select()
-        .single()
+      // 服務レイヤー経由で作成（skip-auth時はlocalStorageにも反映）
+      const newChore = await ChoreService.createChore(choreData)
 
-      if (error) {
-        console.error('❌ 家事の追加に失敗しました:', error)
-        console.error('❌ 追加エラー詳細:', {
-          code: error.code,
-          message: error.message,
-          details: error.details,
-          hint: error.hint
-        })
-        throw error
-      }
-
-      console.log('✅ 家事を追加しました:', data)
+      console.log('✅ 家事を追加しました:', newChore)
       
       // 🔄 即座にローカル状態を更新（リアルタイムイベントを待たない）
-      console.log('🔄 Adding chore to local state immediately:', data.title)
-      setChores(prev => [data, ...prev])
+      console.log('🔄 Adding chore to local state immediately:', newChore.title)
+      setChores(prev => [newChore as any, ...prev])
       
       // リアルタイムイベント情報を更新
       setRealtimeEvents(prev => ({
         ...prev,
         inserts: prev.inserts + 1,
-        lastEvent: `Added: ${data.title}`,
+        lastEvent: `Added: ${newChore.title}`,
         connectionStatus: 'connected'
       }))
       

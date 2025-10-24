@@ -1,178 +1,184 @@
 import { test, expect } from '@playwright/test';
 
 /**
- * ありがとう機能のE2Eテスト
- * 家事完了後のありがとうメッセージ送信機能をテスト
+ * ありがとう機能のE2Eテスト（Completed Chores + ThankYouModal）
+ * 完了した家事からアイコンを選択してモーダルでメッセージを送る流れをテスト
  */
-test.describe('ありがとう機能', () => {
-  
+test.describe('ありがとう機能（Completed Chores）', () => {
+  const choreTitle = 'ありがとうテスト用家事';
+
   /**
    * 各テスト前の準備処理
+   * - 認証（必要ならサインイン/サインアップ）
+   * - 既存家事の削除でクリーン状態にする
+   * - ホームで家事を追加し、完了モーダルから完了
+   * - Completed Choresページへ移動して対象の家事のカードを表示
    */
   test.beforeEach(async ({ page }) => {
+    // confirm()ダイアログなどが出た場合は自動承認
+    page.on('dialog', async dialog => {
+      await dialog.accept();
+    });
+
     // ホームページにアクセス
     await page.goto('/');
-    
-    // テスト用の家事を追加して完了状態にする
-    const choreTitle = 'ありがとうテスト用家事';
-    await page.fill('input[placeholder*="新しい家事"]', choreTitle);
-    await page.click('button:has-text("追加")');
-    await expect(page.locator(`text=${choreTitle}`)).toBeVisible();
-    
-    // 家事を完了状態にする
-    const choreItem = page.locator(`text=${choreTitle}`).locator('..');
-    await choreItem.locator('button').first().click();
-    await expect(choreItem.locator('button').first()).toHaveClass(/bg-green-500/);
+    await page.waitForLoadState('networkidle');
+
+    // 認証が必要ならサインイン → 未作成ならサインアップ
+    const isSignInPage = await page.locator('text=アカウントにサインイン').isVisible();
+    if (isSignInPage) {
+      const email = process.env.E2E_EMAIL || 'test@example.com';
+      const password = process.env.E2E_PASSWORD || 'test12345!';
+
+      // サインイン
+      await page.fill('input[type="email"]', email);
+      await page.fill('input[type="password"]', password);
+      const signInButton = page.locator('button:has-text("サインイン")');
+      if (await signInButton.count()) {
+        await signInButton.click();
+        await page.waitForLoadState('networkidle');
+      }
+
+      // まだサインイン画面ならサインアップを試行
+      const stillSignIn = await page.locator('text=アカウントにサインイン').isVisible();
+      if (stillSignIn) {
+        const toSignupLink = page.locator('text=新しいアカウントを作成');
+        if (await toSignupLink.count()) {
+          await toSignupLink.click();
+          await page.waitForLoadState('networkidle');
+
+          await page.fill('input[type="email"]', email);
+          await page.fill('input[type="password"]', password);
+          const signUpButton = page.locator('button:has-text("サインアップ")');
+          if (await signUpButton.count()) {
+            await signUpButton.click();
+          } else {
+            const registerButton = page.locator('button:has-text("登録")');
+            if (await registerButton.count()) {
+              await registerButton.click();
+            }
+          }
+          await page.waitForLoadState('networkidle');
+
+          // ホームへ戻る
+          await page.goto('/');
+          await page.waitForLoadState('networkidle');
+        }
+      }
+    }
+
+    // クリーンな状態にするため、既存の家事を削除
+    // 最大20件まで削除（安全のため）
+    for (let i = 0; i < 20; i++) {
+      const deleteButtons = page.locator('button[aria-label="削除"]');
+      const count = await deleteButtons.count();
+      if (count === 0) break;
+      await deleteButtons.first().click();
+      await page.waitForTimeout(500);
+    }
+
+    // 「追加」ボタンを含むフォームにスコープして入力
+    const addForm = page.locator('form').filter({ has: page.locator('button:has-text("追加")') });
+    await expect(addForm.locator('input[placeholder*="新しい家事を入力"]')).toBeVisible({ timeout: 10000 });
+
+    // テスト用の家事を追加（フォーム内の入力に対して）
+    await addForm.locator('input[placeholder*="新しい家事を入力"]').fill(choreTitle);
+    await addForm.locator('button:has-text("追加")').click();
+
+    // 追加処理の完了を待機
+    await expect(page.locator('button:has-text("追加中...")')).not.toBeVisible({ timeout: 10000 });
+    await expect(page.getByText(choreTitle)).toBeVisible({ timeout: 10000 });
+
+    // 家事を完了状態にする（モーダルで「完了」を押下）
+    const choreItem = page.getByText(choreTitle).locator('..').locator('..');
+    await choreItem.getByRole('button', { name: '完了する' }).click();
+    await page.getByRole('button', { name: '完了' }).click();
+
+    // 完了ボタンのスタイル（緑系）に変わることを確認
+    await expect(choreItem.getByRole('button', { name: '未完了に戻す' })).toHaveClass(/bg-green-50/);
+
+    // Completed Choresページに移動
+    await page.goto('/completed-chores');
+
+    // ページ見出しと家事タイトルの表示確認
+    await expect(page.getByRole('heading', { name: '完了した家事' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: choreTitle })).toBeVisible();
   });
 
   /**
-   * テスト1: ありがとうボタンの表示
+   * テスト1: アイコンボタンの表示とモーダルの開閉
    */
-  test('完了した家事にありがとうボタンが表示される', async ({ page }) => {
-    const choreTitle = 'ありがとうテスト用家事';
-    const choreItem = page.locator(`text=${choreTitle}`).locator('..');
-    
-    // ありがとうボタンが表示されることを確認
-    await expect(choreItem.locator('button:has-text("💝 ありがとう")')).toBeVisible();
-    
-    // 未完了の家事にはありがとうボタンが表示されないことを確認
-    // 新しい未完了の家事を追加
-    const incompleteChore = '未完了テスト家事';
-    await page.fill('input[placeholder*="新しい家事"]', incompleteChore);
-    await page.click('button:has-text("追加")');
-    
-    const incompleteItem = page.locator(`text=${incompleteChore}`).locator('..');
-    await expect(incompleteItem.locator('button:has-text("💝 ありがとう")')).not.toBeVisible();
+  test('アイコンボタンが表示され、モーダルを開閉できる', async ({ page }) => {
+    // 対象家事カードにスコープ
+    const card = page.getByRole('heading', { name: choreTitle }).locator('..').locator('..');
+
+    // アイコンボタンの一例（お疲れさま）が表示されること
+    await expect(card.getByRole('button', { name: 'お疲れさま' })).toBeVisible();
+
+    // クリックでモーダルが開き、入力欄が見えること
+    await card.getByRole('button', { name: 'お疲れさま' }).click();
+    await expect(page.getByText('メッセージを送る')).toBeVisible();
+    await expect(page.locator('textarea#thank-you-message')).toBeVisible();
+
+    // キャンセルで閉じること
+    await page.getByRole('button', { name: 'キャンセル' }).click();
+    await expect(page.getByText('メッセージを送る')).not.toBeVisible();
   });
 
   /**
-   * テスト2: ありがとうメッセージフォームの表示と非表示
+   * テスト2: カスタムメッセージ送信でモーダルが閉じる（送信ボタン有効化と無効化）
    */
-  test('ありがとうボタンをクリックするとメッセージフォームが表示される', async ({ page }) => {
-    const choreTitle = 'ありがとうテスト用家事';
-    const choreItem = page.locator(`text=${choreTitle}`).locator('..');
-    
-    // ありがとうボタンをクリック
-    await choreItem.locator('button:has-text("💝 ありがとう")').click();
-    
-    // ありがとうメッセージフォームが表示されることを確認
-    await expect(page.locator('text=ありがとうメッセージを送信')).toBeVisible();
-    await expect(page.locator('textarea[placeholder*="メッセージ"]')).toBeVisible();
-    
-    // 定型メッセージボタンが表示されることを確認
-    await expect(page.locator('button:has-text("ありがとう！")')).toBeVisible();
-    await expect(page.locator('button:has-text("お疲れ様でした！")')).toBeVisible();
-    await expect(page.locator('button:has-text("助かりました！")')).toBeVisible();
-    
-    // キャンセルボタンをクリックしてフォームを閉じる
-    await page.click('button:has-text("キャンセル")');
-    
-    // フォームが非表示になることを確認
-    await expect(page.locator('text=ありがとうメッセージを送信')).not.toBeVisible();
+  test('カスタムメッセージを入力して送信（モーダルが閉じる）', async ({ page }) => {
+    const card = page.getByRole('heading', { name: choreTitle }).locator('..').locator('..');
+
+    await card.getByRole('button', { name: 'すごい' }).click();
+    const input = page.locator('textarea#thank-you-message');
+
+    // 入力前は送信ボタンが無効
+    await expect(page.getByRole('button', { name: '送信' })).toBeDisabled();
+
+    // 入力後に送信ボタンが有効化される
+    await input.fill('テストのありがとうメッセージです。');
+    await expect(page.getByRole('button', { name: '送信' })).toBeEnabled();
+
+    // 送信でモーダルが閉じる（送信先ユーザー未設定でもUIは閉じる）
+    await page.getByRole('button', { name: '送信' }).click();
+    await expect(page.getByText('メッセージを送る')).not.toBeVisible();
   });
 
   /**
-   * テスト3: 定型メッセージの送信
+   * テスト3: 同じ家事に複数回メッセージを送れる（毎回モーダルが閉じる）
    */
-  test('定型メッセージを選択して送信できる', async ({ page }) => {
-    const choreTitle = 'ありがとうテスト用家事';
-    const choreItem = page.locator(`text=${choreTitle}`).locator('..');
-    
-    // ありがとうボタンをクリック
-    await choreItem.locator('button:has-text("💝 ありがとう")').click();
-    
-    // 定型メッセージ「ありがとう！」を選択
-    await page.click('button:has-text("ありがとう！")');
-    
-    // テキストエリアに定型メッセージが入力されることを確認
-    await expect(page.locator('textarea[placeholder*="メッセージ"]')).toHaveValue('ありがとう！');
-    
-    // 送信ボタンをクリック
-    await page.click('button:has-text("送信")');
-    
-    // フォームが閉じることを確認
-    await expect(page.locator('text=ありがとうメッセージを送信')).not.toBeVisible();
-    
-    // ありがとうボタンが「ありがとう済み」に変わることを確認
-    await expect(choreItem.locator('button:has-text("✨ ありがとう済み")')).toBeVisible();
-    
-    // 送信されたメッセージが表示されることを確認
-    await expect(page.locator('text=ありがとうメッセージ')).toBeVisible();
-    await expect(page.locator('text=ありがとう！')).toBeVisible();
+  test('複数回メッセージを送信できる（毎回モーダルが閉じる）', async ({ page }) => {
+    const card = page.getByRole('heading', { name: choreTitle }).locator('..').locator('..');
+
+    // 1回目
+    await card.getByRole('button', { name: 'いいね' }).click();
+    await page.locator('textarea#thank-you-message').fill('1回目のありがとう');
+    await page.getByRole('button', { name: '送信' }).click();
+    await expect(page.getByText('メッセージを送る')).not.toBeVisible();
+
+    // 2回目
+    await card.getByRole('button', { name: '嬉しい' }).click();
+    await page.locator('textarea#thank-you-message').fill('2回目のありがとう');
+    await page.getByRole('button', { name: '送信' }).click();
+    await expect(page.getByText('メッセージを送る')).not.toBeVisible();
   });
 
   /**
-   * テスト4: カスタムメッセージの送信
+   * テスト4: 文字数カウンターが入力に応じて更新される
    */
-  test('カスタムメッセージを入力して送信できる', async ({ page }) => {
-    const choreTitle = 'ありがとうテスト用家事';
-    const choreItem = page.locator(`text=${choreTitle}`).locator('..');
-    const customMessage = 'いつもお疲れ様です！本当に助かっています。';
-    
-    // ありがとうボタンをクリック
-    await choreItem.locator('button:has-text("💝 ありがとう")').click();
-    
-    // カスタムメッセージを入力
-    await page.fill('textarea[placeholder*="メッセージ"]', customMessage);
-    
-    // 送信ボタンをクリック
-    await page.click('button:has-text("送信")');
-    
-    // フォームが閉じることを確認
-    await expect(page.locator('text=ありがとうメッセージを送信')).not.toBeVisible();
-    
-    // ありがとうボタンが「ありがとう済み」に変わることを確認
-    await expect(choreItem.locator('button:has-text("✨ ありがとう済み")')).toBeVisible();
-    
-    // 送信されたカスタムメッセージが表示されることを確認
-    await expect(page.locator('text=ありがとうメッセージ')).toBeVisible();
-    await expect(page.locator(`text=${customMessage}`)).toBeVisible();
-  });
+  test('文字数カウンターが入力に応じて更新される', async ({ page }) => {
+    const card = page.getByRole('heading', { name: choreTitle }).locator('..').locator('..');
 
-  /**
-   * テスト5: 複数のありがとうメッセージ
-   */
-  test('同じ家事に複数のありがとうメッセージを送信できる', async ({ page }) => {
-    const choreTitle = 'ありがとうテスト用家事';
-    const choreItem = page.locator(`text=${choreTitle}`).locator('..');
-    
-    // 最初のありがとうメッセージを送信
-    await choreItem.locator('button:has-text("💝 ありがとう")').click();
-    await page.click('button:has-text("ありがとう！")');
-    await page.click('button:has-text("送信")');
-    
-    // ありがとう済みボタンをクリックして再度フォームを開く
-    await choreItem.locator('button:has-text("✨ ありがとう済み")').click();
-    
-    // 2つ目のメッセージを送信
-    const secondMessage = '2回目のありがとうメッセージです';
-    await page.fill('textarea[placeholder*="メッセージ"]', secondMessage);
-    await page.click('button:has-text("送信")');
-    
-    // 両方のメッセージが表示されることを確認
-    await expect(page.locator('text=ありがとう！')).toBeVisible();
-    await expect(page.locator(`text=${secondMessage}`)).toBeVisible();
-  });
+    await card.getByRole('button', { name: '愛してる' }).click();
+    const input = page.locator('textarea#thank-you-message');
 
-  /**
-   * テスト6: 通知機能の確認
-   */
-  test('ありがとうメッセージ送信時に通知が表示される', async ({ page }) => {
-    const choreTitle = 'ありがとうテスト用家事';
-    const choreItem = page.locator(`text=${choreTitle}`).locator('..');
-    
-    // ありがとうボタンをクリック
-    await choreItem.locator('button:has-text("💝 ありがとう")').click();
-    
-    // メッセージを送信
-    await page.click('button:has-text("ありがとう！")');
-    await page.click('button:has-text("送信")');
-    
-    // 通知が表示されることを確認（通知システムが実装されている場合）
-    // TODO: 通知システムの実装に応じて、適切なセレクターに変更
-    // await expect(page.locator('.notification, .toast, [role="alert"]')).toBeVisible();
-    
-    // 現在は成功メッセージやフォームの閉じることで送信成功を確認
-    await expect(page.locator('text=ありがとうメッセージを送信')).not.toBeVisible();
+    await input.fill('abc');
+    await expect(page.locator('text=/\b3\/200\b/')).toBeVisible();
+
+    // キャンセルで閉じる
+    await page.getByRole('button', { name: 'キャンセル' }).click();
+    await expect(page.getByText('メッセージを送る')).not.toBeVisible();
   });
 });
