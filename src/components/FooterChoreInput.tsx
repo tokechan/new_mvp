@@ -47,7 +47,7 @@ export default function FooterChoreInput() {
   }, [text, addChore, announceFormError, announceSuccess, announceError, addNotification])
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-white sm:border-t sm:border-gray-200 sm:shadow-lg z-50">
+    <div className="fixed bottom-0 left-0 right-0 bg-gray-50 z-50">
       <form onSubmit={handleSubmit} className="px-3 py-2">
         <div className="relative">
           <Input
