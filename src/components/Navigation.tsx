@@ -112,22 +112,22 @@ export default function Navigation() {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* ヘッダー行：左にロゴ（PC）、中央にロゴ（モバイル）、右にナビ（PC） */}
         <div className="relative flex items-center h-16">
-          {/* 左側：PCロゴ + ハンバーガー（モバイルのみ） */}
+          {/* 左側：ハンバーガー（全サイズ） + PCロゴ */}
           <div className="flex items-center gap-3">
-            {/* PC表示用ロゴ（左寄せ） */}
-            <h1 className="hidden sm:block text-xl font-bold text-blue-600 select-none">
-              ThankYou Chores
-            </h1>
-            {/* ハンバーガーメニュー（モバイルのみ） */}
+            {/* ハンバーガーメニュー（全サイズで表示） */}
             <button
               onClick={() => setIsMenuOpen((prev) => !prev)}
-              className="sm:hidden p-2 rounded-lg text-gray-700 hover:text-blue-600 hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="p-2 rounded-lg text-gray-700 hover:text-blue-600 hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
               aria-label="メニューを開閉"
               aria-controls="mobile-nav-panel"
               aria-expanded={isMenuOpen}
             >
               {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
+            {/* PC表示用ロゴ（左寄せ） */}
+            <h1 className="hidden sm:block text-xl font-bold text-blue-600 select-none">
+              ThankYou Chores
+            </h1>
           </div>
 
           {/* 中央：モバイル用ロゴ（PCでは非表示） */}
@@ -137,48 +137,11 @@ export default function Navigation() {
             </h1>
           </div>
 
-          {/* 右側：ナビゲーション項目（PC表示） */}
-          <div className="ml-auto hidden sm:flex items-center space-x-1 sm:space-x-2">
-            {/* メインナビゲーション項目 */}
-            <div className="flex space-x-1 sm:space-x-2">
-              {navigationItems.map((item) => {
-                const Icon = item.icon
-                const active = isActive(item.path)
-                return (
-                  <Button
-                    key={item.id}
-                    variant={active ? 'default' : 'ghost'}
-                    size="sm"
-                    onClick={() => handleNavigation(item.path)}
-                    className={`
-                      flex items-center space-x-1 sm:space-x-2 px-3 sm:px-4 py-2
-                      transition-all duration-200 hover:scale-105
-                      ${active 
-                        ? 'bg-blue-600 text-white shadow-md' 
-                        : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50'
-                      }
-                    `}
-                    aria-label={item.description}
-                    aria-current={active ? 'page' : undefined}
-                  >
-                    <Icon className="w-4 h-4" />
-                    <span className="hidden sm:inline text-sm font-medium">
-                      {item.label}
-                    </span>
-                  </Button>
-                )
-              })}
-            </div>
-
-            {/* 通知センター */}
-            <div className="hide-on-menu-open">
-              <NotificationCenter />
-            </div>
-          </div>
+          {/* 右側ナビゲーション（PC）は削除済み：ハンバーガーに統一 */}
         </div>
 
-        {/* モバイル用メニューパネル */}
-        <div className="sm:hidden relative" ref={menuRef}>
+        {/* メニューパネル（全サイズ） */}
+        <div className="relative" ref={menuRef}>
           <div
             id="mobile-nav-panel"
             className={`absolute left-0 right-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden transform origin-top transition-all duration-200 ${
