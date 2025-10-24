@@ -66,15 +66,15 @@ export function ToastProvider({ children }: ToastProviderProps) {
 function getVariantClasses(variant: ToastVariant) {
   switch (variant) {
     case 'success':
-      return 'border-green-200 bg-white text-green-700 shadow-sm'
+      return 'border-success/40 bg-card text-success shadow-sm'
     case 'info':
-      return 'border-blue-200 bg-white text-blue-700 shadow-sm'
+      return 'border-info/40 bg-card text-info shadow-sm'
     case 'warning':
-      return 'border-amber-200 bg-white text-amber-700 shadow-sm'
+      return 'border-warning/40 bg-card text-warning shadow-sm'
     case 'error':
-      return 'border-red-200 bg-white text-red-700 shadow-sm'
+      return 'border-destructive/40 bg-card text-destructive shadow-sm'
     default:
-      return 'border-gray-200 bg-white text-gray-700 shadow-sm'
+      return 'border-border bg-card text-foreground shadow-sm'
   }
 }
 

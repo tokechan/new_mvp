@@ -114,8 +114,8 @@ export function ChoreItem({
         p-4 transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.99]
         cursor-pointer shadow-sm sm:shadow-md border-0
         ${chore.done 
-          ? 'bg-green-50 shadow-green-100/70 completion-animation' 
-          : 'bg-white hover:shadow-lg'
+          ? 'bg-success/10 shadow-green-100/70 completion-animation' 
+          : 'bg-card hover:shadow-lg'
         }
         rounded-xl
       `}>
@@ -124,13 +124,13 @@ export function ChoreItem({
           <div className="w-full">
             <h3 className={`
               font-medium transition-all duration-200 break-words whitespace-normal text-center
-              ${chore.done ? 'line-through text-green-700' : 'text-gray-900'}
+              ${chore.done ? 'line-through text-success' : 'text-foreground'}
             `}>
               {chore.title}
             </h3>
             {chore.done && chore.completed_at && (
               <div className="flex items-center justify-center mt-2 animate-fade-in">
-                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-200">
+                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-success/10 text-success border border-success/40">
                   <span className="mr-1">✨</span>
                   {formatCompletionDate()}に完了
                 </span>
@@ -152,11 +152,11 @@ export function ChoreItem({
               aria-label={chore.done ? '未完了に戻す' : '完了する'}
               className={`${
                 chore.done
-                  ? 'bg-green-50 border-green-300 text-green-700 hover:bg-green-100 hover:border-green-400'
-                  : 'bg-blue-50 border border-blue-300 text-blue-700 hover:bg-blue-100 hover:border-blue-400'
+                  ? 'bg-success/10 border-success/40 text-success hover:bg-success/20 hover:border-success/50'
+                  : 'bg-primary/10 border border-primary/40 text-primary hover:bg-primary/20 hover:border-primary/50'
               } h-9 w-9 sm:h-10 sm:w-10 p-0 grid place-items-center transition-all duration-200 ${
                 isLoading ? 'opacity-60 cursor-not-allowed transform scale-95' : 'hover:transform hover:scale-105'
-              } focus:ring-2 focus:ring-offset-2 ${chore.done ? 'focus:ring-green-500' : 'focus:ring-blue-500'}`}
+              } focus:ring-2 focus:ring-offset-2 ${chore.done ? 'focus:ring-success' : 'focus:ring-primary'}`}
             >
               {isLoading ? (
                 <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
@@ -175,7 +175,7 @@ export function ChoreItem({
                 size="icon"
                 aria-label="ありがとう"
                 onClick={onShowThankYou}
-                className="bg-pink-50 border-pink-300 text-pink-700 hover:bg-pink-100 hover:border-pink-400 h-9 w-9 sm:h-10 sm:w-10 p-0 grid place-items-center transition-all duration-200 hover:transform hover:scale-105 focus:ring-2 focus:ring-offset-2 focus:ring-pink-500 shadow-sm hover:shadow-md"
+                className="bg-success/10 border-success/40 text-success hover:bg-success/20 hover:border-success/50 h-9 w-9 sm:h-10 sm:w-10 p-0 grid place-items-center transition-all duration-200 hover:transform hover:scale-105 focus:ring-2 focus:ring-offset-2 focus:ring-success shadow-sm hover:shadow-md"
               >
                 <Heart className="w-5 h-5" aria-hidden="true" />
                 <span className="sr-only">ありがとう</span>
@@ -183,21 +183,12 @@ export function ChoreItem({
             )}
 
 
-            <Button
-              variant="outline"
-              size="icon"
-              aria-label="削除"
-              onClick={() => onDelete(chore.id as any)}
-              className="bg-red-50 border-red-300 text-red-700 hover:bg-red-100 hover:border-red-400 h-9 w-9 sm:h-10 sm:w-10 p-0 grid place-items-center transition-all duration-200 hover:transform hover:scale-105 focus:ring-2 focus:ring-offset-2 focus:ring-red-500 shadow-sm hover:shadow-md"
-            >
-              <Trash2 className="w-5 h-5" aria-hidden="true" />
-              <span className="sr-only">削除</span>
-            </Button>
+
           </div>
         </div>
         {/* ありがとうメッセージフォーム */}
         {showThankYou && (
-          <div className="mt-4 pt-4 border-t">
+          <div className="mt-4 pt-4 border-t border-border">
             <ThankYouMessage
               choreId={String(chore.id)}
               toUserId={partnerInfo?.id || ''}

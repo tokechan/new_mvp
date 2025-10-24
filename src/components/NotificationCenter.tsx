@@ -28,28 +28,28 @@ export default function NotificationCenter() {
   const getNotificationIconColor = (type: Notification['type']) => {
     switch (type) {
       case 'success':
-        return 'text-green-500'
+        return 'text-success'
       case 'warning':
-        return 'text-yellow-500'
+        return 'text-warning'
       case 'error':
-        return 'text-red-500'
+        return 'text-destructive'
       default:
-        return 'text-blue-500'
+        return 'text-info'
     }
   }
 
   // 通知の背景色を決定
   const getNotificationBgColor = (type: Notification['type'], read: boolean) => {
-    const baseColor = read ? 'bg-gray-50' : 'bg-white'
-    const borderColor = read ? 'border-gray-200' : 'border-blue-200'
+    const baseColor = read ? 'bg-muted' : 'bg-card'
+    const borderColor = read ? 'border-border' : 'border-primary/30'
     
     switch (type) {
       case 'success':
-        return `${baseColor} ${read ? 'border-gray-200' : 'border-green-200'}`
+        return `${baseColor} ${read ? 'border-border' : 'border-success/40'}`
       case 'warning':
-        return `${baseColor} ${read ? 'border-gray-200' : 'border-yellow-200'}`
+        return `${baseColor} ${read ? 'border-border' : 'border-warning/40'}`
       case 'error':
-        return `${baseColor} ${read ? 'border-gray-200' : 'border-red-200'}`
+        return `${baseColor} ${read ? 'border-border' : 'border-destructive/40'}`
       default:
         return `${baseColor} ${borderColor}`
     }
@@ -98,7 +98,7 @@ export default function NotificationCenter() {
       {/* 通知ベルアイコン */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="relative p-2 text-gray-600 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-lg"
+        className="relative p-2 text-muted-foreground hover:text-foreground focus:outline-none focus:ring-2 focus:ring-ring rounded-lg"
         aria-label="通知を開く"
       >
         {/* ベルアイコン（SVG） */}
@@ -119,7 +119,7 @@ export default function NotificationCenter() {
         
         {/* 未読通知数のバッジ */}
         {unreadCount > 0 && (
-          <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+          <span className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground text-xs rounded-full h-5 w-5 flex items-center justify-center">
             {unreadCount > 99 ? '99+' : unreadCount}
           </span>
         )}
@@ -141,7 +141,7 @@ export default function NotificationCenter() {
           aria-label="通知パネルを閉じる"
         >
           <div 
-            className="bg-white rounded-lg shadow-xl border border-gray-200 w-full max-w-2xl max-h-[80vh] overflow-hidden"
+            className="bg-card rounded-lg shadow-xl border border-border w-full max-w-2xl max-h-[80vh] overflow-hidden"
             onClick={(e) => e.stopPropagation()}
             onKeyDown={(e) => {
               if (e.key === 'Enter' || e.key === ' ') {
@@ -152,13 +152,13 @@ export default function NotificationCenter() {
             tabIndex={0}
           >
           {/* ヘッダー */}
-          <div className="flex items-center justify-between p-4 border-b border-gray-200">
-            <h3 className="text-lg font-semibold text-gray-900">通知</h3>
+          <div className="flex items-center justify-between p-4 border-b border-border">
+            <h3 className="text-lg font-semibold text-foreground">通知</h3>
             <div className="flex space-x-2">
               {unreadCount > 0 && (
                 <button
                   onClick={markAllAsRead}
-                  className="text-sm text-blue-600 hover:text-blue-800"
+                  className="text-sm text-primary hover:text-primary/80"
                 >
                   全て既読
                 </button>
@@ -166,7 +166,7 @@ export default function NotificationCenter() {
               {notifications.length > 0 && (
                 <button
                   onClick={clearAllNotifications}
-                  className="text-sm text-red-600 hover:text-red-800"
+                  className="text-sm text-destructive hover:text-destructive/80"
                 >
                   全て削除
                 </button>
@@ -179,14 +179,14 @@ export default function NotificationCenter() {
           {/* 通知リスト */}
           <div className="max-h-[60vh] overflow-y-auto">
             {notifications.length === 0 ? (
-              <div className="p-4 text-center text-gray-500">
+              <div className="p-4 text-center text-muted-foreground">
                 通知はありません
               </div>
             ) : (
               notifications.map((notification) => (
                 <div
                   key={notification.id}
-                  className={`p-4 border-b border-gray-100 cursor-pointer hover:bg-gray-50 ${getNotificationBgColor(notification.type, notification.read)}`}
+                  className={`p-4 border-b border-border cursor-pointer hover:bg-muted ${getNotificationBgColor(notification.type, notification.read)}`}
                   onClick={() => handleNotificationClick(notification)}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' || e.key === ' ') {
@@ -226,7 +226,7 @@ export default function NotificationCenter() {
                     {/* 通知内容 */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between">
-                        <p className={`text-sm font-medium ${notification.read ? 'text-gray-600' : 'text-gray-900'}`}>
+                        <p className={`text-sm font-medium ${notification.read ? 'text-muted-foreground' : 'text-foreground'}`}>
                           {notification.title}
                         </p>
                         <button
@@ -244,13 +244,13 @@ export default function NotificationCenter() {
                       </div>
                       {/* ありがとう通知はコメントを一覧では表示しない */}
                       {notification.title.includes('ありがとうメッセージ') ? (
-                        <p className="text-sm text-gray-500">タップ／クリックでコメントを表示</p>
+                        <p className="text-sm text-muted-foreground">タップ／クリックでコメントを表示</p>
                       ) : (
-                        <p className={`text-sm ${notification.read ? 'text-gray-500' : 'text-gray-700'}`}>
+                        <p className={`text-sm ${notification.read ? 'text-muted-foreground' : 'text-foreground'}`}>
                           {notification.message}
                         </p>
                       )}
-                      <p className="text-xs text-gray-400 mt-1">
+                      <p className="text-xs text-muted-foreground mt-1">
                         {formatTime(notification.timestamp)}
                       </p>
                     </div>
@@ -258,7 +258,7 @@ export default function NotificationCenter() {
                     {/* 未読インジケーター */}
                     {!notification.read && (
                       <div className="flex-shrink-0">
-                        <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                        <div className="w-2 h-2 bg-info rounded-full"></div>
                       </div>
                     )}
                   </div>
