@@ -2,6 +2,7 @@
 
 import { Chore } from '@/types/chore'
 import { ChoreItem } from './ChoreItem'
+import { Home, ClipboardList } from 'lucide-react'
 import { useAuthState } from '@/hooks/useAuthState'
 
 interface ChoreListProps {
@@ -56,7 +57,7 @@ export function ChoreList({ chores, isLoading, onToggleChore, onDeleteChore }: C
     return (
       <div className="bg-card p-6 rounded-lg shadow-sm border border-border">
         <div className="text-center py-8">
-          <div className="text-4xl mb-4">🏠</div>
+          <Home className="w-10 h-10 mb-4 mx-auto text-muted-foreground" aria-hidden="true" />
           <h3 className="text-lg font-medium text-foreground mb-2">
             まだ家事が登録されていません
           </h3>
@@ -72,7 +73,7 @@ export function ChoreList({ chores, isLoading, onToggleChore, onDeleteChore }: C
     <div className="bg-card rounded-lg shadow-sm border border-border">
       <div className="p-4 border-b border-border">
         <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
-          📋 家事一覧
+          <span className="flex items-center gap-2"><ClipboardList className="w-5 h-5" aria-hidden="true" /> 家事一覧</span>
           <span className="text-sm font-normal text-muted-foreground">
             ({chores.length}件)
           </span>

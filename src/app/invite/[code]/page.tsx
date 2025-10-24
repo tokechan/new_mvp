@@ -17,6 +17,7 @@ import type {
   GetInvitationResponse,
   AcceptInvitationResponse 
 } from '@/types/invitation'
+import { Handshake, PartyPopper } from 'lucide-react'
 
 interface InvitePageProps {
   params: Promise<{
@@ -123,10 +124,11 @@ export default function InvitePage({ params }: InvitePageProps) {
       <div className="min-h-screen flex items-center justify-center bg-muted dark:bg-background">
         <div className="max-w-md w-full mx-4">
           <div className="bg-card rounded-lg shadow-lg p-8 text-center dark:bg-card">
-            <div className="text-6xl mb-4">🎉</div>
-            <h1 className="text-2xl font-bold text-foreground mb-4">
-              パートナー連携完了！
-            </h1>
+-            <div className="text-6xl mb-4">🎉</div>
++            <PartyPopper className="w-16 h-16 mx-auto mb-4 text-primary" aria-hidden="true" />
+             <h1 className="text-2xl font-bold text-foreground mb-4">
+               パートナー連携完了！
+             </h1>
             <div className="space-y-3 text-muted-foreground">
               <p>
                 <span className="font-medium text-foreground">
@@ -197,10 +199,11 @@ export default function InvitePage({ params }: InvitePageProps) {
       <div className="max-w-md w-full mx-4">
         <div className="bg-card rounded-lg shadow-lg p-8 dark:bg-card">
           <div className="text-center mb-6">
-            <div className="text-6xl mb-4">🤝</div>
-            <h1 className="text-2xl font-bold text-foreground mb-2">
-              パートナー招待
-            </h1>
+-            <div className="text-6xl mb-4">🤝</div>
++            <Handshake className="w-16 h-16 mx-auto mb-4 text-primary" aria-hidden="true" />
+             <h1 className="text-2xl font-bold text-foreground mb-2">
+               パートナー招待
+             </h1>
             <p className="text-muted-foreground">
               家事管理アプリへの招待が届いています
             </p>
