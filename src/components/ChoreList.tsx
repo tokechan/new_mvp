@@ -43,10 +43,10 @@ export function ChoreList({ chores, isLoading, onToggleChore, onDeleteChore }: C
 
   if (isLoading) {
     return (
-      <div className="bg-white p-6 rounded-lg shadow-sm border">
+      <div className="bg-card p-6 rounded-lg shadow-sm border border-border">
         <div className="flex items-center justify-center py-8">
-          <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-          <span className="ml-2 text-gray-600">家事を読み込み中...</span>
+          <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+          <span className="ml-2 text-muted-foreground">家事を読み込み中...</span>
         </div>
       </div>
     )
@@ -54,13 +54,13 @@ export function ChoreList({ chores, isLoading, onToggleChore, onDeleteChore }: C
 
   if (chores.length === 0) {
     return (
-      <div className="bg-white p-6 rounded-lg shadow-sm border">
+      <div className="bg-card p-6 rounded-lg shadow-sm border border-border">
         <div className="text-center py-8">
           <div className="text-4xl mb-4">🏠</div>
-          <h3 className="text-lg font-medium text-gray-800 mb-2">
+          <h3 className="text-lg font-medium text-foreground mb-2">
             まだ家事が登録されていません
           </h3>
-          <p className="text-gray-600">
+          <p className="text-muted-foreground">
             上のフォームから最初の家事を追加してみましょう！
           </p>
         </div>
@@ -69,17 +69,17 @@ export function ChoreList({ chores, isLoading, onToggleChore, onDeleteChore }: C
   }
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border">
-      <div className="p-4 border-b">
-        <h2 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
+    <div className="bg-card rounded-lg shadow-sm border border-border">
+      <div className="p-4 border-b border-border">
+        <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
           📋 家事一覧
-          <span className="text-sm font-normal text-gray-500">
+          <span className="text-sm font-normal text-muted-foreground">
             ({chores.length}件)
           </span>
         </h2>
       </div>
       
-      <div className="divide-y divide-gray-100">
+      <div className="divide-y divide-border">
         {chores.map((chore) => (
           <ChoreItem
             key={chore.id}

@@ -75,10 +75,10 @@ export function ChoreCompletionModal({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md rounded-lg">
         <DialogHeader>
-          <DialogTitle className="text-lg font-semibold text-gray-900">
+          <DialogTitle className="text-lg font-semibold text-foreground">
             家事を完了しますか？
           </DialogTitle>
-          <DialogDescription className="text-gray-600">
+          <DialogDescription className="text-muted-foreground">
             「{chore.title}」を完了状態にします。
           </DialogDescription>
         </DialogHeader>
@@ -91,7 +91,7 @@ export function ChoreCompletionModal({
             onClick={handleConfirm}
             disabled={isProcessing}
             size="icon"
-            className="h-12 w-12 rounded-full p-0 grid place-items-center text-white bg-green-600 hover:bg-green-700"
+            className="h-12 w-12 rounded-full p-0 grid place-items-center bg-secondary text-success-foreground hover:bg-secondary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
           >
             {isProcessing ? (
               <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
@@ -107,7 +107,7 @@ export function ChoreCompletionModal({
             size="icon"
             onClick={onClose}
             disabled={isProcessing}
-            className="h-12 w-12 rounded-full p-0 grid place-items-center bg-slate-200 text-slate-800 hover:bg-slate-300"
+            className="h-12 w-12 rounded-full p-0 grid place-items-center bg-secondary text-secondary-foreground hover:bg-secondary/80 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
           >
             <Undo2 className="w-6 h-6" aria-hidden="true" />
             <span className="sr-only">キャンセル</span>
@@ -117,7 +117,7 @@ export function ChoreCompletionModal({
             <Button
               onClick={handleConfirmAndThankYou}
               disabled={isProcessing}
-              className="w-full sm:w-auto bg-pink-600 hover:bg-pink-700"
+              className="w-full sm:w-auto bg-primary text-primary-foreground hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
             >
               {isProcessing ? '処理中...' : '完了してありがとうを送る'}
             </Button>

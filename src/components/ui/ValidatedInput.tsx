@@ -41,10 +41,10 @@ export const ValidatedInput: React.FC<ValidatedInputProps> = ({
     <div className={`space-y-1 ${className}`}>
       <label 
         htmlFor={inputId}
-        className="block text-sm font-medium text-gray-700"
+        className="block text-sm font-medium text-muted-foreground"
       >
         {label}
-        {required && <span className="text-red-500 ml-1">*</span>}
+        {required && <span className="text-destructive ml-1">*</span>}
       </label>
       
       <Input
@@ -57,8 +57,8 @@ export const ValidatedInput: React.FC<ValidatedInputProps> = ({
         onBlur={onBlur}
         className={`
           ${hasError 
-            ? 'border-red-500 focus:border-red-500 focus:ring-red-500' 
-            : 'border-gray-300 focus:border-blue-500 focus:ring-blue-500'
+            ? 'border-destructive focus:border-destructive focus:ring-destructive' 
+            : 'border-border focus:border-primary focus:ring-primary'
           }
         `}
         aria-invalid={hasError ? 'true' : 'false'}
@@ -68,7 +68,7 @@ export const ValidatedInput: React.FC<ValidatedInputProps> = ({
       {hasError && (
         <p 
           id={`${inputId}-error`}
-          className="text-sm text-red-600 flex items-center"
+          className="text-sm text-destructive flex items-center"
           role="alert"
         >
           <svg 

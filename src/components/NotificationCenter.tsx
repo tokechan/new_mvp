@@ -166,7 +166,7 @@ export default function NotificationCenter() {
               {notifications.length > 0 && (
                 <button
                   onClick={clearAllNotifications}
-                  className="text-sm text-destructive hover:text-destructive/80"
+                  className="text-muted-foreground hover:text-destructive"
                 >
                   全て削除
                 </button>
@@ -234,7 +234,7 @@ export default function NotificationCenter() {
                             e.stopPropagation()
                             removeNotification(notification.id)
                           }}
-                          className="text-gray-400 hover:text-gray-600"
+                          className="text-muted-foreground hover:text-destructive"
                           aria-label="通知を削除"
                         >
                           <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
