@@ -20,6 +20,7 @@ import type {
   GetInvitationsResponse,
   PartnerInvitation
 } from '@/types/invitation'
+import { Handshake } from 'lucide-react'
 
 interface PartnerInvitationProps {
   onPartnerLinked?: () => void // パートナー連携完了時のコールバック
@@ -113,8 +114,9 @@ export default function PartnerInvitation({ onPartnerLinked }: PartnerInvitation
 
   return (
     <div className="bg-card border border-border rounded-lg p-6">
-      <h3 className="text-lg font-semibold mb-4 text-foreground">
-        🤝 パートナーを招待
+      <h3 className="text-lg font-semibold mb-4 text-foreground flex items-center">
+        <Handshake className="w-5 h-5 mr-2 text-muted-foreground" aria-hidden="true" />
+        パートナーを招待
       </h3>
       
       {error && (

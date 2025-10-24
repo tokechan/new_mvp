@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { Plus, Lightbulb } from 'lucide-react'
 
 interface AddChoreFormProps {
   onAddChore: (title: string) => Promise<void>
@@ -50,7 +51,7 @@ export function AddChoreForm({ onAddChore, isLoading }: AddChoreFormProps) {
   return (
     <div className="bg-card p-6 rounded-lg shadow-sm border border-border">
       <h2 className="text-lg font-semibold text-foreground mb-4">
-        ✨ 新しい家事を追加
+        新しい家事を追加
       </h2>
       
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -86,7 +87,7 @@ export function AddChoreForm({ onAddChore, isLoading }: AddChoreFormProps) {
             </>
           ) : (
             <>
-              <span>➕</span>
+              <Plus className="w-4 h-4" aria-hidden="true" />
               家事を追加
             </>
           )}
@@ -94,7 +95,7 @@ export function AddChoreForm({ onAddChore, isLoading }: AddChoreFormProps) {
       </form>
       
       <p className="text-sm text-muted-foreground mt-3">
-        💡 ヒント: Enterキーでも追加できます
+        <span className="inline-flex items-center gap-1"><Lightbulb className="w-4 h-4" aria-hidden="true" /> ヒント: Enterキーでも追加できます</span>
       </p>
     </div>
   )

@@ -8,7 +8,7 @@ import { ChoreCompletionModal } from '@/components/ChoreCompletionModal'
 import { CongratulationsModal } from '@/components/CongratulationsModal'
 import ThankYouMessage from './ThankYouMessage'
 import { Chore } from '@/types/chore'
-import { RotateCcw, Heart, Trash2, Check } from 'lucide-react'
+import { RotateCcw, Heart, Trash2, Check, Sparkles } from 'lucide-react'
 
 interface ChoreItemProps {
   chore: Chore
@@ -131,7 +131,7 @@ export function ChoreItem({
             {chore.done && chore.completed_at && (
               <div className="flex items-center justify-center mt-2 animate-fade-in">
                 <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-success/10 text-success border border-success/40">
-                  <span className="mr-1">✨</span>
+                  <Sparkles className="w-3 h-3 mr-1" aria-hidden="true" />
                   {formatCompletionDate()}に完了
                 </span>
               </div>
