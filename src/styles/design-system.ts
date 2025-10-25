@@ -77,6 +77,20 @@ export const colors = {
     700: '#b91c1c',
     800: '#991b1b',
     900: '#7f1d1d'
+  },
+
+  // 完了タスク用カラー
+  taskCompleted: {
+    50: '#fdf6ed',
+    100: '#fbefd7',
+    200: '#f7deb0',
+    300: '#f2c878',
+    400: '#ecad3e',
+    500: '#e89518',
+    600: '#d9800e',
+    700: '#b4650e',
+    800: '#925013',
+    900: '#784213'
   }
 };
 
@@ -254,6 +268,8 @@ export type ThemeVars = {
   border: string
   input: string
   ring: string
+  taskCompleted: string
+  taskCompletedForeground: string
 }
 
 export const lightVars: ThemeVars = {
@@ -276,6 +292,8 @@ export const lightVars: ThemeVars = {
   border: '55 12% 80%',
   input: '55 12% 80%',
   ring: '210 90% 50%',
+  taskCompleted: '30 55% 95%',
+  taskCompletedForeground: '24 30% 15%',
 }
 
 export const darkVars: ThemeVars = {
@@ -298,6 +316,8 @@ export const darkVars: ThemeVars = {
   border: '217.2 32.6% 17.5%',
   input: '217.2 32.6% 17.5%',
   ring: '138.5 76.5% 55%',
+  taskCompleted: '30 35% 20%',
+  taskCompletedForeground: '30 55% 85%',
 }
 
 export function applyTheme(vars: ThemeVars) {
@@ -322,4 +342,6 @@ export function applyTheme(vars: ThemeVars) {
   r.style.setProperty('--border', vars.border)
   r.style.setProperty('--input', vars.input)
   r.style.setProperty('--ring', vars.ring)
+  r.style.setProperty('--task-completed', vars.taskCompleted)
+  r.style.setProperty('--task-completed-foreground', vars.taskCompletedForeground)
 }

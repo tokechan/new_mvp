@@ -114,8 +114,8 @@ export function ChoreItem({
         p-4 transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.99]
         cursor-pointer shadow-sm sm:shadow-md border-0
         ${chore.done 
-          ? 'bg-primary/10 shadow-green-100/70 completion-animation' 
-          : 'bg-primary/5 hover:bg-primary/10 hover:shadow-lg'
+          ? 'bg-primary/5 hover:bg-primary/10 hover:shadow-lg completion-animation' 
+          : 'bg-taskCompleted'
         }
         rounded-xl
       `}>

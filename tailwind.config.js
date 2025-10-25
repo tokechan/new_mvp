@@ -60,6 +60,10 @@ module.exports = {
 					DEFAULT: 'hsl(var(--info))',
 					foreground: 'hsl(var(--info-foreground))'
 				},
+				taskCompleted: {
+					DEFAULT: 'hsl(var(--task-completed))',
+					foreground: 'hsl(var(--task-completed-foreground))'
+				},
 				border: 'hsl(var(--border))',
   			input: 'hsl(var(--input))',
   			ring: 'hsl(var(--ring))',
