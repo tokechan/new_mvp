@@ -7,15 +7,15 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/Input'
 import { Laptop, Moon, Sun } from 'lucide-react'
-import { ensurePushSubscription } from '@/services/pushSubscriptionService'
+import { ensurePushSubscription, disablePushSubscription } from '@/services/pushSubscriptionService'
 
 export default function SettingsPage() {
   const [timezone, setTimezone] = useState('Asia/Tokyo')
   const [language, setLanguage] = useState('ja')
   const { theme, resolvedTheme, setTheme } = useTheme()
-  const [pushState, setPushState] = useState<'idle' | 'loading' | 'subscribed' | 'already' | 'disabled' | 'error'>(
-    'idle',
-  )
+  const [pushState, setPushState] = useState<
+    'idle' | 'loading' | 'subscribed' | 'already' | 'disabled' | 'error' | 'unsubscribed'
+  >('idle')
   const [pushMessage, setPushMessage] = useState<string | null>(null)
 
   const pushFeatureEnabled =
@@ -62,6 +62,33 @@ export default function SettingsPage() {
       setPushState('error')
       setPushMessage('プッシュ通知の有効化に失敗しました。再度お試しください。')
     }
+  }
+
+  const handleDisablePush = async () => {
+    if (!pushFeatureEnabled) {
+      setPushState('disabled')
+      setPushMessage('プッシュ通知は現在無効化されています。')
+      return
+    }
+
+    setPushState('loading')
+    setPushMessage(null)
+
+    const result = await disablePushSubscription()
+    if (result.state === 'unsupported') {
+      setPushState('disabled')
+      setPushMessage(result.message ?? 'この端末ではプッシュ通知を利用できません。')
+      return
+    }
+
+    if (result.state === 'already-unsubscribed') {
+      setPushState('unsubscribed')
+      setPushMessage(result.message ?? 'プッシュ通知は既にオフになっています。')
+      return
+    }
+
+    setPushState('unsubscribed')
+    setPushMessage(result.message ?? 'プッシュ通知をオフにしました。')
   }
 
   return (
@@ -153,10 +180,17 @@ export default function SettingsPage() {
               >
                 {pushState === 'loading' ? '有効化中…' : 'プッシュ通知を有効にする'}
               </Button>
+              <Button
+                variant="outline"
+                onClick={handleDisablePush}
+                disabled={pushState === 'loading' || !pushFeatureEnabled}
+              >
+                {pushState === 'loading' ? '処理中…' : 'プッシュ通知を無効にする'}
+              </Button>
               {pushMessage && (
                 <p
                   className={`text-sm ${
-                    pushState === 'subscribed' || pushState === 'already'
+                    pushState === 'subscribed' || pushState === 'already' || pushState === 'unsubscribed'
                       ? 'text-emerald-600'
                       : 'text-destructive'
                   }`}

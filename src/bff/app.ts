@@ -13,6 +13,10 @@ const pushSubscriptionSchema = z.object({
   }),
 })
 
+const unsubscribeSchema = z.object({
+  endpoint: z.string().url(),
+})
+
 type SubscriptionPayload = z.infer<typeof pushSubscriptionSchema>
 
 type AuthError = 'missing_authorization' | 'invalid_token' | null
@@ -134,6 +138,43 @@ export function createBffApp() {
         expirationTime: subscription.expirationTime ?? null,
       },
     })
+  })
+
+  app.post('/push/unsubscribe', zValidator('json', unsubscribeSchema), async (c) => {
+    if (c.env.ENABLE_PUSH_SUBSCRIPTIONS !== 'true') {
+      return c.json({ ok: false, error: 'push notifications disabled' }, 503)
+    }
+
+    const authError = c.get('authError')
+    if (authError) {
+      return c.json({ ok: false, error: authError }, 401)
+    }
+
+    const userId = c.get('userId')
+    if (!userId) {
+      return c.json({ ok: false, error: 'unauthorized' }, 401)
+    }
+
+    const supabase = c.get('supabase')
+    const { endpoint } = c.req.valid('json')
+
+    const { error } = await supabase
+      .from('push_subscriptions')
+      .delete()
+      .eq('user_id', userId)
+      .eq('endpoint', endpoint)
+
+    if (error) {
+      console.error('[BFF] push subscription delete failed', {
+        message: error.message,
+        code: error.code,
+        details: error.details,
+        hint: error.hint,
+      })
+      return c.json({ ok: false, error: 'subscription_delete_failed' }, 500)
+    }
+
+    return c.json({ ok: true })
   })
 
   app.onError((error, c) => {
