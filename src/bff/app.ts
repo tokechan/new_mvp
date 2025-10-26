@@ -1,6 +1,8 @@
 import { Hono } from 'hono'
 import { z } from 'zod'
 import { zValidator } from '@hono/zod-validator'
+import { createClient, type SupabaseClient } from '@supabase/supabase-js'
+import type { Database } from '@/lib/supabase'
 
 const pushSubscriptionSchema = z.object({
   endpoint: z.string().url(),
@@ -11,6 +13,10 @@ const pushSubscriptionSchema = z.object({
   }),
 })
 
+type SubscriptionPayload = z.infer<typeof pushSubscriptionSchema>
+
+type AuthError = 'missing_authorization' | 'invalid_token' | null
+
 export type BffBindings = {
   SUPABASE_URL: string
   SUPABASE_SECRET_KEY: string
@@ -19,16 +25,68 @@ export type BffBindings = {
 
 export type BffVariables = {
   userId: string | null
+  supabase: SupabaseClient<Database>
+  authError: AuthError
+}
+
+let cachedSupabaseClient: SupabaseClient<Database> | null = null
+
+function getSupabaseClient(env: BffBindings) {
+  if (!cachedSupabaseClient) {
+    if (!env.SUPABASE_URL || !env.SUPABASE_SECRET_KEY) {
+      throw new Error('Supabase credentials are not configured on the worker environment.')
+    }
+    cachedSupabaseClient = createClient<Database>(env.SUPABASE_URL, env.SUPABASE_SECRET_KEY, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false,
+      },
+    })
+  }
+  return cachedSupabaseClient
+}
+
+async function authenticateRequest(
+  supabase: SupabaseClient<Database>,
+  authorizationHeader: string | null,
+): Promise<{ userId: string | null; authError: AuthError }> {
+  if (!authorizationHeader?.toLowerCase().startsWith('bearer ')) {
+    return { userId: null, authError: 'missing_authorization' }
+  }
+
+  const token = authorizationHeader.slice('bearer '.length).trim()
+  if (!token) {
+    return { userId: null, authError: 'missing_authorization' }
+  }
+
+  const { data, error } = await supabase.auth.getUser(token)
+  if (error || !data.user) {
+    return { userId: null, authError: 'invalid_token' }
+  }
+
+  return { userId: data.user.id, authError: null }
+}
+
+function mapPayloadToRow(userId: string, payload: SubscriptionPayload) {
+  return {
+    user_id: userId,
+    endpoint: payload.endpoint,
+    expiration_time: payload.expirationTime ? new Date(payload.expirationTime).toISOString() : null,
+    keys: payload.keys,
+  }
 }
 
 export function createBffApp() {
   const app = new Hono<{ Bindings: BffBindings; Variables: BffVariables }>()
 
-  // TODO: replace with real auth middleware once ready.
   app.use('*', async (c, next) => {
-    if (!c.get('userId')) {
-      c.set('userId', null)
-    }
+    const supabase = getSupabaseClient(c.env)
+    c.set('supabase', supabase)
+
+    const { userId, authError } = await authenticateRequest(supabase, c.req.header('authorization'))
+    c.set('userId', userId)
+    c.set('authError', authError)
+
     await next()
   })
 
@@ -39,21 +97,49 @@ export function createBffApp() {
       return c.json({ ok: false, error: 'push notifications disabled' }, 503)
     }
 
+    const authError = c.get('authError')
+    if (authError) {
+      return c.json({ ok: false, error: authError }, 401)
+    }
+
     const userId = c.get('userId')
     if (!userId) {
       return c.json({ ok: false, error: 'unauthorized' }, 401)
     }
 
+    const supabase = c.get('supabase')
     const subscription = c.req.valid('json')
+    const upsertPayload = mapPayloadToRow(userId, subscription)
 
-    // TODO: Persist subscription into Supabase push_subscriptions table.
-    // Placeholder keeps the happy-path response shape stable while wiring BFF.
+    const { error } = await supabase
+      .from('push_subscriptions')
+      .upsert(upsertPayload, { onConflict: 'user_id,endpoint', ignoreDuplicates: false })
 
-    return c.json({ ok: true })
+    if (error) {
+      console.error('[BFF] push subscription upsert failed', {
+        message: error.message,
+        code: error.code,
+        details: error.details,
+        hint: error.hint,
+      })
+      return c.json({ ok: false, error: 'subscription_upsert_failed' }, 500)
+    }
+
+    return c.json({
+      ok: true,
+      subscription: {
+        userId,
+        endpoint: subscription.endpoint,
+        keys: subscription.keys,
+        expirationTime: subscription.expirationTime ?? null,
+      },
+    })
   })
 
   app.onError((error, c) => {
-    console.error('[BFF] Unhandled error', error)
+    console.error('[BFF] Unhandled error', {
+      message: error instanceof Error ? error.message : String(error),
+    })
     return c.json({ ok: false, error: 'internal_error' }, 500)
   })
 
