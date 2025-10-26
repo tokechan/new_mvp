@@ -33,6 +33,18 @@ NODE_ENV=development
 NEXT_PUBLIC_SKIP_AUTH=true
 ```
 
+### 🔐 VAPID鍵の生成
+
+Web Push を利用するには VAPID 鍵ペアが必要です。以下のコマンドで生成し、公開鍵を `NEXT_PUBLIC_WEB_PUSH_PUBLIC_KEY` に、秘密鍵を Cloudflare のシークレット（例: `WEB_PUSH_PRIVATE_KEY`）として保存してください。
+
+```bash
+npm run push:vapid:generate
+```
+
+生成結果:
+- `Public Key` → `.env` / Cloudflare Vars の `NEXT_PUBLIC_WEB_PUSH_PUBLIC_KEY`
+- `Private Key` → Cloudflare Secret (後続で通知送信実装時に利用)
+
 ### 🚀 開発・デプロイコマンド
 
 ```bash

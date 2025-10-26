@@ -92,6 +92,7 @@ Next.js + Supabase だけだと「アプリ非起動時」の到達が弱いの�
 - [ ] VAPID 公開/秘密鍵（BFF 環境変数で保持）
 - [ ] Supabase：`push_subscriptions`（user_id, endpoint, keys）テーブル
 - [ ] Rate limit / 監査ログ / 再送（Queues）
+- [ ] VAPID 鍵の生成 (`npm run push:vapid:generate`) と Cloudflare Vars/Secrets への登録
 
 ---
 
