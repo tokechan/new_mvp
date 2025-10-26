@@ -1,5 +1,7 @@
 'use client'
 
+import { supabase } from '@/lib/supabase'
+
 /**
  * 汎用APIクライアント
  * HTTPリクエストの共通処理を担当
@@ -25,11 +27,13 @@ export class ApiClient {
       'Content-Type': 'application/json',
     }
 
-    // 認証トークンがある場合は追加
+    let accessToken: string | undefined
     if (typeof window !== 'undefined') {
-      const token = localStorage.getItem('supabase.auth.token')
-      if (token) {
-        defaultHeaders.Authorization = `Bearer ${token}`
+      try {
+        const { data } = await supabase.auth.getSession()
+        accessToken = data.session?.access_token
+      } catch (error) {
+        console.warn('Failed to resolve Supabase session for API request', error)
       }
     }
 
@@ -37,6 +41,7 @@ export class ApiClient {
       ...options,
       headers: {
         ...defaultHeaders,
+        ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
         ...options.headers,
       },
     }

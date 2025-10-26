@@ -7,13 +7,62 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/Input'
 import { Laptop, Moon, Sun } from 'lucide-react'
+import { ensurePushSubscription } from '@/services/pushSubscriptionService'
 
 export default function SettingsPage() {
   const [timezone, setTimezone] = useState('Asia/Tokyo')
   const [language, setLanguage] = useState('ja')
   const { theme, resolvedTheme, setTheme } = useTheme()
+  const [pushState, setPushState] = useState<'idle' | 'loading' | 'subscribed' | 'already' | 'disabled' | 'error'>(
+    'idle',
+  )
+  const [pushMessage, setPushMessage] = useState<string | null>(null)
+
+  const pushFeatureEnabled =
+    process.env.NEXT_PUBLIC_ENABLE_PWA === 'true' &&
+    process.env.NEXT_PUBLIC_ENABLE_PUSH_SUBSCRIPTIONS === 'true'
 
   const isSelected = (key: 'light' | 'dark' | 'system') => theme === key
+
+  const handleEnablePush = async () => {
+    if (!pushFeatureEnabled) {
+      setPushState('disabled')
+      setPushMessage('プッシュ通知は現在無効化されています。')
+      return
+    }
+
+    setPushState('loading')
+    setPushMessage(null)
+
+    try {
+      const result = await ensurePushSubscription()
+
+      if (result.state === 'unsupported') {
+        setPushState('disabled')
+        setPushMessage(result.message ?? 'この端末ではプッシュ通知を利用できません。')
+        return
+      }
+
+      if (result.state === 'permission-denied') {
+        setPushState('error')
+        setPushMessage(result.message ?? '通知許可が必要です。')
+        return
+      }
+
+      if (result.state === 'already-subscribed') {
+        setPushState('already')
+        setPushMessage('プッシュ通知は既に有効です。')
+        return
+      }
+
+      setPushState('subscribed')
+      setPushMessage('プッシュ通知を有効にしました。')
+    } catch (error) {
+      console.error('Failed to enable push notifications', error)
+      setPushState('error')
+      setPushMessage('プッシュ通知の有効化に失敗しました。再度お試しください。')
+    }
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -87,6 +136,40 @@ export default function SettingsPage() {
                 </div>
                 <p className="text-xs text-muted-foreground">現在の見た目: <span className="font-medium text-foreground">{resolvedTheme}</span></p>
               </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-foreground">通知設定</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <p className="text-sm text-muted-foreground">
+                プッシュ通知を受け取るには、ホーム画面に追加したうえで通知を許可する必要があります。
+              </p>
+              <Button
+                onClick={handleEnablePush}
+                disabled={pushState === 'loading' || (!pushFeatureEnabled && pushState !== 'disabled')}
+              >
+                {pushState === 'loading' ? '有効化中…' : 'プッシュ通知を有効にする'}
+              </Button>
+              {pushMessage && (
+                <p
+                  className={`text-sm ${
+                    pushState === 'subscribed' || pushState === 'already'
+                      ? 'text-emerald-600'
+                      : 'text-destructive'
+                  }`}
+                >
+                  {pushMessage}
+                </p>
+              )}
+              {!pushFeatureEnabled && (
+                <p className="text-xs text-muted-foreground">
+                  現在プッシュ通知機能は無効化されています。環境変数 `NEXT_PUBLIC_ENABLE_PUSH_SUBSCRIPTIONS` を有効に
+                  してから利用してください。
+                </p>
+              )}
             </CardContent>
           </Card>
         </div>
