@@ -12,8 +12,18 @@ export type PushSubscriptionState =
   | 'already-subscribed'
   | 'subscribed'
 
+export type PushUnsubscriptionState =
+  | 'unsupported'
+  | 'already-unsubscribed'
+  | 'unsubscribed'
+
 export type PushSubscriptionResult = {
   state: PushSubscriptionState
+  message?: string
+}
+
+export type PushUnsubscriptionResult = {
+  state: PushUnsubscriptionState
   message?: string
 }
 
@@ -43,6 +53,10 @@ const postSubscription = async (subscription: PushSubscription) => {
     expirationTime: json.expirationTime ?? null,
     keys: json.keys ?? {},
   })
+}
+
+const postUnsubscribe = async (endpoint: string) => {
+  return apiClient.post('/push/unsubscribe', { endpoint })
 }
 
 export async function ensurePushSubscription(): Promise<PushSubscriptionResult> {
@@ -78,4 +92,36 @@ export async function ensurePushSubscription(): Promise<PushSubscriptionResult> 
   return {
     state: existingSubscription ? 'already-subscribed' : 'subscribed',
   }
+}
+
+export async function disablePushSubscription(): Promise<PushUnsubscriptionResult> {
+  if (!isPwaEnabled || !isPushFeatureEnabled) {
+    return { state: 'unsupported', message: 'Push feature is disabled.' }
+  }
+
+  if (!isPushSupported()) {
+    return { state: 'unsupported', message: 'Push notifications are not supported on this device.' }
+  }
+
+  const registration = await navigator.serviceWorker.ready
+  const existingSubscription = await registration.pushManager.getSubscription()
+
+  if (!existingSubscription) {
+    return { state: 'already-unsubscribed', message: 'プッシュ通知は既にオフになっています。' }
+  }
+
+  try {
+    await postUnsubscribe(existingSubscription.endpoint)
+  } catch (error) {
+    console.error('Failed to unregister subscription on server', error)
+    return { state: 'unsupported', message: 'サーバーで購読解除に失敗しました。' }
+  }
+
+  try {
+    await existingSubscription.unsubscribe()
+  } catch (error) {
+    console.warn('Service Worker unsubscribe failed, but server state updated.', error)
+  }
+
+  return { state: 'unsubscribed', message: 'プッシュ通知を無効にしました。' }
 }
