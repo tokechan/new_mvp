@@ -1,0 +1,90 @@
+diff -ruN a/node_modules/@vercel/node/dist/dev-server.mjs b/node_modules/@vercel/node/dist/dev-server.mjs
+--- a/node_modules/@vercel/node/dist/dev-server.mjs	1985-10-26 17:15:00
++++ b/node_modules/@vercel/node/dist/dev-server.mjs	2025-10-26 17:14:38
+@@ -595,7 +595,6 @@
+ // src/utils.ts
+ import { debug, streamToBuffer } from "@vercel/build-utils";
+ import { extname } from "path";
+-import { pathToRegexp as pathToRegexpCurrent } from "path-to-regexp";
+ import { pathToRegexp as pathToRegexpUpdated } from "path-to-regexp-updated";
+ var WAIT_UNTIL_TIMEOUT = 30;
+ var waitUntilWarning = (entrypointPath, maxDuration) => `
+diff -ruN a/node_modules/@vercel/node/dist/index.js b/node_modules/@vercel/node/dist/index.js
+--- a/node_modules/@vercel/node/dist/index.js	1985-10-26 17:15:00
++++ b/node_modules/@vercel/node/dist/index.js	2025-10-26 17:14:31
+@@ -69671,7 +69671,6 @@
+ // src/utils.ts
+ var import_build_utils2 = require("@vercel/build-utils");
+ var import_path2 = require("path");
+-var import_path_to_regexp = require("path-to-regexp");
+ var import_path_to_regexp_updated = require("path-to-regexp-updated");
+ function cloneKeys(keys) {
+   if (typeof keys === "undefined") {
+@@ -69685,29 +69684,21 @@
+   return leftSerialized === rightSerialized;
+ }
+ function pathToRegexp(callerId, path, keys, options) {
+-  const newKeys = cloneKeys(keys);
+-  const currentRegExp = (0, import_path_to_regexp.pathToRegexp)(path, keys, options);
++  const previousKeys = cloneKeys(keys);
+   try {
+-    const currentKeys = keys;
+-    const newRegExp = (0, import_path_to_regexp_updated.pathToRegexp)(path, newKeys, options);
+-    const isDiffRegExp = currentRegExp.toString() !== newRegExp.toString();
+-    if (process.env.FORCE_PATH_TO_REGEXP_LOG || isDiffRegExp) {
++    const updatedRegExp = (0, import_path_to_regexp_updated.pathToRegexp)(path, keys, options);
++    if (process.env.FORCE_PATH_TO_REGEXP_LOG) {
++      const isDiffKeys = !compareKeys(previousKeys, keys);
+       const message = JSON.stringify({
+         path,
+-        currentRegExp: currentRegExp.toString(),
+-        newRegExp: newRegExp.toString()
++        regExp: updatedRegExp.toString(),
++        keys,
++        previousKeys,
++        isDiffKeys
+       });
+-      console.error(`[vc] PATH TO REGEXP PATH DIFF @ #${callerId}: ${message}`);
++      console.error(`[vc] PATH TO REGEXP (updated) @ #${callerId}: ${message}`);
+     }
+-    const isDiffKeys = !compareKeys(keys, newKeys);
+-    if (process.env.FORCE_PATH_TO_REGEXP_LOG || isDiffKeys) {
+-      const message = JSON.stringify({
+-        isDiffKeys,
+-        currentKeys,
+-        newKeys
+-      });
+-      console.error(`[vc] PATH TO REGEXP KEYS DIFF @ #${callerId}: ${message}`);
+-    }
++    return updatedRegExp;
+   } catch (err) {
+     const error = err;
+     const message = JSON.stringify({
+@@ -69715,8 +69706,8 @@
+       error: error.message
+     });
+     console.error(`[vc] PATH TO REGEXP ERROR @ #${callerId}: ${message}`);
++    throw error;
+   }
+-  return currentRegExp;
+ }
+ function getRegExpFromMatchers(matcherOrMatchers) {
+   if (!matcherOrMatchers) {
+diff -ruN a/node_modules/@vercel/node/package.json b/node_modules/@vercel/node/package.json
+--- a/node_modules/@vercel/node/package.json	1985-10-26 17:15:00
++++ b/node_modules/@vercel/node/package.json	2025-10-26 17:14:49
+@@ -29,7 +29,6 @@
+     "etag": "1.8.1",
+     "node-fetch": "2.6.9",
+     "path-to-regexp-updated": "npm:path-to-regexp@6.3.0",
+-    "path-to-regexp": "6.1.0",
+     "ts-morph": "12.0.0",
+     "ts-node": "10.9.1",
+     "typescript": "4.9.5",
+@@ -67,4 +66,4 @@
+     "vitest-run": "vitest -c ../../vitest.config.mts",
+     "vitest-unit": "glob --absolute 'test/unit/**/*.test.ts' 'test/unit/**/*.test.mts'"
+   }
+-}
+\ No newline at end of file
++}

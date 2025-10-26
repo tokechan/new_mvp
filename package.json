@@ -38,7 +38,8 @@
     "env:setup:staging": "./scripts/setup-env.sh staging",
     "env:setup:production": "./scripts/setup-env.sh production",
     "security:check": "npm run env:check && git status --ignored | grep -E '\\.env|\\.open-next'",
-    "create:test-user": "node scripts/create-supabase-user.mjs"
+    "create:test-user": "node scripts/create-supabase-user.mjs",
+    "postinstall": "node scripts/apply-patches.js"
   },
   "dependencies": {
     "@opennextjs/cloudflare": "^1.8.3",
@@ -87,5 +88,30 @@
     "tailwindcss": "^3.4.1",
     "typescript": "^5",
     "wrangler": "^4.38.0"
+  },
+  "overrides": {
+    "@vercel/express": {
+      "path-to-regexp": "npm:path-to-regexp@6.3.0",
+      "undici": "npm:undici@5.29.0"
+    },
+    "@vercel/hono": {
+      "path-to-regexp": "npm:path-to-regexp@6.3.0",
+      "undici": "npm:undici@5.29.0"
+    },
+    "@vercel/node": {
+      "path-to-regexp": "npm:path-to-regexp@6.3.0",
+      "undici": "npm:undici@5.29.0"
+    },
+    "@vercel/remix-builder": {
+      "path-to-regexp": "npm:path-to-regexp@6.3.0"
+    },
+    "@vercel/static-build": {
+      "path-to-regexp": "npm:path-to-regexp@6.3.0",
+      "undici": "npm:undici@5.29.0"
+    },
+    "vercel": {
+      "path-to-regexp": "npm:path-to-regexp@6.3.0",
+      "undici": "npm:undici@5.29.0"
+    }
   }
 }
