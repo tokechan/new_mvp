@@ -70,12 +70,12 @@ test.describe('家事管理機能', () => {
     }
     
     // 既存の家事をすべて削除してクリーンな状態にする
-    const deleteButtons = page.locator('button[aria-label*="を削除"]');
+    const deleteButtons = page.locator('button[aria-label="削除"]');
     const deleteCount = await deleteButtons.count();
     
     // 最大20個まで削除（無限ループ防止）
     for (let i = 0; i < Math.min(deleteCount, 20); i++) {
-      const remainingButtons = page.locator('button[aria-label*="を削除"]');
+      const remainingButtons = page.locator('button[aria-label="削除"]');
       const currentCount = await remainingButtons.count();
       
       if (currentCount === 0) break;
@@ -113,11 +113,12 @@ test.describe('家事管理機能', () => {
     await page.waitForTimeout(1000);
     
     // 追加された家事が一覧に表示されることを確認
-    await expect(page.locator(`button[aria-label="${choreTitle}を完了にする"]`)).toBeVisible({ timeout: 10000 });
+    const card = page.getByText(choreTitle).locator('..').locator('..');
+    await expect(card.getByRole('button', { name: '完了する' })).toBeVisible({ timeout: 10000 });
     
-    // 家事の状態が「未完了」であることを確認（完了ボタンが青色）
-    const completeButton = page.locator(`button[aria-label="${choreTitle}を完了にする"]`);
-    await expect(completeButton).toHaveClass(/bg-blue-600/);
+    // 家事の状態が「未完了」であることを確認（完了ボタンが青系）
+    const completeButton = card.getByRole('button', { name: '完了する' });
+    await expect(completeButton).toHaveClass(/bg-primary\/10/);
   });
 
   /**
@@ -135,26 +136,30 @@ test.describe('家事管理機能', () => {
     await page.waitForTimeout(1000);
     
     // 追加された家事が表示されることを確認
-    await expect(page.locator(`button[aria-label="${choreTitle}を完了にする"]`)).toBeVisible({ timeout: 10000 });
+    const card = page.getByText(choreTitle).locator('..').locator('..');
+    await expect(card.getByRole('button', { name: '完了する' })).toBeVisible({ timeout: 10000 });
     
     // 家事の完了ボタンをクリック
-    const completeButton = page.locator(`button[aria-label="${choreTitle}を完了にする"]`);
+    const completeButton = card.getByRole('button', { name: '完了する' });
     await completeButton.click();
+    
+    // 完了モーダルで「完了」を押下
+    await page.getByRole('button', { name: '完了' }).click();
     
     // 家事が完了状態になることを確認（少し待機）
     await page.waitForTimeout(1000);
-    const completedButton = page.locator(`button[aria-label="${choreTitle}を未完了にする"]`);
+    const completedButton = card.getByRole('button', { name: '未完了に戻す' });
     await expect(completedButton).toBeVisible({ timeout: 5000 });
-    await expect(completedButton).toHaveClass(/bg-green-50/);
+    await expect(completedButton).toHaveClass(/bg-success\/10/);
     
-    // 再度完了ボタンをクリックして未完了に戻す
+    // 再度クリックして未完了に戻す
     await completedButton.click();
     
     // 家事が未完了状態に戻ることを確認（少し待機）
     await page.waitForTimeout(1000);
-    const newCompleteButton = page.locator(`button[aria-label="${choreTitle}を完了にする"]`);
+    const newCompleteButton = card.getByRole('button', { name: '完了する' });
     await expect(newCompleteButton).toBeVisible({ timeout: 5000 });
-    await expect(newCompleteButton).toHaveClass(/bg-blue-600/);
+    await expect(newCompleteButton).toHaveClass(/bg-primary\/10/);
   });
 
   /**
@@ -172,15 +177,16 @@ test.describe('家事管理機能', () => {
     await expect(page.locator('button:has-text("追加中...")')).not.toBeVisible({ timeout: 10000 });
     await page.waitForTimeout(2000); // 追加処理の完了を確実に待機
     
-    // 削除ボタンをクリック
-    await page.click(`button[aria-label="${choreTitle}を削除"]`);
+    // カード内の削除ボタンをクリック
+    const card = page.getByText(choreTitle).locator('..').locator('..');
+    await card.getByRole('button', { name: '削除' }).click();
     
     // 家事が削除されたことを確認
     await expect(page.locator(`text=${choreTitle}`)).not.toBeVisible();
   });
 
   /**
-   * テスト4: 複数の家事を管理
+   * テスト4: 複数の家事を同時に管理できる
    */
   test('複数の家事を同時に管理できる', async ({ page }) => {
     const chores = [
@@ -195,29 +201,34 @@ test.describe('家事管理機能', () => {
       await page.click('button:has-text("追加")');
       await expect(page.locator('button:has-text("追加中...")')).not.toBeVisible({ timeout: 10000 });
       await page.waitForTimeout(1000);
-      await expect(page.locator(`button[aria-label="${chore}を完了にする"]`)).toBeVisible({ timeout: 10000 });
+      const card = page.getByText(chore).locator('..').locator('..');
+      await expect(card.getByRole('button', { name: '完了する' })).toBeVisible({ timeout: 10000 });
     }
     
     // すべての家事が表示されていることを確認
     for (const chore of chores) {
-      await expect(page.locator(`button[aria-label="${chore}を完了にする"]`)).toBeVisible();
+      const card = page.getByText(chore).locator('..').locator('..');
+      await expect(card.getByRole('button', { name: '完了する' })).toBeVisible();
     }
     
     // 最初の家事を完了状態にする
-    const firstCompleteButton = page.locator(`button[aria-label="${chores[0]}を完了にする"]`);
+    const firstCard = page.getByText(chores[0]).locator('..').locator('..');
+    const firstCompleteButton = firstCard.getByRole('button', { name: '完了する' });
     await firstCompleteButton.click();
+    await page.getByRole('button', { name: '完了' }).click();
     
     // 最初の家事のみが完了状態になることを確認（少し待機）
     await page.waitForTimeout(1000);
-    const firstCompletedButton = page.locator(`button[aria-label="${chores[0]}を未完了にする"]`);
+    const firstCompletedButton = firstCard.getByRole('button', { name: '未完了に戻す' });
     await expect(firstCompletedButton).toBeVisible({ timeout: 5000 });
-    await expect(firstCompletedButton).toHaveClass(/bg-green-50/);
+    await expect(firstCompletedButton).toHaveClass(/bg-success\/10/);
     
     // 他の家事は未完了状態のままであることを確認
     for (let i = 1; i < chores.length; i++) {
-      const choreCompleteButton = page.locator(`button[aria-label="${chores[i]}を完了にする"]`);
+      const card = page.getByText(chores[i]).locator('..').locator('..');
+      const choreCompleteButton = card.getByRole('button', { name: '完了する' });
       await expect(choreCompleteButton).toBeVisible();
-      await expect(choreCompleteButton).toHaveClass(/bg-blue-600/);
+      await expect(choreCompleteButton).toHaveClass(/bg-primary\/10/);
     }
   });
 });

@@ -119,17 +119,17 @@ function SignInContent() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-2 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex items-center justify-center bg-background py-12 px-2 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
         <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+          <h2 className="mt-6 text-center text-3xl font-extrabold text-foreground">
             アカウントにサインイン
           </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
+          <p className="mt-2 text-center text-sm text-muted-foreground">
             または{' '}
             <Link
               href="/auth/signup"
-              className="font-medium text-blue-600 hover:text-blue-500"
+              className="font-medium text-primary hover:text-primary/90"
             >
               新しいアカウントを作成
             </Link>
@@ -138,13 +138,13 @@ function SignInContent() {
         
         {/* エラーメッセージ */}
         {displayError && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative">
+          <div className="bg-destructive/10 border border-destructive/40 text-destructive px-4 py-3 rounded relative">
             <div className="flex justify-between items-center">
               <span>{displayError}</span>
               <button
                 type="button"
                 onClick={clearAllErrors}
-                className="text-red-500 hover:text-red-700 ml-2"
+                className="text-destructive hover:text-destructive/80 ml-2"
                 aria-label="エラーを閉じる"
               >
                 ×
@@ -171,7 +171,7 @@ function SignInContent() {
                 >
                   確認メールを再送
                 </Button>
-                <span className="text-sm text-gray-600">メールが届かない場合は迷惑メールフォルダもご確認ください。</span>
+                <span className="text-sm text-muted-foreground">メールが届かない場合は迷惑メールフォルダもご確認ください。</span>
               </div>
             )}
           </div>
@@ -218,10 +218,10 @@ function SignInContent() {
 
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-300" />
+              <div className="w-full border-t border-border" />
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-gray-50 text-gray-500">または</span>
+              <span className="px-2 bg-background text-muted-foreground">または</span>
             </div>
           </div>
 
@@ -231,7 +231,7 @@ function SignInContent() {
               variant="outline"
               size="default"
               disabled={loading}
-              className="w-full flex items-center justify-center gap-2"
+              className="w-full flex items-center justify-center gap-2 hover:bg-primary/50 hover:text-primary-foreground hover:border-primary/50"
             >
               <div className="flex items-center gap-2">
                 <svg className="w-5 h-5" viewBox="0 0 24 24">

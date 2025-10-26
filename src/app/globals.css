@@ -37,8 +37,8 @@
     --card-foreground: 0 0% 10%;
     --popover: 0 0% 100%;
     --popover-foreground: 0 0% 10%;
-    /* Keep primary as accessible blue to align with existing UI buttons */
-    --primary: 210 90% 50%;
+    /* Primary/ring/input を #9ac0c5 に統一（HSL ≈ 187 27% 69%） */
+    --primary: 187 27% 69%;
     --primary-foreground: 0 0% 98%;
     /* Warm neutrals that complement #edebd8 */
     --secondary: 55 25% 94%;
@@ -50,26 +50,37 @@
     /* Semantic tokens */
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
+    --success: 142 71% 45%;
+    --success-foreground: 0 0% 98%;
+    --warning: 43 74% 66%;
+    --warning-foreground: 24 10% 20%;
+    --info: 187 27% 69%;
+    --info-foreground: 0 0% 98%;
     --border: 55 12% 80%;
-    --input: 55 12% 80%;
-    --ring: 210 90% 50%;
+    --input: 187 27% 69%;
+    --ring: 187 27% 69%;
+    --surface: 55 12% 80%;
+    /* Task completed colors */
+    --task-completed: 30 55% 95%;
+    --task-completed-foreground: 24 30% 15%;
     /* Charts (harmonized set) */
-    --chart-1: 210 90% 50%;  /* blue */
+    --chart-1: 187 27% 69%;  /* teal */
     --chart-2: 30 80% 60%;   /* orange */
-    --chart-3: 160 40% 45%;  /* teal */
+    --chart-3: 160 40% 45%;  /* teal-dark */
     --chart-4: 43 74% 66%;   /* yellow */
     --chart-5: 340 65% 55%;  /* magenta */
     --radius: 0.5rem;
   }
   .dark {
-    /* ダークモード - Vercel風デザインシステム */
+    /* ダークモード */
     --background: 222.2 84% 4.9%;
     --foreground: 210 40% 98%;
     --card: 222.2 84% 4.9%;
     --card-foreground: 210 40% 98%;
     --popover: 222.2 84% 4.9%;
     --popover-foreground: 210 40% 98%;
-    --primary: 138.5 76.5% 55%;
+    /* Primary/ring/input をダークでも #9ac0c5 に統一 */
+    --primary: 187 27% 69%;
     --primary-foreground: 222.2 84% 4.9%;
     --secondary: 217.2 32.6% 17.5%;
     --secondary-foreground: 210 40% 98%;
@@ -79,10 +90,20 @@
     --accent-foreground: 210 40% 98%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
+    --success: 138.5 76.5% 55%;
+    --success-foreground: 222.2 84% 4.9%;
+    --warning: 43 74% 66%;
+    --warning-foreground: 222.2 84% 4.9%;
+    --info: 187 27% 69%;
+    --info-foreground: 222.2 84% 4.9%;
     --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 138.5 76.5% 55%;
-    --chart-1: 138.5 76.5% 60%;
+    --input: 187 27% 69%;
+    --ring: 187 27% 69%;
+    --surface: 55 12% 80%;
+    /* Task completed colors for dark mode */
+    --task-completed: 30 35% 20%;
+    --task-completed-foreground: 30 55% 85%;
+    --chart-1: 187 27% 72%;
     --chart-2: 160 60% 45%;
     --chart-3: 30 80% 55%;
     --chart-4: 280 65% 60%;

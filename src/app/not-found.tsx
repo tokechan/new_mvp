@@ -21,7 +21,7 @@ export default function NotFound() {
           <div className="space-y-3">
             <Link
               href="/"
-              className="block w-full px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+              className="block w-full px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
             >
               ホームに戻る
             </Link>

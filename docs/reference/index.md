@@ -15,3 +15,7 @@
 - 用語集: [glossary.md](./glossary.md)
 - リリースチェック: [checklist-release.md](./checklist-release.md)
 - ADR（重要決定）: [adr/](./adr/)
+- System Design変更点: [system-design-changes.md](./system-design-changes.md)
+- Authトークン仕様: [auth-token-spec.md](./auth-token-spec.md)
+- 検証テストケース集: [verification-test-cases.md](./verification-test-cases.md)
+- ドキュメント変更履歴: [doc-change-log.md](./doc-change-log.md)

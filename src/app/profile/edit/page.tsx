@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '
 import { UserRound } from 'lucide-react'
 import { Label } from '@/components/ui/label'
 import { profileService } from '@/services/profileService'
-import Navigation from '@/components/Navigation'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
 export default function ProfileEditPage() {
   const { user, signOut } = useAuth()
@@ -96,66 +96,81 @@ export default function ProfileEditPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Navigation />
+    <div className="min-h-screen bg-background">
       <main className="max-w-2xl mx-auto px-4 sm:px-6 py-6">
-        <h1 className="text-2xl font-bold text-gray-900">プロフィール編集</h1>
- 
-       {/* アバター + 名前 */}
-       <div className="mt-4 flex items-center gap-4">
-         <div className="w-16 h-16 rounded-full overflow-hidden border border-gray-200 bg-white flex items-center justify-center">
-           {avatarUrl ? (
-             // eslint-disable-next-line @next/next/no-img-element
-             <img src={avatarUrl} alt="アバター" className="w-full h-full object-cover" />
-           ) : (
-             <UserRound className="w-8 h-8 text-gray-700" />
-           )}
-         </div>
-         <div className="flex-1">
-           <Label htmlFor="displayName" className="block text-sm text-gray-600 mb-1">氏名</Label>
-           <div className="flex gap-2">
-             <Input id="displayName" value={displayName} onChange={(e) => setDisplayName(e.target.value)} className="flex-1" />
-             <Button onClick={handleSaveName} className="whitespace-nowrap">保存</Button>
-           </div>
-         </div>
-       </div>
- 
-       {/* メール */}
-       <div className="mt-6">
-         <Label htmlFor="email" className="block text-sm text-gray-600 mb-1">メールアドレス</Label>
-         <div className="flex gap-2">
-           <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="flex-1" />
-           <Button onClick={handleSaveEmail} className="whitespace-nowrap">更新</Button>
-         </div>
-         <p className="mt-2 text-xs text-gray-500">メール変更には確認メールでの認証が必要です。</p>
-       </div>
- 
-       {/* パスワード */}
-       <div className="mt-6">
-         <Label htmlFor="newPassword" className="block text-sm text-gray-600 mb-1">新しいパスワード</Label>
-         <div className="flex gap-2">
-           <Input id="newPassword" type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} className="flex-1" />
-           <Button onClick={handleSavePassword} disabled={!newPassword} className="whitespace-nowrap">変更</Button>
-         </div>
-       </div>
- 
-       {/* アカウント削除 */}
-       <div className="mt-8">
-         <Button variant="destructive" onClick={() => setOpenDelete(true)}>アカウントを削除</Button>
-       </div>
- 
-       <Dialog open={openDelete} onOpenChange={setOpenDelete}>
-         <DialogContent>
-           <DialogHeader>
-             <DialogTitle>アカウント削除の確認</DialogTitle>
-           </DialogHeader>
-           <p className="text-sm text-gray-700">この操作は元に戻せません。本当に削除しますか？</p>
-           <DialogFooter>
-             <Button variant="secondary" onClick={() => setOpenDelete(false)}>キャンセル</Button>
-             <Button variant="destructive" onClick={handleDeleteAccount}>削除する</Button>
-           </DialogFooter>
-         </DialogContent>
-      </Dialog>
+        <h1 className="text-2xl font-bold text-foreground">プロフィール編集</h1>
+
+        {/* 基本情報カード */}
+        <Card className="mt-4">
+          <CardHeader>
+            <CardTitle className="text-foreground">基本情報</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {/* アバター + 名前 */}
+            <div className="flex items-center gap-4">
+              <div className="w-16 h-16 rounded-full overflow-hidden border border-border bg-card flex items-center justify-center">
+                {avatarUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={avatarUrl} alt="アバター" className="w-full h-full object-cover" />
+                ) : (
+                  <UserRound className="w-8 h-8 text-muted-foreground" />
+                )}
+              </div>
+              <div className="flex-1">
+                <Label htmlFor="displayName" className="block text-sm text-muted-foreground mb-1">氏名</Label>
+                <div className="flex gap-2">
+                  <Input id="displayName" value={displayName} onChange={(e) => setDisplayName(e.target.value)} className="flex-1" />
+                  <Button onClick={handleSaveName} className="whitespace-nowrap">保存</Button>
+                </div>
+              </div>
+            </div>
+
+            {/* メール */}
+            <div>
+              <Label htmlFor="email" className="block text-sm text-muted-foreground mb-1">メールアドレス</Label>
+              <div className="flex gap-2">
+                <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="flex-1" />
+                <Button onClick={handleSaveEmail} className="whitespace-nowrap">更新</Button>
+              </div>
+              <p className="mt-2 text-xs text-muted-foreground">メール変更には確認メールでの認証が必要です。</p>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* セキュリティカード */}
+        <Card className="mt-6">
+          <CardHeader>
+            <CardTitle className="text-foreground">セキュリティ</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {/* パスワード */}
+            <div>
+              <Label htmlFor="newPassword" className="block text-sm text-muted-foreground mb-1">新しいパスワード</Label>
+              <div className="flex gap-2">
+                <Input id="newPassword" type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} className="flex-1" />
+                <Button onClick={handleSavePassword} disabled={!newPassword} className="whitespace-nowrap">変更</Button>
+              </div>
+            </div>
+
+            {/* アカウント削除 */}
+            <div>
+              <Button variant="destructive" onClick={() => setOpenDelete(true)}>アカウントを削除</Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Dialog open={openDelete} onOpenChange={setOpenDelete}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>アカウント削除の確認</DialogTitle>
+            </DialogHeader>
+            <p className="text-sm text-muted-foreground">この操作は元に戻せません。本当に削除しますか？</p>
+            <DialogFooter>
+              <Button variant="secondary" onClick={() => setOpenDelete(false)}>キャンセル</Button>
+              <Button variant="destructive" onClick={handleDeleteAccount}>削除する</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </main>
     </div>
   )

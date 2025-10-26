@@ -103,8 +103,8 @@ export default function ThankYouHistory({
   if (isLoading) {
     return (
       <div className={`${compact ? 'p-4' : 'p-6'} text-center`}>
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-        <p className="mt-2 text-gray-600">読み込み中...</p>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+        <p className="mt-2 text-muted-foreground">読み込み中...</p>
       </div>
     )
   }
@@ -112,7 +112,7 @@ export default function ThankYouHistory({
   if (error) {
     return (
       <div className={`${compact ? 'p-4' : 'p-6'} text-center`}>
-        <div className="text-red-600 mb-4">
+        <div className="text-destructive mb-4">
           <svg className="w-12 h-12 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.268 18.5c-.77.833.192 2.5 1.732 2.5z" />
           </svg>
@@ -120,7 +120,7 @@ export default function ThankYouHistory({
         </div>
         <button
           onClick={fetchThankYouHistory}
-          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+          className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
         >
           再試行
         </button>
@@ -130,8 +130,8 @@ export default function ThankYouHistory({
 
   if (thankYouMessages.length === 0) {
     return (
-      <div className={`${compact ? 'p-4' : 'p-6'} text-center text-gray-500`}>
-        <svg className="w-12 h-12 mx-auto mb-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <div className={`${compact ? 'p-4' : 'p-6'} text-center text-muted-foreground`}>
+        <svg className="w-12 h-12 mx-auto mb-4 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
         </svg>
         <p>{emptyMessage}</p>
@@ -150,8 +150,8 @@ export default function ThankYouHistory({
             key={message.id}
             className={`${compact ? 'p-3' : 'p-4'} rounded-lg border ${
               isReceived 
-                ? 'bg-blue-50 border-blue-200' 
-                : 'bg-green-50 border-green-200'
+                ? 'bg-info/10 border-info/30' 
+                : 'bg-primary/10 border-success/30'
             }`}
           >
             <div className="flex items-start justify-between">
@@ -159,22 +159,22 @@ export default function ThankYouHistory({
                 <div className="flex items-center gap-2 mb-2">
                   <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
                     isReceived 
-                      ? 'bg-blue-100 text-blue-800' 
-                      : 'bg-green-100 text-green-800'
+                      ? 'bg-info/20 text-info' 
+                      : 'bg-primary/20 text-success'
                   }`}>
                     {isReceived ? '受信' : '送信'}
                   </span>
-                  <span className="text-sm text-gray-600">
+                  <span className="text-sm text-muted-foreground">
                     {formatDate(message.created_at)}
                   </span>
                 </div>
                 
-                <p className={`${compact ? 'text-sm' : 'text-base'} text-gray-900 mb-2`}>
+                <p className={`${compact ? 'text-sm' : 'text-base'} text-foreground mb-2`}>
                   {message.message}
                 </p>
                 
                 {!compact && message.chore && (
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-muted-foreground">
                   家事: {message.chore.title}
                 </p>
               )}
@@ -182,10 +182,10 @@ export default function ThankYouHistory({
               
               <div className="ml-4">
                 <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                  isReceived ? 'bg-blue-100' : 'bg-green-100'
+                  isReceived ? 'bg-info/20' : 'bg-primary/20'
                 }`}>
                   <svg className={`w-4 h-4 ${
-                    isReceived ? 'text-blue-600' : 'text-green-600'
+                    isReceived ? 'text-info' : 'text-success'
                   }`} fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd" />
                   </svg>
@@ -198,7 +198,7 @@ export default function ThankYouHistory({
       
       {!compact && thankYouMessages.length >= limit && (
         <div className="text-center pt-4">
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-muted-foreground">
             {limit}件まで表示しています
           </p>
         </div>

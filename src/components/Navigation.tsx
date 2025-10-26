@@ -9,6 +9,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import Link from 'next/link'
 import { Bell } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { YOUDOLogo } from '@/components/YOUDOLogo'
 
 /**
  * ナビゲーションコンポーネント
@@ -130,10 +131,8 @@ export default function Navigation() {
           </div>
 
           {/* 中央：モバイル用ロゴ（PCでは非表示） */}
-          <div className="absolute left-1/2 -translate-x-1/2 sm:hidden">
-            <h1 className="text-xl font-bold text-blue-600 select-none">
-              ThankYou Chores
-            </h1>
+          <div className="absolute left-1/2 -translate-x-1/2 sm:hidden select-none">
+            <YOUDOLogo width={100} height={36} />
           </div>
 
           {/* 右側：ナビゲーション項目（PC表示） */}
@@ -180,7 +179,7 @@ export default function Navigation() {
         <div className="sm:hidden relative" ref={menuRef}>
           <div
             id="mobile-nav-panel"
-            className={`absolute left-0 right-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden transform origin-top transition-all duration-200 ${
+            className={`absolute left-0 right-0 mt-2 bg-card border border-border rounded-lg shadow-lg overflow-hidden transform origin-top transition-all duration-200 z-[1001] ${
               isMenuOpen ? 'scale-y-100 opacity-100' : 'scale-y-0 opacity-0 pointer-events-none'
             }`}
           >
@@ -193,7 +192,7 @@ export default function Navigation() {
                     key={`mobile-panel-${item.id}`}
                     onClick={() => handleNavigation(item.path)}
                     className={`flex items-center gap-3 px-4 py-3 text-left transition-colors ${
-                      active ? 'text-blue-700 bg-blue-50' : 'text-gray-700 hover:bg-gray-50'
+                      active ? 'text-primary bg-secondary' : 'text-foreground hover:bg-secondary'
                     }`}
                     aria-label={item.description}
                     aria-current={active ? 'page' : undefined}
@@ -205,7 +204,7 @@ export default function Navigation() {
               })}
 
               {/* 区切り線 */}
-              <div className="border-t border-gray-200 my-1" />
+              <div className="border-t border-border my-1" />
               {/* ログアウト */}
               <button
                 key={`mobile-panel-logout`}
@@ -217,7 +216,7 @@ export default function Navigation() {
                     console.error('ログアウトに失敗しました:', error)
                   }
                 }}
-                className={`flex items-center gap-3 px-4 py-3 text-left text-gray-700 hover:bg-gray-50`}
+                className={`flex items-center gap-3 px-4 py-3 text-left text-foreground hover:bg-secondary`}
                 aria-label="ログアウト"
               >
                 <LogOut className="w-5 h-5" />

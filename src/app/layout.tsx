@@ -6,17 +6,19 @@ import { NotificationProvider } from '@/contexts/NotificationContext'
 import { ToastProvider } from '@/components/ui/toast'
 import Navigation from '@/components/Navigation'
 import FooterChoreInput from '@/components/FooterChoreInput'
+import ThemeProvider from '@/components/ThemeProvider'
+import PwaInitializer from '@/components/PwaInitializer'
 
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'ThankYou Chores - 家事管理アプリ',
+  title: 'YOUDO - 家事共有アプリ',
   description: 'パートナーと一緒に家事を管理し、感謝を伝えるアプリ',
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
-    title: 'ThankYou Chores',
+    title: 'YOUDO',
   },
   icons: {
     icon: '/icon-192x192.svg',
@@ -29,7 +31,10 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
-  themeColor: '#edebd8',
+  themeColor: [
+    { media: '(prefers-color-scheme: dark)', color: 'hsl(222.2 84% 4.9%)' },
+    { media: '(prefers-color-scheme: light)', color: 'hsl(210 40% 96.1%)' },
+  ],
 }
 
 export default function RootLayout({
@@ -38,21 +43,24 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="ja">
+    <html lang="ja" suppressHydrationWarning>
       <body className={inter.className}>
-        <AuthProvider>
-          <NotificationProvider>
-            <ToastProvider>
-              <div className="min-h-screen bg-gray-50">
-                <Navigation />
-                <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-20 sm:pb-0">
-                  {children}
-                </main>
-                <FooterChoreInput />
-              </div>
-            </ToastProvider>
-          </NotificationProvider>
-        </AuthProvider>
+        <ThemeProvider>
+          <AuthProvider>
+            <NotificationProvider>
+              <ToastProvider>
+                <div className="min-h-screen bg-background">
+                  <PwaInitializer />
+                  <Navigation />
+                  <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-20 sm:pb-0">
+                    {children}
+                  </main>
+                  <FooterChoreInput />
+                </div>
+              </ToastProvider>
+            </NotificationProvider>
+          </AuthProvider>
+        </ThemeProvider>
       </body>
     </html>
   )

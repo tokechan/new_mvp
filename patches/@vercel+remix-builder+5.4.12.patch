@@ -1,0 +1,79 @@
+diff -ruN a/node_modules/@vercel/remix-builder/dist/index.js b/node_modules/@vercel/remix-builder/dist/index.js
+--- a/node_modules/@vercel/remix-builder/dist/index.js	1985-10-26 17:15:00
++++ b/node_modules/@vercel/remix-builder/dist/index.js	2025-10-26 17:15:10
+@@ -2465,7 +2465,6 @@
+ var import_build_utils = require("@vercel/build-utils");
+ var import_build_utils2 = require("@vercel/build-utils");
+ var import_module = require("module");
+-var import_path_to_regexp = require("path-to-regexp");
+ var import_path_to_regexp_updated = require("path-to-regexp-updated");
+ function cloneKeys(keys) {
+   if (typeof keys === "undefined") {
+@@ -2479,29 +2478,21 @@
+   return leftSerialized === rightSerialized;
+ }
+ function pathToRegexp(callerId, path, keys, options) {
+-  const newKeys = cloneKeys(keys);
+-  const currentRegExp = (0, import_path_to_regexp.pathToRegexp)(path, keys, options);
++  const previousKeys = cloneKeys(keys);
+   try {
+-    const currentKeys = keys;
+-    const newRegExp = (0, import_path_to_regexp_updated.pathToRegexp)(path, newKeys, options);
+-    const isDiffRegExp = currentRegExp.toString() !== newRegExp.toString();
+-    if (process.env.FORCE_PATH_TO_REGEXP_LOG || isDiffRegExp) {
++    const updatedRegExp = (0, import_path_to_regexp_updated.pathToRegexp)(path, keys, options);
++    if (process.env.FORCE_PATH_TO_REGEXP_LOG) {
++      const isDiffKeys = !compareKeys(previousKeys, keys);
+       const message = JSON.stringify({
+         path,
+-        currentRegExp: currentRegExp.toString(),
+-        newRegExp: newRegExp.toString()
+-      });
+-      console.error(`[vc] PATH TO REGEXP PATH DIFF @ #${callerId}: ${message}`);
+-    }
+-    const isDiffKeys = !compareKeys(keys, newKeys);
+-    if (process.env.FORCE_PATH_TO_REGEXP_LOG || isDiffKeys) {
+-      const message = JSON.stringify({
+-        isDiffKeys,
+-        currentKeys,
+-        newKeys
++        regExp: updatedRegExp.toString(),
++        keys,
++        previousKeys,
++        isDiffKeys
+       });
+-      console.error(`[vc] PATH TO REGEXP KEYS DIFF @ #${callerId}: ${message}`);
++      console.error(`[vc] PATH TO REGEXP (updated) @ #${callerId}: ${message}`);
+     }
++    return updatedRegExp;
+   } catch (err) {
+     const error = err;
+     const message = JSON.stringify({
+@@ -2509,8 +2500,8 @@
+       error: error.message
+     });
+     console.error(`[vc] PATH TO REGEXP ERROR @ #${callerId}: ${message}`);
++    throw error;
+   }
+-  return currentRegExp;
+ }
+ var require_ = (0, import_module.createRequire)(__filename);
+ var SPLAT_PATH = "/:params*";
+diff -ruN a/node_modules/@vercel/remix-builder/package.json b/node_modules/@vercel/remix-builder/package.json
+--- a/node_modules/@vercel/remix-builder/package.json	1985-10-26 17:15:00
++++ b/node_modules/@vercel/remix-builder/package.json	2025-10-26 17:15:17
+@@ -19,7 +19,6 @@
+     "@vercel/nft": "0.30.1",
+     "@vercel/static-config": "3.1.2",
+     "path-to-regexp-updated": "npm:path-to-regexp@6.3.0",
+-    "path-to-regexp": "6.1.0",
+     "ts-morph": "12.0.0"
+   },
+   "devDependencies": {
+@@ -41,4 +40,4 @@
+     "vitest-e2e": "glob --absolute 'test/integration-*.test.ts'",
+     "type-check": "tsc --noEmit"
+   }
+-}
+\ No newline at end of file
++}

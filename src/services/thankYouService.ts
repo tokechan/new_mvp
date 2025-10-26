@@ -1,6 +1,7 @@
 import { supabase } from '@/lib/supabase'
 import { Database } from '@/lib/supabase'
 import { z } from 'zod'
+import { shouldUseClientMockAuth } from '@/utils/authMode'
 
 // 型定義
 type ThankYouRow = Database['public']['Tables']['thanks']['Row']
@@ -50,7 +51,7 @@ export async function sendThankYou(
   const validatedInput = SendThankYouSchema.parse(input)
   
   // 認証スキップ時（E2E/開発高速化モード）はローカルストレージに保存して擬似的に成功させる
-  if (typeof window !== 'undefined' && process.env.NEXT_PUBLIC_SKIP_AUTH === 'true') {
+  if (shouldUseClientMockAuth()) {
     const LOCAL_KEY = 'thank_you_history'
     const raw = window.localStorage.getItem(LOCAL_KEY)
     const history: ThankYouMessage[] = raw ? JSON.parse(raw) : []
@@ -161,7 +162,7 @@ export async function getThankYouHistory(
   const { limit = 50, offset = 0, type = 'all' } = options
 
   // 認証スキップ時（E2E/開発高速化モード）はローカルストレージから取得
-  if (typeof window !== 'undefined' && process.env.NEXT_PUBLIC_SKIP_AUTH === 'true') {
+  if (shouldUseClientMockAuth()) {
     const LOCAL_KEY = 'thank_you_history'
     const raw = window.localStorage.getItem(LOCAL_KEY)
     const all: ThankYouMessage[] = raw ? JSON.parse(raw) : []
@@ -229,7 +230,7 @@ export async function getThankYouStats(userId: string): Promise<{
   totalCount: number
 }> {
   // 認証スキップ時（E2E/開発高速化モード）はローカルストレージから集計
-  if (typeof window !== 'undefined' && process.env.NEXT_PUBLIC_SKIP_AUTH === 'true') {
+  if (shouldUseClientMockAuth()) {
     const LOCAL_KEY = 'thank_you_history'
     const raw = window.localStorage.getItem(LOCAL_KEY)
     const all: ThankYouMessage[] = raw ? JSON.parse(raw) : []

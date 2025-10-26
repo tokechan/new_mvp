@@ -8,6 +8,7 @@ import { useAuthState } from '@/hooks/useAuthState'
 import { ThankYouModal } from '@/components/ThankYouModal'
 import { Smile, ThumbsUp, Heart, Handshake, Flame, FileText, Clock, Home } from 'lucide-react'
 import { useToast } from '@/components/ui/toast'
+import { Button } from '@/components/ui/Button'
 
 /**
  * 完了した家事一覧ページ
@@ -100,8 +101,8 @@ export default function CompletedChoresPage() {
     const date = new Date(dateString)
     return date.toLocaleDateString('ja-JP', {
       year: 'numeric',
-      month: 'short',
-      day: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
       hour: '2-digit',
       minute: '2-digit'
     })
@@ -117,10 +118,10 @@ export default function CompletedChoresPage() {
     return (
       <div className="container mx-auto p-4">
         <div className="text-center py-8">
-          <p className="text-gray-600">ログインが必要です</p>
+          <p className="text-muted-foreground">ログインが必要です</p>
           <button 
             onClick={() => router.push('/auth/signin')} 
-            className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+            className="mt-4 px-4 py-2 bg-primary text-primary-foreground rounded hover:bg-primary/90"
           >
             ログインページへ
           </button>
@@ -130,28 +131,28 @@ export default function CompletedChoresPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       <div className="container mx-auto p-4 max-w-4xl">
         <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-800">完了した家事</h1>
-          <p className="text-gray-600 mt-2">
+          <h1 className="text-2xl font-bold text-primary">完了した家事</h1>
+          <p className="text-muted-foreground mt-2">
             完了した家事一覧です。ありがとうメッセージを送ることができます。
           </p>
         </div>
 
       {isLoading ? (
         <div className="flex items-center justify-center py-8">
-          <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-          <span className="ml-2 text-gray-600">読み込み中...</span>
+          <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+          <span className="ml-2 text-muted-foreground">読み込み中...</span>
         </div>
       ) : completedChores.length === 0 ? (
-        <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
+        <div className="bg-card rounded-lg border border-border shadow-sm">
           <div className="text-center py-8 p-6">
             <div className="text-4xl mb-4">✅</div>
-            <h3 className="text-lg font-medium text-gray-800 mb-2">
+            <h3 className="text-lg font-medium text-foreground mb-2">
               完了した家事がありません
             </h3>
-            <p className="text-gray-600">
+            <p className="text-muted-foreground">
               家事を完了すると、ここに表示されます。
             </p>
           </div>
@@ -159,82 +160,94 @@ export default function CompletedChoresPage() {
       ) : (
         <div className="grid gap-4">
           {completedChores.map((chore) => (
-            <div key={chore.id} className="bg-gray-50 border-green-200 rounded-lg border shadow-sm">
+            <div key={chore.id} className="bg-card border border-border rounded-lg shadow-sm">
               <div className="p-6">
-                {/* H1タイトル */}
-                <h1 className="text-2xl font-bold text-green-800 mb-6 text-center">{chore.title}</h1>
-                
-                {/* アイコンボタン */}
-                <div className="flex gap-3 justify-center mb-6">
-                  <button
+                {/* カードヘッダー：タイトル + 完了バッジ + 日付 */}
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-xl font-semibold text-foreground break-words whitespace-normal">{chore.title}</h2>
+                  <div className="flex items-center gap-2">
+                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-primary/10 text-success border border-success/40">
+                      完了済み
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      {formatDate(
+                        (chore.completions && chore.completions.length > 0
+                          ? new Date(Math.max(...chore.completions.map((c: any) => new Date(c.created_at).getTime()))).toISOString()
+                          : chore.created_at
+                        ) as any
+                      )}
+                    </span>
+                  </div>
+                </div>
+
+                {/* リアクションボタン */}
+                <div className="flex flex-wrap gap-3 justify-center mb-4">
+                  <Button
                     onClick={() => handleIconClick(chore, '😊')}
                     disabled={isSending}
-                    className="w-12 h-12 bg-yellow-50 hover:bg-yellow-100 rounded-lg flex items-center justify-center text-yellow-600 transition-colors disabled:opacity-50"
+                    size="icon"
+                    className="h-10 w-10 rounded-full p-0 grid place-items-center bg-primary/10 border border-primary/40 text-primary hover:bg-primary/20 hover:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
                     title="嬉しい"
                     aria-label="嬉しい"
                   >
-                    <Smile className="w-6 h-6" aria-hidden="true" />
-                  </button>
-                  <button
+                    <Smile className="w-5 h-5" aria-hidden="true" />
+                  </Button>
+                  <Button
                     onClick={() => handleIconClick(chore, '👍')}
                     disabled={isSending}
-                    className="w-12 h-12 bg-blue-50 hover:bg-blue-100 rounded-lg flex items-center justify-center text-blue-600 transition-colors disabled:opacity-50"
+                    size="icon"
+                    className="h-10 w-10 rounded-full p-0 grid place-items-center bg-primary/10 border border-primary/40 text-primary hover:bg-primary/20 hover:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
                     title="いいね"
                     aria-label="いいね"
                   >
-                    <ThumbsUp className="w-6 h-6" aria-hidden="true" />
-                  </button>
-                  <button
+                    <ThumbsUp className="w-5 h-5" aria-hidden="true" />
+                  </Button>
+                  <Button
                     onClick={() => handleIconClick(chore, '❤️')}
                     disabled={isSending}
-                    className="w-12 h-12 bg-pink-50 hover:bg-pink-100 rounded-lg flex items-center justify-center text-pink-600 transition-colors disabled:opacity-50"
+                    size="icon"
+                    className="h-10 w-10 rounded-full p-0 grid place-items-center bg-primary/10 border border-primary/40 text-primary hover:bg-primary/20 hover:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
                     title="愛してる"
                     aria-label="愛してる"
                   >
-                    <Heart className="w-6 h-6" aria-hidden="true" />
-                  </button>
-                  <button
+                    <Heart className="w-5 h-5" aria-hidden="true" />
+                  </Button>
+                  <Button
                     onClick={() => handleIconClick(chore, '🙏')}
                     disabled={isSending}
-                    className="w-12 h-12 bg-purple-50 hover:bg-purple-100 rounded-lg flex items-center justify-center text-purple-600 transition-colors disabled:opacity-50"
+                    size="icon"
+                    className="h-10 w-10 rounded-full p-0 grid place-items-center bg-primary/10 border border-primary/40 text-primary hover:bg-primary/20 hover:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
                     title="お疲れさま"
                     aria-label="お疲れさま"
                   >
-                    <Handshake className="w-6 h-6" aria-hidden="true" />
-                  </button>
-                  <button
+                    <Handshake className="w-5 h-5" aria-hidden="true" />
+                  </Button>
+                  <Button
                     onClick={() => handleIconClick(chore, '🔥')}
                     disabled={isSending}
-                    className="w-12 h-12 bg-orange-50 hover:bg-orange-100 rounded-lg flex items-center justify-center text-orange-600 transition-colors disabled:opacity-50"
+                    size="icon"
+                    className="h-10 w-10 rounded-full p-0 grid place-items-center bg-primary/10 border border-primary/40 text-primary hover:bg-primary/20 hover:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
                     title="すごい"
                     aria-label="すごい"
                   >
-                    <Flame className="w-6 h-6" aria-hidden="true" />
-                  </button>
+                    <Flame className="w-5 h-5" aria-hidden="true" />
+                  </Button>
                 </div>
-                
+
                 {/* 詳細情報 */}
-                <div className="space-y-2 text-sm text-gray-600">
+                <div className="space-y-2 text-sm text-muted-foreground">
                   <div className="flex items-center gap-2">
-                    <span className="inline-flex items-center justify-center">
-                      <FileText className="w-4 h-4 text-black" aria-hidden="true" />
-                    </span>
+                    <FileText className="w-4 h-4 text-foreground" aria-hidden="true" />
                     <span>家事: {chore.title}</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="inline-flex items-center justify-center">
-                      <Clock className="w-4 h-4 text-black" aria-hidden="true" />
-                    </span>
-                    <span>
-                      完了: {new Date(
-                        (chore.completions && chore.completions.length > 0
-                          ? Math.max(
-                              ...chore.completions.map((c: any) => new Date(c.created_at).getTime())
-                            )
-                          : new Date(chore.created_at).getTime()
-                        )
-                      ).toLocaleString('ja-JP')}
-                    </span>
+                    <Clock className="w-4 h-4 text-foreground" aria-hidden="true" />
+                    <span>完了: {formatDate(
+                      (chore.completions && chore.completions.length > 0
+                        ? new Date(Math.max(...chore.completions.map((c: any) => new Date(c.created_at).getTime()))).toISOString()
+                        : chore.created_at
+                      ) as any
+                    )}</span>
                   </div>
                 </div>
               </div>
@@ -243,17 +256,18 @@ export default function CompletedChoresPage() {
 
           {/* リスト最下部：ホームへ戻るボタン */}
           <div className="flex justify-center pt-4 pb-6">
-            <button
+            <Button
               type="button"
               onClick={() => router.push('/')}
-              className="h-12 w-12 rounded-full p-0 grid place-items-center text-neutral-600 border border-neutral-300 bg-neutral-100 hover:bg-neutral-200 shadow-sm focus:outline-none focus:ring-2 focus:ring-neutral-300"
+              size="icon"
+              className="h-12 w-12 rounded-full p-0 grid place-items-center text-primary border border-primary/40 bg-primary/10 hover:bg-primary/20 hover:border-primary/50 shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
               aria-label="ホームへ戻る"
             >
               <Home className="w-6 h-6" aria-hidden="true" />
               <span className="sr-only">ホームへ戻る</span>
-            </button>
+            </Button>
           </div>
-
+          
         </div>
       )}
       </div>
@@ -265,6 +279,7 @@ export default function CompletedChoresPage() {
         onSend={handleSendThankYou}
         choreTitle={selectedChore?.title || ''}
         isSending={isSending}
+        selectedIcon={selectedIcon}
       />
     </div>
   )

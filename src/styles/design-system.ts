@@ -77,6 +77,20 @@ export const colors = {
     700: '#b91c1c',
     800: '#991b1b',
     900: '#7f1d1d'
+  },
+
+  // 完了タスク用カラー
+  taskCompleted: {
+    50: '#fdf6ed',
+    100: '#fbefd7',
+    200: '#f7deb0',
+    300: '#f2c878',
+    400: '#ecad3e',
+    500: '#e89518',
+    600: '#d9800e',
+    700: '#b4650e',
+    800: '#925013',
+    900: '#784213'
   }
 };
 
@@ -232,3 +246,102 @@ export type BorderRadius = keyof typeof borderRadius;
 export type AnimationDuration = keyof typeof animation.duration;
 export type AnimationEasing = keyof typeof animation.easing;
 export type ZIndex = keyof typeof zIndex;
+
+
+export type ThemeVars = {
+  background: string
+  foreground: string
+  card: string
+  cardForeground: string
+  popover: string
+  popoverForeground: string
+  primary: string
+  primaryForeground: string
+  secondary: string
+  secondaryForeground: string
+  muted: string
+  mutedForeground: string
+  accent: string
+  accentForeground: string
+  destructive: string
+  destructiveForeground: string
+  border: string
+  input: string
+  ring: string
+  taskCompleted: string
+  taskCompletedForeground: string
+}
+
+export const lightVars: ThemeVars = {
+  background: '55 36% 89%',
+  foreground: '0 0% 10%',
+  card: '0 0% 100%',
+  cardForeground: '0 0% 10%',
+  popover: '0 0% 100%',
+  popoverForeground: '0 0% 10%',
+  primary: '210 90% 50%',
+  primaryForeground: '0 0% 98%',
+  secondary: '55 25% 94%',
+  secondaryForeground: '24 20% 20%',
+  muted: '55 20% 92%',
+  mutedForeground: '24 15% 35%',
+  accent: '30 55% 80%',
+  accentForeground: '24 30% 15%',
+  destructive: '0 84.2% 60.2%',
+  destructiveForeground: '0 0% 98%',
+  border: '55 12% 80%',
+  input: '55 12% 80%',
+  ring: '210 90% 50%',
+  taskCompleted: '30 55% 95%',
+  taskCompletedForeground: '24 30% 15%',
+}
+
+export const darkVars: ThemeVars = {
+  background: '222.2 84% 4.9%',
+  foreground: '210 40% 98%',
+  card: '222.2 84% 4.9%',
+  cardForeground: '210 40% 98%',
+  popover: '222.2 84% 4.9%',
+  popoverForeground: '210 40% 98%',
+  primary: '138.5 76.5% 55%',
+  primaryForeground: '222.2 84% 4.9%',
+  secondary: '217.2 32.6% 17.5%',
+  secondaryForeground: '210 40% 98%',
+  muted: '217.2 32.6% 17.5%',
+  mutedForeground: '215 20.2% 65.1%',
+  accent: '138.5 76.5% 25%',
+  accentForeground: '210 40% 98%',
+  destructive: '0 62.8% 30.6%',
+  destructiveForeground: '210 40% 98%',
+  border: '217.2 32.6% 17.5%',
+  input: '217.2 32.6% 17.5%',
+  ring: '138.5 76.5% 55%',
+  taskCompleted: '30 35% 20%',
+  taskCompletedForeground: '30 55% 85%',
+}
+
+export function applyTheme(vars: ThemeVars) {
+  if (typeof document === 'undefined') return
+  const r = document.documentElement
+  r.style.setProperty('--background', vars.background)
+  r.style.setProperty('--foreground', vars.foreground)
+  r.style.setProperty('--card', vars.card)
+  r.style.setProperty('--card-foreground', vars.cardForeground)
+  r.style.setProperty('--popover', vars.popover)
+  r.style.setProperty('--popover-foreground', vars.popoverForeground)
+  r.style.setProperty('--primary', vars.primary)
+  r.style.setProperty('--primary-foreground', vars.primaryForeground)
+  r.style.setProperty('--secondary', vars.secondary)
+  r.style.setProperty('--secondary-foreground', vars.secondaryForeground)
+  r.style.setProperty('--muted', vars.muted)
+  r.style.setProperty('--muted-foreground', vars.mutedForeground)
+  r.style.setProperty('--accent', vars.accent)
+  r.style.setProperty('--accent-foreground', vars.accentForeground)
+  r.style.setProperty('--destructive', vars.destructive)
+  r.style.setProperty('--destructive-foreground', vars.destructiveForeground)
+  r.style.setProperty('--border', vars.border)
+  r.style.setProperty('--input', vars.input)
+  r.style.setProperty('--ring', vars.ring)
+  r.style.setProperty('--task-completed', vars.taskCompleted)
+  r.style.setProperty('--task-completed-foreground', vars.taskCompletedForeground)
+}

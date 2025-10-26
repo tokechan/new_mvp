@@ -10,6 +10,7 @@ interface ThankYouModalProps {
   onSend: (message: string) => void
   choreTitle: string
   isSending: boolean
+  selectedIcon?: string
 }
 
 /**
@@ -21,7 +22,8 @@ export function ThankYouModal({
   onClose,
   onSend,
   choreTitle,
-  isSending
+  isSending,
+  selectedIcon
 }: ThankYouModalProps) {
   const [message, setMessage] = useState('')
 
@@ -48,10 +50,10 @@ export function ThankYouModal({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
+      <div className="bg-card rounded-lg shadow-xl max-w-md w-full">
         {/* ヘッダー */}
-        <div className="flex items-center justify-center p-6 border-b">
-          <h2 className="text-lg font-semibold text-gray-800">
+        <div className="flex items-center justify-center p-6 border-b border-border">
+          <h2 className="text-lg font-semibold text-foreground">
             メッセージを送る
           </h2>
         </div>
@@ -59,10 +61,20 @@ export function ThankYouModal({
         {/* コンテンツ */}
         <div className="p-6">
           <div className="mb-4 flex justify-center">
-            <p className="text-sm sm:text-base text-gray-600 mb-2 text-center">
-              家事: <span className="font-medium text-gray-800 break-words inline-block max-w-[80vw] sm:max-w-md">{choreTitle}</span>
+            <p className="text-sm sm:text-base text-muted-foreground mb-2 text-center">
+              家事: <span className="font-medium text-foreground break-words inline-block max-w-[80vw] sm:max-w-md">{choreTitle}</span>
             </p>
           </div>
+
+          {/* 選択中リアクション表示 */}
+          {selectedIcon && (
+            <div className="mb-3 flex items-center justify-center">
+              <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-foreground border border-primary/30 text-sm">
+                <span aria-hidden="true">{selectedIcon}</span>
+                <span className="text-xs text-muted-foreground">選択中のリアクション</span>
+              </span>
+            </div>
+          )}
 
           {/* メッセージ入力 */}
           <div className="mb-6">
@@ -70,13 +82,13 @@ export function ThankYouModal({
               id="thank-you-message"
               value={message}
               onChange={(e) => setMessage(e.target.value)}
-              placeholder="ありがとうメッセージを入力してください..."
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent resize-none"
+              placeholder={selectedIcon ? `${selectedIcon} ありがとうメッセージを入力してください...` : 'ありがとうメッセージを入力してください...'}
+              className="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-none"
               rows={4}
               disabled={isSending}
               maxLength={200}
             />
-            <div className="text-right text-xs text-gray-500 mt-1">
+            <div className="text-right text-xs text-muted-foreground mt-1">
               {message.length}/200
             </div>
           </div>
@@ -88,7 +100,7 @@ export function ThankYouModal({
               onClick={handleClose}
               disabled={isSending}
               size="icon"
-              className="h-12 w-12 rounded-full p-0 grid place-items-center bg-slate-200 text-slate-800 hover:bg-slate-300 disabled:opacity-50"
+              className="h-12 w-12 rounded-full p-0 grid place-items-center bg-muted text-muted-foreground hover:bg-muted/80 disabled:opacity-50"
             >
               <Undo2 className="w-6 h-6" aria-hidden="true" />
               <span className="sr-only">キャンセル</span>
@@ -98,10 +110,10 @@ export function ThankYouModal({
               onClick={handleSend}
               disabled={isSending || !message.trim()}
               size="icon"
-              className="h-12 w-12 rounded-full p-0 grid place-items-center bg-pink-500 text-white hover:bg-pink-600 disabled:opacity-50"
+              className="h-12 w-12 rounded-full p-0 grid place-items-center bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
             >
               {isSending ? (
-                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                <div className="w-5 h-5 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" />
               ) : (
                 <Send className="w-6 h-6" aria-hidden="true" />
               )}

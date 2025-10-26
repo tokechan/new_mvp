@@ -59,7 +59,7 @@ describe('ChoreList', () => {
   describe('基本的なレンダリング', () => {
     it('家事一覧のタイトルが表示される', () => {
       render(<ChoreList {...defaultProps} />)
-      expect(screen.getByText('📋 家事一覧')).toBeInTheDocument()
+      expect(screen.getByText('家事一覧')).toBeInTheDocument()
     })
 
     it('家事の件数が表示される', () => {
@@ -82,7 +82,7 @@ describe('ChoreList', () => {
       render(<ChoreList {...defaultProps} isLoading={true} />)
       
       expect(screen.getByText('家事を読み込み中...')).toBeInTheDocument()
-      expect(screen.queryByText('📋 家事一覧')).not.toBeInTheDocument()
+      expect(screen.queryByText('家事一覧')).not.toBeInTheDocument()
     })
 
     it('ローディング中は家事アイテムが表示されない', () => {
@@ -104,13 +104,13 @@ describe('ChoreList', () => {
     it('家事がない場合は家事一覧ヘッダーが表示されない', () => {
       render(<ChoreList {...defaultProps} chores={[]} />)
       
-      expect(screen.queryByText('📋 家事一覧')).not.toBeInTheDocument()
+      expect(screen.queryByText('家事一覧')).not.toBeInTheDocument()
     })
 
     it('空の状態では家事のアイコンが表示される', () => {
-      render(<ChoreList {...defaultProps} chores={[]} />)
-      
-      expect(screen.getByText('🏠')).toBeInTheDocument()
+      const { container } = render(<ChoreList {...defaultProps} chores={[]} />)
+      const homeIcon = container.querySelector('svg')
+      expect(homeIcon).toBeInTheDocument()
     })
   })
 
@@ -158,7 +158,7 @@ describe('ChoreList', () => {
       
       render(<ChoreList {...defaultProps} />)
       
-      expect(screen.getByText('📋 家事一覧')).toBeInTheDocument()
+      expect(screen.getByText('家事一覧')).toBeInTheDocument()
       expect(screen.getByTestId('chore-item-chore-1')).toBeInTheDocument()
       expect(screen.getByTestId('chore-item-chore-2')).toBeInTheDocument()
     })
@@ -228,7 +228,7 @@ describe('ChoreList', () => {
         render(<ChoreList {...defaultProps} chores={invalidChores} />)
       }).not.toThrow()
       
-      expect(screen.getByText('📋 家事一覧')).toBeInTheDocument()
+      expect(screen.getByText('家事一覧')).toBeInTheDocument()
       expect(screen.getByText('(1件)')).toBeInTheDocument()
     })
 
@@ -248,7 +248,7 @@ describe('ChoreList', () => {
       render(<ChoreList {...defaultProps} />)
       
       const heading = screen.getByRole('heading', { level: 2 })
-      expect(heading).toHaveTextContent('📋 家事一覧')
+      expect(heading).toHaveTextContent('家事一覧')
     })
 
     it('空の状態でも適切な見出しを持つ', () => {
