@@ -128,7 +128,7 @@ describe('useAuthState', () => {
       expect(result.current.user).toBeNull()
       expect(result.current.session).toBeNull()
       expect(consoleErrorSpy).toHaveBeenCalledWith(
-        '初期セッション取得エラー:',
+        expect.stringContaining('初期セッション取得エラー'),
         expect.any(Error)
       )
 
@@ -285,6 +285,43 @@ describe('useAuthState', () => {
       expect(result.current.session).toEqual(expect.objectContaining({
         access_token: 'mock-token'
       }))
+    })
+
+    /**
+     * 本番ビルドでのモック認証無効化
+     */
+    it('should ignore SKIP_AUTH flag in production builds', async () => {
+      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation()
+      Object.defineProperty(process.env, 'NODE_ENV', {
+        value: 'production',
+        configurable: true
+      })
+      Object.defineProperty(process.env, 'NEXT_PUBLIC_SKIP_AUTH', {
+        value: 'true',
+        configurable: true
+      })
+
+      mockAuthService.getSession.mockResolvedValue(mockSession)
+      mockAuthService.onAuthStateChange.mockReturnValue({
+        id: 'mock-subscription-id',
+        callback: jest.fn(),
+        unsubscribe: jest.fn()
+      })
+      mockProfileService.ensureProfile.mockResolvedValue()
+
+      const { result } = renderHook(() => useAuthState())
+
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false)
+      })
+
+      expect(result.current.user).toEqual(mockUser)
+      expect(mockAuthService.getSession).toHaveBeenCalled()
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        '[security] NEXT_PUBLIC_SKIP_AUTH=true detected in production build. Ignoring for safety.'
+      )
+
+      consoleErrorSpy.mockRestore()
     })
   })
 

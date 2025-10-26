@@ -18,7 +18,9 @@
 - **コード箇所**: `src/hooks/useAuthState.ts` の17行目で環境変数をチェックしている
 
 ```typescript
-if (process.env.NODE_ENV === 'test' || process.env.NEXT_PUBLIC_SKIP_AUTH === 'true') {
+import { shouldUseMockAuth } from '@/utils/authMode'
+
+if (shouldUseMockAuth()) {
   // テスト用のモックユーザーを設定
 }
 ```
