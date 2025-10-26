@@ -1,5 +1,5 @@
 name = "household-mvp-staging"
-main = ".open-next/worker.js"
+main = "worker/index.ts"
 compatibility_date = "2024-11-21"
 compatibility_flags = ["nodejs_compat"]
 
