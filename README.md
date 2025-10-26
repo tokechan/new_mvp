@@ -22,8 +22,9 @@ cp .env.example .env
 NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=your_actual_publishable_key
 SUPABASE_SECRET_KEY=your_actual_service_role_key
-
-
+# PWA rollout flags
+NEXT_PUBLIC_ENABLE_PWA=false
+ENABLE_PUSH_SUBSCRIPTIONS=false
 
 # 開発環境設定
 NODE_ENV=development
