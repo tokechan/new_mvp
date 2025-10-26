@@ -1,3 +1,5 @@
+// .open-next/worker はビルド後に生成されるため型だけ補う
+// @ts-ignore - resolved at build time by OpenNext
 import defaultWorker, {
   DOQueueHandler,
   DOShardedTagCache,
