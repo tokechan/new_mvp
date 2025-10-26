@@ -19,10 +19,5 @@ function resolveBindings(): BffBindings {
 
 export async function POST(request: Request) {
   const env = resolveBindings()
-  const executionContext = {
-    waitUntil: (_promise: Promise<unknown>) => {},
-    passThroughOnException: () => {},
-  } as ExecutionContext
-
-  return app.fetch(request, env, executionContext)
+  return app.fetch(request, env)
 }
