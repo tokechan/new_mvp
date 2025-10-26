@@ -48,7 +48,7 @@ function getSupabaseClient(env: BffBindings) {
 
 async function authenticateRequest(
   supabase: SupabaseClient<Database>,
-  authorizationHeader: string | null,
+  authorizationHeader: string | null | undefined,
 ): Promise<{ userId: string | null; authError: AuthError }> {
   if (!authorizationHeader?.toLowerCase().startsWith('bearer ')) {
     return { userId: null, authError: 'missing_authorization' }
