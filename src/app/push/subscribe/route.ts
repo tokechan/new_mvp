@@ -1,15 +1,28 @@
 import { createBffApp, type BffBindings } from '@/bff/app'
 
-export const runtime = 'edge'
-
 const app = createBffApp()
 
-export async function POST(request: Request) {
-  const env: BffBindings = {
-    SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL ?? '',
-    SUPABASE_SECRET_KEY: process.env.SUPABASE_SECRET_KEY ?? '',
-    ENABLE_PUSH_SUBSCRIPTIONS: process.env.ENABLE_PUSH_SUBSCRIPTIONS,
+function resolveBindings(): BffBindings {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const supabaseSecret = process.env.SUPABASE_SECRET_KEY
+
+  if (!supabaseUrl || !supabaseSecret) {
+    throw new Error('Supabase environment variables are not configured.')
   }
 
-  return app.fetch(request, env)
+  return {
+    SUPABASE_URL: supabaseUrl,
+    SUPABASE_SECRET_KEY: supabaseSecret,
+    ENABLE_PUSH_SUBSCRIPTIONS: process.env.ENABLE_PUSH_SUBSCRIPTIONS,
+  }
+}
+
+export async function POST(request: Request) {
+  const env = resolveBindings()
+  const executionContext = {
+    waitUntil: (_promise: Promise<unknown>) => {},
+    passThroughOnException: () => {},
+  } as ExecutionContext
+
+  return app.fetch(request, env, executionContext)
 }
