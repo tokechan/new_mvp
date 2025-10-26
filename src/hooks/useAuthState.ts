@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { User, Session } from '@supabase/supabase-js'
 import { authService } from '@/services/authService'
 import { profileService } from '@/services/profileService'
+import { shouldUseMockAuth } from '@/utils/authMode'
 
 /**
  * 認証状態を管理するカスタムフック
@@ -18,11 +19,12 @@ export function useAuthState() {
     console.log('🔐 useAuthState初期化開始')
     console.log('🔐 環境変数:', {
       NODE_ENV: process.env.NODE_ENV,
-      SKIP_AUTH: process.env.NEXT_PUBLIC_SKIP_AUTH
+      SKIP_AUTH: process.env.NEXT_PUBLIC_SKIP_AUTH,
+      mockAuth: shouldUseMockAuth(),
     })
     
-    // テスト環境では認証をスキップ
-    if (process.env.NODE_ENV === 'test' || process.env.NEXT_PUBLIC_SKIP_AUTH === 'true') {
+    // テスト環境や許可された開発モードでは認証をスキップ
+    if (shouldUseMockAuth()) {
       console.log('🔐 モック認証を使用')
       const mockUser = {
         id: '550e8400-e29b-41d4-a716-446655440000', // 有効なUUID形式

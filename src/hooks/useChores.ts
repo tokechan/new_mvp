@@ -5,12 +5,13 @@ import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
 import { Chore, ChoreInsert, RealtimeEvents } from '@/types/chore'
 import { ChoreService } from '@/services/choreService'
+import { shouldUseMockAuth } from '@/utils/authMode'
 
 /**
  * テスト環境でSupabaseクライアントにセッションを設定するヘルパー関数
  */
 const ensureTestSession = async () => {
-  if (process.env.NODE_ENV === 'test' || process.env.NEXT_PUBLIC_SKIP_AUTH === 'true') {
+  if (shouldUseMockAuth()) {
     const mockUser = {
       id: '550e8400-e29b-41d4-a716-446655440000',
       email: 'test@example.com',

@@ -2,6 +2,7 @@
 
 import { supabase } from '@/lib/supabase'
 import { Database } from '@/lib/supabase'
+import { shouldUseClientMockAuth } from '@/utils/authMode'
 
 // 型定義
 type Chore = Database['public']['Tables']['chores']['Row']
@@ -16,7 +17,7 @@ export interface ExtendedChore extends Chore {
 
 // E2E/開発高速化モード用のローカルストレージフォールバック
 const LOCAL_CHORES_KEY = '__e2e_chores'
-const isSkipAuth = () => typeof window !== 'undefined' && process.env.NEXT_PUBLIC_SKIP_AUTH === 'true'
+const isSkipAuth = () => shouldUseClientMockAuth()
 const readLocalChores = (): ExtendedChore[] => {
   try {
     if (typeof window === 'undefined') return []

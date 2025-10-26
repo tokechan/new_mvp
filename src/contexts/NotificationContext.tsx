@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useEffect, useState, useCallback, useRef, useMemo } from 'react'
 import { createSupabaseBrowserClient } from '@/lib/supabase'
 import { normalizeNullable } from '@/lib/utils'
+import { shouldUseMockAuth } from '@/utils/authMode'
 import { useAuth } from './AuthContext'
 
 // 通知の型定義
@@ -268,7 +269,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
         console.log('[NotificationProvider] chores channel created')
 
         // ありがとうメッセージ購読は「環境に応じて1本のみ」作成する
-        const skipAuth = process.env.NEXT_PUBLIC_SKIP_AUTH === 'true'
+        const skipAuth = shouldUseMockAuth()
         const devNoFilter = process.env.NEXT_PUBLIC_DEV_THANKS_NOFILTER === 'true'
 
         if (skipAuth) {
