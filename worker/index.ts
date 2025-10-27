@@ -17,10 +17,10 @@ export default {
     const url = new URL(request.url)
 
     if (url.pathname.startsWith('/api/push/')) {
-      const response = await bff.fetch(request, env, ctx)
-      if (response.status !== 404) {
-        return response
-      }
+      const rewrittenUrl = new URL(request.url)
+      rewrittenUrl.pathname = url.pathname.replace('/api', '')
+      const forwardRequest = new Request(rewrittenUrl.toString(), request)
+      return bff.fetch(forwardRequest, env, ctx)
     }
 
     if (url.pathname.startsWith('/push/')) {
