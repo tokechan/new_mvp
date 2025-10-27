@@ -60,6 +60,12 @@ const postUnsubscribe = async (endpoint: string) => {
 }
 
 export async function ensurePushSubscription(): Promise<PushSubscriptionResult> {
+  console.debug('[Push] Flags', {
+    isPwaEnabled,
+    isPushFeatureEnabled,
+    vapidPublicKeyLength: vapidPublicKey.length,
+  })
+
   if (!isPwaEnabled || !isPushFeatureEnabled) {
     return { state: 'unsupported', message: 'Push feature is disabled.' }
   }
@@ -70,6 +76,12 @@ export async function ensurePushSubscription(): Promise<PushSubscriptionResult> 
 
   if (!vapidPublicKey) {
     return { state: 'unsupported', message: 'VAPID public key is not configured.' }
+  }
+
+  const applicationServerKey = decodeVapidKey(vapidPublicKey)
+  if (applicationServerKey.length !== 65) {
+    console.error('[Push] Invalid VAPID public key length', applicationServerKey.length)
+    return { state: 'unsupported', message: 'VAPID public key is invalid.' }
   }
 
   const permission = await Notification.requestPermission()
@@ -84,7 +96,7 @@ export async function ensurePushSubscription(): Promise<PushSubscriptionResult> 
     existingSubscription ??
     (await registration.pushManager.subscribe({
       userVisibleOnly: true,
-      applicationServerKey: decodeVapidKey(vapidPublicKey),
+      applicationServerKey,
     }))
 
   await postSubscription(targetSubscription)
