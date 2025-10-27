@@ -48,7 +48,7 @@ const decodeVapidKey = (key: string) => {
 
 const postSubscription = async (subscription: PushSubscription) => {
   const json = subscription.toJSON()
-  return apiClient.post('/push/subscribe', {
+  return apiClient.post('/api/push/subscribe', {
     endpoint: json.endpoint,
     expirationTime: json.expirationTime ?? null,
     keys: json.keys ?? {},
@@ -56,7 +56,7 @@ const postSubscription = async (subscription: PushSubscription) => {
 }
 
 const postUnsubscribe = async (endpoint: string) => {
-  return apiClient.post('/push/unsubscribe', { endpoint })
+  return apiClient.post('/api/push/unsubscribe', { endpoint })
 }
 
 export async function ensurePushSubscription(): Promise<PushSubscriptionResult> {
