@@ -1,0 +1,32 @@
+// `.open-next/worker.js` is generated at build time by OpenNext.
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
+import defaultWorker, {
+  DOQueueHandler,
+  DOShardedTagCache,
+  BucketCachePurge,
+} from '../.open-next/worker.js'
+import { createBffApp } from '../src/bff/app'
+
+const bff = createBffApp()
+
+export { DOQueueHandler, DOShardedTagCache, BucketCachePurge }
+
+export default {
+  async fetch(request: Request, env: CloudflareEnv, ctx: ExecutionContext) {
+    const url = new URL(request.url)
+
+    if (url.pathname.startsWith('/api/push/')) {
+      const response = await bff.fetch(request, env, ctx)
+      if (response.status !== 404) {
+        return response
+      }
+    }
+
+    if (url.pathname.startsWith('/push/')) {
+      return bff.fetch(request, env, ctx)
+    }
+
+    return defaultWorker.fetch(request, env, ctx)
+  },
+}

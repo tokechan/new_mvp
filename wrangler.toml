@@ -1,5 +1,5 @@
 name = "household-mvp-staging"
-main = ".open-next/worker.js"
+main = "worker/index.ts"
 compatibility_date = "2024-11-21"
 compatibility_flags = ["nodejs_compat"]
 
@@ -29,4 +29,3 @@ ENABLE_PUSH_SUBSCRIPTIONS = "false"
 [env.staging.vars]
 ENABLE_PUSH_SUBSCRIPTIONS = "true"
 # （必要なら）WEB_PUSH_PRIVATE_KEY は secret として登録する
-
