@@ -13,7 +13,7 @@ const bff = createBffApp()
 export { DOQueueHandler, DOShardedTagCache, BucketCachePurge }
 
 export default {
-  async fetch(request: Request, env: CloudflareEnv, ctx: ExecutionContext) {
+  async fetch(request, env, ctx) {
     const url = new URL(request.url)
 
     if (url.pathname.startsWith('/api/push/')) {
