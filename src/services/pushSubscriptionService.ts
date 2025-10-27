@@ -4,7 +4,7 @@ import { apiClient } from './apiClient'
 
 const isPwaEnabled = process.env.NEXT_PUBLIC_ENABLE_PWA === 'true'
 const isPushFeatureEnabled = process.env.NEXT_PUBLIC_ENABLE_PUSH_SUBSCRIPTIONS === 'true'
-const vapidPublicKey = process.env.NEXT_PUBLIC_WEB_PUSH_PUBLIC_KEY ?? ''
+const vapidPublicKey = (process.env.NEXT_PUBLIC_WEB_PUSH_PUBLIC_KEY ?? '').trim()
 
 export type PushSubscriptionState =
   | 'unsupported'
