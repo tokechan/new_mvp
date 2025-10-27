@@ -1,7 +1,5 @@
 import { createBffApp, type BffBindings } from '@/bff/app'
 
-export const runtime = 'edge'
-
 const app = createBffApp()
 
 function resolveBindings(): BffBindings {
