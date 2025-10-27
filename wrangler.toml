@@ -30,9 +30,3 @@ ENABLE_PUSH_SUBSCRIPTIONS = "false"
 ENABLE_PUSH_SUBSCRIPTIONS = "true"
 # （必要なら）WEB_PUSH_PRIVATE_KEY は secret として登録する
 
-  - NEXT_PUBLIC_* 系は .env.production のみ管理 → ビルド時に
-    Next.js が取り込む。
-  - Worker 側で ON/OFF を切り替えたいもの（BFF で使う
-    ENABLE_PUSH_SUBSCRIPTIONS など）は [vars] で指定。
-  - 秘密鍵 (WEB_PUSH_PRIVATE_KEY など) は Cloudflare Dashboard
-    の Secret で管理し、wrangler.toml には書かない。
