@@ -126,7 +126,15 @@ export function createBffApp() {
         details: error.details,
         hint: error.hint,
       })
-      return c.json({ ok: false, error: 'subscription_upsert_failed' }, 500)
+      return c.json(
+        {
+          ok: false,
+          error: 'subscription_upsert_failed',
+          message: error.message,
+          details: error.details,
+        },
+        500,
+      )
     }
 
     return c.json({
@@ -171,17 +179,24 @@ export function createBffApp() {
         details: error.details,
         hint: error.hint,
       })
-      return c.json({ ok: false, error: 'subscription_delete_failed' }, 500)
+      return c.json(
+        {
+          ok: false,
+          error: 'subscription_delete_failed',
+          message: error.message,
+          details: error.details,
+        },
+        500,
+      )
     }
 
     return c.json({ ok: true })
   })
 
   app.onError((error, c) => {
-    console.error('[BFF] Unhandled error', {
-      message: error instanceof Error ? error.message : String(error),
-    })
-    return c.json({ ok: false, error: 'internal_error' }, 500)
+    const message = error instanceof Error ? error.message : String(error)
+    console.error('[BFF] Unhandled error', { message })
+    return c.json({ ok: false, error: 'internal_error', message }, 500)
   })
 
   app.notFound((c) => c.json({ ok: false, error: 'not_found' }, 404))
