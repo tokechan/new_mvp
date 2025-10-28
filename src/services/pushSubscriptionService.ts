@@ -92,11 +92,11 @@ export async function ensurePushSubscription(): Promise<PushSubscriptionResult> 
   const registration = await navigator.serviceWorker.ready
   const existingSubscription = await registration.pushManager.getSubscription()
 
-  const targetSubscription =
+ const targetSubscription =
     existingSubscription ??
     (await registration.pushManager.subscribe({
       userVisibleOnly: true,
-      applicationServerKey,
+      applicationServerKey: applicationServerKey.buffer,
     }))
 
   await postSubscription(targetSubscription)
