@@ -1,9 +1,11 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useNotifications, Notification } from '@/contexts/NotificationContext'
 import ThankYouCelebration from '@/components/ThankYouCelebration'
+import { useAuth } from '@/contexts/AuthContext'
+import { cn } from '@/lib/utils'
 
 /**
  * 通知センターコンポーネント
@@ -15,6 +17,7 @@ export default function NotificationCenter() {
   const [showCelebration, setShowCelebration] = useState(false)
   const [celebrationMessage, setCelebrationMessage] = useState('')
   const router = useRouter()
+  const { user } = useAuth()
   const {
     notifications,
     unreadCount,
@@ -23,6 +26,14 @@ export default function NotificationCenter() {
     removeNotification,
     clearAllNotifications,
   } = useNotifications()
+  const isAuthenticated = Boolean(user)
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      setIsOpen(false)
+      setActivePopoverId(null)
+    }
+  }, [isAuthenticated])
 
   // 通知アイコンの色を決定
   const getNotificationIconColor = (type: Notification['type']) => {
@@ -97,8 +108,20 @@ export default function NotificationCenter() {
     <div className="relative" data-testid="notification-center">
       {/* 通知ベルアイコン */}
       <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="relative p-2 text-muted-foreground hover:text-foreground focus:outline-none focus:ring-2 focus:ring-ring rounded-lg"
+        type="button"
+        onClick={() => {
+          if (isAuthenticated) {
+            setIsOpen((prev) => !prev)
+          }
+        }}
+        disabled={!isAuthenticated}
+        aria-disabled={!isAuthenticated}
+        className={cn(
+          'relative p-2 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-ring',
+          isAuthenticated
+            ? 'text-muted-foreground hover:text-foreground'
+            : 'cursor-default text-muted-foreground/60 opacity-60 focus:ring-0'
+        )}
         aria-label="通知を開く"
       >
         {/* ベルアイコン（SVG） */}
@@ -118,7 +141,7 @@ export default function NotificationCenter() {
         </svg>
         
         {/* 未読通知数のバッジ */}
-        {unreadCount > 0 && (
+        {isAuthenticated && unreadCount > 0 && (
           <span className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground text-xs rounded-full h-5 w-5 flex items-center justify-center">
             {unreadCount > 99 ? '99+' : unreadCount}
           </span>
@@ -126,7 +149,7 @@ export default function NotificationCenter() {
       </button>
 
       {/* 通知パネル */}
-      {isOpen && (
+      {isAuthenticated && isOpen && (
         <div 
           className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50"
           onClick={() => { setIsOpen(false); setActivePopoverId(null); }}
