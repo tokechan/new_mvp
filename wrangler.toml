@@ -30,3 +30,4 @@ SUPABASE_URL = "https://njbormsqqfwnzwbigxuh.supabase.co"
 # Staging固有のオーバーライドが必要ならここに追加する
 [env.staging.vars]
 ENABLE_PUSH_SUBSCRIPTIONS = "true"
+SUPABASE_URL = "https://njbormsqqfwnzwbigxuh.supabase.co"
