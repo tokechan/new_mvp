@@ -2,6 +2,25 @@
 
 import { supabase } from '@/lib/supabase'
 
+const normalizeBaseUrl = (value?: string | null) => {
+  if (!value) return ''
+  return value.endsWith('/') ? value.slice(0, -1) : value
+}
+
+const DEFAULT_BASE_URL = normalizeBaseUrl(process.env.NEXT_PUBLIC_API_BASE_URL)
+
+export class ApiError extends Error {
+  status: number
+  data: unknown
+
+  constructor(message: string, status: number, data: unknown) {
+    super(message)
+    this.name = 'ApiError'
+    this.status = status
+    this.data = data
+  }
+}
+
 /**
  * 汎用APIクライアント
  * HTTPリクエストの共通処理を担当
@@ -9,20 +28,18 @@ import { supabase } from '@/lib/supabase'
 export class ApiClient {
   private baseUrl: string
 
-  constructor(baseUrl: string = '') {
-    this.baseUrl = baseUrl
+  constructor(baseUrl: string = DEFAULT_BASE_URL) {
+    this.baseUrl = normalizeBaseUrl(baseUrl)
   }
 
   /**
    * 汎用APIリクエストメソッド
    * 認証ヘッダーの付与、エラーハンドリングを統一
    */
-  async request<T>(
-    endpoint: string,
-    options: RequestInit = {}
-  ): Promise<T> {
-    const url = `${this.baseUrl}${endpoint}`
-    
+  async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+    const normalizedEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`
+    const url = `${this.baseUrl}${normalizedEndpoint}`
+
     const defaultHeaders: HeadersInit = {
       'Content-Type': 'application/json',
     }
@@ -48,17 +65,37 @@ export class ApiClient {
 
     try {
       const response = await fetch(url, config)
-      
+
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}))
-        throw new Error(
-          errorData.message || 
-          errorData.error || 
+        let errorBody: unknown = null
+        try {
+          errorBody = await response.json()
+        } catch {
+          try {
+            const text = await response.text()
+            errorBody = text || null
+          } catch {
+            errorBody = null
+          }
+        }
+
+        const message =
+          (errorBody && typeof errorBody === 'object' && 'message' in errorBody
+            ? (errorBody as any).message
+            : undefined) ||
+          (errorBody && typeof errorBody === 'object' && 'error' in errorBody
+            ? (errorBody as any).error
+            : undefined) ||
           `HTTP ${response.status}: ${response.statusText}`
-        )
+
+        throw new ApiError(message, response.status, errorBody)
       }
 
-      return await response.json()
+      if (response.status === 204) {
+        return undefined as T
+      }
+
+      return (await response.json()) as T
     } catch (error) {
       console.error('API Request failed:', { url, error })
       throw error
@@ -100,5 +137,7 @@ export class ApiClient {
   }
 }
 
-// シングルトンインスタンス
+// シングルトンインスタンス（レガシー用途向け）
 export const apiClient = new ApiClient()
+
+export const createApiClient = (baseUrl?: string) => new ApiClient(baseUrl)

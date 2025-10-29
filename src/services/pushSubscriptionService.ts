@@ -1,21 +1,27 @@
 'use client'
 
-import { apiClient } from './apiClient'
+import { ApiClient, ApiError, createApiClient } from './apiClient'
 
 const isPwaEnabled = process.env.NEXT_PUBLIC_ENABLE_PWA === 'true'
 const isPushFeatureEnabled = process.env.NEXT_PUBLIC_ENABLE_PUSH_SUBSCRIPTIONS === 'true'
 const vapidPublicKey = (process.env.NEXT_PUBLIC_WEB_PUSH_PUBLIC_KEY ?? '').trim()
+const bffBaseUrl = (process.env.NEXT_PUBLIC_BFF_URL ?? '').trim()
+
+const primaryClient: ApiClient = createApiClient(bffBaseUrl || undefined)
+const legacyClient: ApiClient = createApiClient()
 
 export type PushSubscriptionState =
   | 'unsupported'
   | 'permission-denied'
   | 'already-subscribed'
   | 'subscribed'
+  | 'error'
 
 export type PushUnsubscriptionState =
   | 'unsupported'
   | 'already-unsubscribed'
   | 'unsubscribed'
+  | 'error'
 
 export type PushSubscriptionResult = {
   state: PushSubscriptionState
@@ -46,17 +52,49 @@ const decodeVapidKey = (key: string) => {
   return outputArray
 }
 
-const postSubscription = async (subscription: PushSubscription) => {
+const tryPostSubscription = async (subscription: PushSubscription) => {
   const json = subscription.toJSON()
-  return apiClient.post('/api/push/subscribe', {
+  const payload = {
     endpoint: json.endpoint,
     expirationTime: json.expirationTime ?? null,
     keys: json.keys ?? {},
-  })
+  }
+
+  try {
+    await primaryClient.post('/push/subscribe', payload)
+    return
+  } catch (error) {
+    const shouldFallback =
+      !bffBaseUrl &&
+      error instanceof ApiError &&
+      (error.status === 404 || error.status === 405)
+
+    if (shouldFallback) {
+      await legacyClient.post('/api/push/subscribe', payload)
+      return
+    }
+
+    throw error
+  }
 }
 
-const postUnsubscribe = async (endpoint: string) => {
-  return apiClient.post('/api/push/unsubscribe', { endpoint })
+const tryPostUnsubscribe = async (endpoint: string) => {
+  try {
+    await primaryClient.post('/push/unsubscribe', { endpoint })
+    return
+  } catch (error) {
+    const shouldFallback =
+      !bffBaseUrl &&
+      error instanceof ApiError &&
+      (error.status === 404 || error.status === 405)
+
+    if (shouldFallback) {
+      await legacyClient.post('/api/push/unsubscribe', { endpoint })
+      return
+    }
+
+    throw error
+  }
 }
 
 export async function ensurePushSubscription(): Promise<PushSubscriptionResult> {
@@ -89,20 +127,31 @@ export async function ensurePushSubscription(): Promise<PushSubscriptionResult> 
     return { state: 'permission-denied', message: '通知の許可が必要です。' }
   }
 
-  const registration = await navigator.serviceWorker.ready
-  const existingSubscription = await registration.pushManager.getSubscription()
+  try {
+    const registration = await navigator.serviceWorker.ready
+    const existingSubscription = await registration.pushManager.getSubscription()
 
- const targetSubscription =
-    existingSubscription ??
-    (await registration.pushManager.subscribe({
-      userVisibleOnly: true,
-      applicationServerKey: applicationServerKey.buffer,
-    }))
+    const targetSubscription =
+      existingSubscription ??
+      (await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey,
+      }))
 
-  await postSubscription(targetSubscription)
+    await tryPostSubscription(targetSubscription)
 
-  return {
-    state: existingSubscription ? 'already-subscribed' : 'subscribed',
+    return {
+      state: existingSubscription ? 'already-subscribed' : 'subscribed',
+    }
+  } catch (error) {
+    console.error('Failed to enable push subscription', error)
+    return {
+      state: 'error',
+      message:
+        error instanceof Error
+          ? error.message
+          : 'プッシュ通知の有効化に失敗しました。',
+    }
   }
 }
 
@@ -123,10 +172,16 @@ export async function disablePushSubscription(): Promise<PushUnsubscriptionResul
   }
 
   try {
-    await postUnsubscribe(existingSubscription.endpoint)
+    await tryPostUnsubscribe(existingSubscription.endpoint)
   } catch (error) {
     console.error('Failed to unregister subscription on server', error)
-    return { state: 'unsupported', message: 'サーバーで購読解除に失敗しました。' }
+    return {
+      state: 'error',
+      message:
+        error instanceof Error
+          ? error.message
+          : 'サーバーで購読解除に失敗しました。',
+    }
   }
 
   try {
