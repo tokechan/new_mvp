@@ -4,22 +4,31 @@ import { zValidator } from '@hono/zod-validator'
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/lib/supabase'
 
+const metadataSchema = z
+  .object({
+    userAgent: z.string().optional(),
+    language: z.string().optional(),
+    timezone: z.string().optional(),
+  })
+  .optional()
+
 const pushSubscriptionSchema = z.object({
+  userId: z.string().uuid(),
   endpoint: z.string().url(),
-  expirationTime: z.number().nullable().optional(),
+  expirationTime: z.union([z.number().int(), z.string().datetime(), z.null()]).optional(),
   keys: z.object({
     p256dh: z.string().min(1),
     auth: z.string().min(1),
   }),
+  metadata: metadataSchema,
 })
 
 const unsubscribeSchema = z.object({
+  userId: z.string().uuid(),
   endpoint: z.string().url(),
 })
 
 type SubscriptionPayload = z.infer<typeof pushSubscriptionSchema>
-
-type AuthError = 'missing_authorization' | 'invalid_token' | null
 
 export type BffBindings = {
   SUPABASE_URL: string
@@ -28,9 +37,7 @@ export type BffBindings = {
 }
 
 export type BffVariables = {
-  userId: string | null
   supabase: SupabaseClient<Database>
-  authError: AuthError
 }
 
 let cachedSupabaseClient: SupabaseClient<Database> | null = null
@@ -50,32 +57,26 @@ function getSupabaseClient(env: BffBindings) {
   return cachedSupabaseClient
 }
 
-async function authenticateRequest(
-  supabase: SupabaseClient<Database>,
-  authorizationHeader: string | null | undefined,
-): Promise<{ userId: string | null; authError: AuthError }> {
-  if (!authorizationHeader?.toLowerCase().startsWith('bearer ')) {
-    return { userId: null, authError: 'missing_authorization' }
+function normalizeExpiration(expiration?: SubscriptionPayload['expirationTime']) {
+  if (!expiration) return null
+  try {
+    if (typeof expiration === 'number') {
+      return new Date(expiration).toISOString()
+    }
+    if (typeof expiration === 'string') {
+      return new Date(expiration).toISOString()
+    }
+  } catch (error) {
+    console.warn('[BFF] Failed to normalize expirationTime', { expiration, error })
   }
-
-  const token = authorizationHeader.slice('bearer '.length).trim()
-  if (!token) {
-    return { userId: null, authError: 'missing_authorization' }
-  }
-
-  const { data, error } = await supabase.auth.getUser(token)
-  if (error || !data.user) {
-    return { userId: null, authError: 'invalid_token' }
-  }
-
-  return { userId: data.user.id, authError: null }
+  return null
 }
 
-function mapPayloadToRow(userId: string, payload: SubscriptionPayload) {
+function mapPayloadToRow(payload: SubscriptionPayload) {
   return {
-    user_id: userId,
+    user_id: payload.userId,
     endpoint: payload.endpoint,
-    expiration_time: payload.expirationTime ? new Date(payload.expirationTime).toISOString() : null,
+    expiration_time: normalizeExpiration(payload.expirationTime),
     keys: payload.keys,
   }
 }
@@ -86,11 +87,6 @@ export function createBffApp() {
   app.use('*', async (c, next) => {
     const supabase = getSupabaseClient(c.env)
     c.set('supabase', supabase)
-
-    const { userId, authError } = await authenticateRequest(supabase, c.req.header('authorization'))
-    c.set('userId', userId)
-    c.set('authError', authError)
-
     await next()
   })
 
@@ -101,19 +97,9 @@ export function createBffApp() {
       return c.json({ ok: false, error: 'push notifications disabled' }, 503)
     }
 
-    const authError = c.get('authError')
-    if (authError) {
-      return c.json({ ok: false, error: authError }, 401)
-    }
-
-    const userId = c.get('userId')
-    if (!userId) {
-      return c.json({ ok: false, error: 'unauthorized' }, 401)
-    }
-
     const supabase = c.get('supabase')
     const subscription = c.req.valid('json')
-    const upsertPayload = mapPayloadToRow(userId, subscription)
+    const upsertPayload = mapPayloadToRow(subscription)
 
     const { error } = await supabase
       .from('push_subscriptions')
@@ -140,10 +126,11 @@ export function createBffApp() {
     return c.json({
       ok: true,
       subscription: {
-        userId,
+        userId: subscription.userId,
         endpoint: subscription.endpoint,
         keys: subscription.keys,
-        expirationTime: subscription.expirationTime ?? null,
+        expirationTime: normalizeExpiration(subscription.expirationTime),
+        metadata: subscription.metadata ?? null,
       },
     })
   })
@@ -153,18 +140,8 @@ export function createBffApp() {
       return c.json({ ok: false, error: 'push notifications disabled' }, 503)
     }
 
-    const authError = c.get('authError')
-    if (authError) {
-      return c.json({ ok: false, error: authError }, 401)
-    }
-
-    const userId = c.get('userId')
-    if (!userId) {
-      return c.json({ ok: false, error: 'unauthorized' }, 401)
-    }
-
     const supabase = c.get('supabase')
-    const { endpoint } = c.req.valid('json')
+    const { userId, endpoint } = c.req.valid('json')
 
     const { error } = await supabase
       .from('push_subscriptions')
