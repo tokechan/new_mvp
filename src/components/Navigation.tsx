@@ -4,6 +4,7 @@ import { useRouter, usePathname } from 'next/navigation'
 import { Button } from '@/components/ui/Button'
 import { Home, CheckSquare, Share2, Menu, X, LogOut } from 'lucide-react'
 import NotificationCenter from '@/components/NotificationCenter'
+import UserMenu from '@/components/UserMenu'
 import { useState, useEffect, useRef } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import Link from 'next/link'
@@ -115,9 +116,9 @@ export default function Navigation() {
           {/* 左側：PCロゴ + ハンバーガー（モバイルのみ） */}
           <div className="flex items-center gap-3">
             {/* PC表示用ロゴ（左寄せ） */}
-            <h1 className="hidden sm:block text-xl font-bold text-blue-600 select-none">
-              ThankYou Chores
-            </h1>
+            <div className="hidden sm:block select-none">
+              <YOUDOLogo width={100} height={36} />
+            </div>
             {/* ハンバーガーメニュー（モバイルのみ） */}
             <button
               onClick={() => setIsMenuOpen((prev) => !prev)}
@@ -172,6 +173,9 @@ export default function Navigation() {
             <div className="hide-on-menu-open">
               <NotificationCenter />
             </div>
+
+            {/* ユーザーメニュー */}
+            <UserMenu />
           </div>
         </div>
 
