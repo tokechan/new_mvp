@@ -25,6 +25,7 @@ build/
 # Environment-specific files (contain secrets)
 .env.staging
 
+
 # Logs
 npm-debug.log*
 yarn-debug.log*
