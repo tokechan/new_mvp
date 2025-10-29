@@ -178,14 +178,21 @@ export async function ensurePushSubscription(): Promise<PushSubscriptionResult> 
         ? applicationServerKey
         : new Uint8Array(applicationServerKey as ArrayBufferLike)
 
+    const byteKey = new Uint8Array(Array.from(normalizedServerKey))
+
     console.debug('[Push] normalized server key', {
       length: normalizedServerKey.length,
       firstByte: normalizedServerKey[0],
     })
 
+    console.debug('[Push] byte key', {
+      length: byteKey.length,
+      firstByte: byteKey[0],
+    })
+
     const subscriptionOptions: PushSubscriptionOptionsInit = {
       userVisibleOnly: true,
-      applicationServerKey: normalizedServerKey,
+      applicationServerKey: byteKey,
     }
 
     const targetSubscription =
