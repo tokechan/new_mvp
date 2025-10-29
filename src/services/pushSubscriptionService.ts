@@ -185,7 +185,7 @@ export async function ensurePushSubscription(): Promise<PushSubscriptionResult> 
 
     const subscriptionOptions: PushSubscriptionOptionsInit = {
       userVisibleOnly: true,
-      applicationServerKey: normalizedServerKey.buffer,
+      applicationServerKey: normalizedServerKey,
     }
 
     const targetSubscription =
