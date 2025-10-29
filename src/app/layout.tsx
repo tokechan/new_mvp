@@ -5,7 +5,6 @@ import { AuthProvider } from '@/contexts/AuthContext'
 import { NotificationProvider } from '@/contexts/NotificationContext'
 import { ToastProvider } from '@/components/ui/toast'
 import Navigation from '@/components/Navigation'
-import FooterChoreInput from '@/components/FooterChoreInput'
 import ThemeProvider from '@/components/ThemeProvider'
 import PwaInitializer from '@/components/PwaInitializer'
 
@@ -52,10 +51,9 @@ export default function RootLayout({
                 <div className="min-h-screen bg-background">
                   <PwaInitializer />
                   <Navigation />
-                  <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-20 sm:pb-0">
+                  <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
                     {children}
                   </main>
-                  <FooterChoreInput />
                 </div>
               </ToastProvider>
             </NotificationProvider>

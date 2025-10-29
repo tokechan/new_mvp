@@ -158,6 +158,10 @@ export async function ensurePushSubscription(): Promise<PushSubscriptionResult> 
   }
 
   try {
+    console.debug('[Push] decoded applicationServerKey', {
+      length: applicationServerKey.length,
+      firstByte: applicationServerKey[0],
+    })
     const registration = await navigator.serviceWorker.ready
     const existingSubscription = await registration.pushManager.getSubscription()
     const { data: sessionData } = await supabase.auth.getSession()

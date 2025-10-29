@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
 import { useToast } from '@/components/ui/toast'
 import { LogOut, Settings, UserRound } from 'lucide-react'
+import { cn } from '@/lib/utils'
 
 /**
  * ユーザーメニュー（アバター + ドロップダウン）
@@ -34,6 +35,7 @@ export default function UserMenu() {
   const avatarUrl = (user as any)?.user_metadata?.avatar_url || (user as any)?.user_metadata?.picture || ''
   const displayName = (user as any)?.user_metadata?.full_name || (user as any)?.user_metadata?.name || (user as any)?.email || 'ゲスト'
   const email = (user as any)?.email || ''
+  const isAuthenticated = Boolean(user)
 
   const handleProfileEdit = () => {
     setOpen(false)
@@ -116,9 +118,21 @@ export default function UserMenu() {
             <button
               role="menuitem"
               onClick={handleLogout}
-              className="w-full flex items-center gap-3 px-4 py-2 text-sm text-foreground hover:bg-secondary"
+              disabled={!isAuthenticated}
+              aria-disabled={!isAuthenticated}
+              className={cn(
+                'w-full flex items-center gap-3 px-4 py-2 text-sm transition-colors',
+                isAuthenticated
+                  ? 'text-foreground hover:bg-secondary'
+                  : 'pointer-events-none cursor-default text-muted-foreground/70 hover:bg-transparent opacity-60'
+              )}
             >
-              <LogOut className="w-4 h-4 text-destructive" />
+              <LogOut
+                className={cn(
+                  'w-4 h-4',
+                  isAuthenticated ? 'text-destructive' : 'text-muted-foreground/70'
+                )}
+              />
               ログアウト
             </button>
           </div>
