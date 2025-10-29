@@ -20,11 +20,15 @@ export interface Notification {
   source?: 'self' | 'partner' | 'system' | 'unknown'
 }
 
+type NotificationInput = Omit<Notification, 'id' | 'timestamp' | 'read'> & {
+  dedupeKey?: string
+}
+
 // 通知コンテキストの型定義
 interface NotificationContextType {
   notifications: Notification[]
   unreadCount: number
-  addNotification: (notification: Omit<Notification, 'id' | 'timestamp' | 'read'>) => void
+  addNotification: (notification: NotificationInput) => void
   markAsRead: (id: string) => void
   markAllAsRead: () => void
   removeNotification: (id: string) => void
@@ -45,17 +49,45 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
   // 再購読トリガー（認証更新/可視化/オンライン復帰でインクリメント）
   const [rtRevision, setRtRevision] = useState(0)
   const authSubRef = useRef<{ unsubscribe: () => void } | null>(null)
-  const notifiedThanksIdsRef = useRef<Set<number>>(new Set())
+  const seenNotificationKeysRef = useRef<Set<string>>(new Set())
+  const seenNotificationQueueRef = useRef<string[]>([])
   // すべてのチャンネルを集中管理するRef（レースを避ける）
   const channelsRef = useRef<ReturnType<typeof supabase.channel>[]>([])
 
+  const registerNotificationKey = useCallback((key: string) => {
+    if (seenNotificationKeysRef.current.has(key)) {
+      return false
+    }
+    seenNotificationKeysRef.current.add(key)
+    seenNotificationQueueRef.current.push(key)
+
+    const MAX_KEYS = 200
+    if (seenNotificationQueueRef.current.length > MAX_KEYS) {
+      const oldest = seenNotificationQueueRef.current.shift()
+      if (oldest) {
+        seenNotificationKeysRef.current.delete(oldest)
+      }
+    }
+
+    return true
+  }, [])
+
   // 新しい通知を追加する関数
-  const addNotification = useCallback((notification: Omit<Notification, 'id' | 'timestamp' | 'read'>) => {
+  const addNotification = useCallback((notification: NotificationInput) => {
     // シンプル方針: パートナーのアクションのみ通知として追加
-    const src = notification.source ?? 'unknown'
+    const { dedupeKey, ...rest } = notification
+    const src = rest.source ?? 'unknown'
     if (src !== 'partner') {
       return
     }
+
+    if (dedupeKey) {
+      const added = registerNotificationKey(dedupeKey)
+      if (!added) {
+        return
+      }
+    }
+
     // より安全なUUID生成（crypto.randomUUIDが利用できない場合の代替）
     const generateId = () => {
       if (typeof crypto !== 'undefined' && crypto.randomUUID) {
@@ -66,11 +98,11 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
     }
 
     const newNotification: Notification = {
-      ...notification,
+      ...rest,
       id: generateId(),
       timestamp: new Date(),
       read: false,
-      source: notification.source ?? 'unknown',
+      source: rest.source ?? 'unknown',
     }
     
     setNotifications(prev => [newNotification, ...prev])
@@ -83,7 +115,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
         tag: newNotification.id,
       })
     }
-  }, [])
+  }, [registerNotificationKey])
 
   // 通知を既読にする関数
   const markAsRead = useCallback((id: string) => {
@@ -217,42 +249,13 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
                   const isAddedByMe = payload.new.owner_id === user.id
                   if (!isAddedByMe) {
                     addNotification({
+                      dedupeKey: `chores:insert:${String(payload.new.id ?? '')}`,
                       title: '新しい家事が追加されました',
                       message: `家事「${payload.new.title}」をパートナーが追加しました`,
                       type: 'info',
                       userId: user.id,
                       source: 'partner',
                     })
-                  }
-                  break
-                }
-                case 'UPDATE': {
-                  if (payload.new.done && !payload.old.done) {
-                    try {
-                      const { data: latestCompletion, error: compErr } = await supabase
-                        .from('completions')
-                        .select('id,user_id,created_at')
-                        .eq('chore_id', payload.new.id)
-                        .order('created_at', { ascending: false })
-                        .limit(1)
-                      const completedBy: string | undefined = normalizeNullable(latestCompletion?.[0]?.user_id)
-                      const isCompletedByPartner = !!completedBy && completedBy !== user.id
-                      if (compErr) {
-                        console.warn('完了者取得に失敗:', compErr)
-                      }
-                      if (isCompletedByPartner) {
-                        addNotification({
-                          title: '家事が完了しました',
-                          message: `家事「${payload.new.title}」をパートナーが完了しました`,
-                          type: 'success',
-                          userId: user.id,
-                          actionUrl: '/completed-chores',
-                          source: 'partner',
-                        })
-                      }
-                    } catch (e) {
-                      console.warn('完了通知処理中に例外:', e)
-                    }
                   }
                   break
                 }
@@ -307,6 +310,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
                   if (error) {
                     console.warn('[NotificationProvider] ありがとう詳細取得失敗（fallback）:', error)
                     addNotification({
+                      dedupeKey: payload.new?.id != null ? `thanks:${payload.new.id}` : undefined,
                       title: 'ありがとうメッセージを受け取りました',
                       message: `${messageText}`,
                       type: 'success',
@@ -315,6 +319,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
                     })
                   } else {
                     addNotification({
+                      dedupeKey: payload.new?.id != null ? `thanks:${payload.new.id}` : undefined,
                       title: 'ありがとうメッセージを受け取りました',
                       message: `${senderName}から: ${messageText}`,
                       type: 'success',
@@ -325,6 +330,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
                 } catch (e) {
                   console.warn('[NotificationProvider] ありがとう詳細取得例外（fallback）:', e)
                   addNotification({
+                    dedupeKey: payload.new?.id != null ? `thanks:${payload.new.id}` : undefined,
                     title: 'ありがとうメッセージを受け取りました',
                     message: `${payload.new?.message ?? ''}`,
                     type: 'success',
@@ -414,6 +420,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
                   if (error) {
                     console.warn('ありがとう詳細取得に失敗したため、簡易通知を表示します:', error)
                     addNotification({
+                      dedupeKey: payload.new?.id != null ? `thanks:${payload.new.id}` : undefined,
                       title: 'ありがとうメッセージを受け取りました',
                       message: `${messageText}`,
                       type: 'success',
@@ -422,6 +429,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
                     })
                   } else {
                     addNotification({
+                      dedupeKey: payload.new?.id != null ? `thanks:${payload.new.id}` : undefined,
                       title: 'ありがとうメッセージを受け取りました',
                       message: `${senderName}から: ${messageText}`,
                       type: 'success',
@@ -432,6 +440,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
                 } catch (e) {
                   console.error('ありがとうメッセージ詳細補完時にエラー:', e)
                   addNotification({
+                    dedupeKey: payload.new?.id != null ? `thanks:${payload.new.id}` : undefined,
                     title: 'ありがとうメッセージを受け取りました',
                     message: `${payload.new?.message ?? ''}`,
                     type: 'success',
@@ -461,17 +470,16 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
           if (backfillErr) {
             console.warn('thanks backfill error:', backfillErr)
           } else {
-            (recentThanks || []).forEach((row: any) => {
+            ;(recentThanks || []).forEach((row: any) => {
               if (!row || typeof row.id !== 'number') return
-              if (notifiedThanksIdsRef.current.has(row.id)) return
               addNotification({
+                dedupeKey: `thanks:${row.id}`,
                 title: 'ありがとうメッセージを受け取りました',
                 message: `${row?.from_user?.display_name || 'パートナー'}から: ${row?.message || ''}`,
                 type: 'success',
                 userId: user.id,
                 source: 'partner',
               })
-              notifiedThanksIdsRef.current.add(row.id)
             })
           }
         } catch (e) {
@@ -504,6 +512,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
                   console.warn('家事タイトル取得に失敗:', choreErr)
                 }
                 addNotification({
+                  dedupeKey: payload.new?.id != null ? `completion:${payload.new.id}` : undefined,
                   title: '家事が完了しました',
                   message: `家事「${chore?.title ?? '不明'}」をパートナーが完了しました`,
                   type: 'success',
@@ -539,7 +548,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
         channelsRef.current = []
       }
     }
-  }, [user, addNotification, rtRevision])
+  }, [user, supabase, addNotification, rtRevision])
 
   const value = {
     notifications,

@@ -55,12 +55,22 @@ export default function SettingsPage() {
         return
       }
 
+      if (result.state === 'error') {
+        setPushState('error')
+        setPushMessage(result.message ?? 'プッシュ通知の有効化に失敗しました。')
+        return
+      }
+
       setPushState('subscribed')
       setPushMessage('プッシュ通知を有効にしました。')
     } catch (error) {
       console.error('Failed to enable push notifications', error)
       setPushState('error')
-      setPushMessage('プッシュ通知の有効化に失敗しました。再度お試しください。')
+      const fallbackMessage =
+        error instanceof Error
+          ? error.message
+          : 'プッシュ通知の有効化に失敗しました。再度お試しください。'
+      setPushMessage(fallbackMessage)
     }
   }
 
@@ -84,6 +94,12 @@ export default function SettingsPage() {
     if (result.state === 'already-unsubscribed') {
       setPushState('unsubscribed')
       setPushMessage(result.message ?? 'プッシュ通知は既にオフになっています。')
+      return
+    }
+
+    if (result.state === 'error') {
+      setPushState('error')
+      setPushMessage(result.message ?? 'プッシュ通知の無効化に失敗しました。')
       return
     }
 
