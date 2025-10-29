@@ -111,24 +111,24 @@ export default function Navigation() {
       aria-label="メインナビゲーション"
     >
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* ヘッダー行：左にロゴ（PC）、中央にロゴ（モバイル）、右にナビ（PC） */}
+        {/* ヘッダー行：左にハンバーガー + ロゴ、中央にロゴ（モバイル）、右にアイコン */}
         <div className="relative flex items-center h-16">
-          {/* 左側：PCロゴ + ハンバーガー（モバイルのみ） */}
+          {/* 左側：ハンバーガー + ロゴ */}
           <div className="flex items-center gap-3">
-            {/* PC表示用ロゴ（左寄せ） */}
-            <div className="hidden sm:block select-none">
-              <YOUDOLogo width={100} height={36} />
-            </div>
-            {/* ハンバーガーメニュー（モバイルのみ） */}
+            {/* ハンバーガーメニュー（全サイズで表示） */}
             <button
               onClick={() => setIsMenuOpen((prev) => !prev)}
-              className="sm:hidden p-2 rounded-lg text-gray-700 hover:text-blue-600 hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="p-2 rounded-lg text-gray-700 hover:text-blue-600 hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
               aria-label="メニューを開閉"
-              aria-controls="mobile-nav-panel"
+              aria-controls="nav-panel"
               aria-expanded={isMenuOpen}
             >
               {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
+            {/* PC表示用ロゴ（ハンバーガーの右） */}
+            <div className="hidden sm:block select-none">
+              <YOUDOLogo width={100} height={36} />
+            </div>
           </div>
 
           {/* 中央：モバイル用ロゴ（PCでは非表示） */}
@@ -136,53 +136,22 @@ export default function Navigation() {
             <YOUDOLogo width={100} height={36} />
           </div>
 
-          {/* 右側：ナビゲーション項目（PC表示） */}
-          <div className="ml-auto hidden sm:flex items-center space-x-1 sm:space-x-2">
-            {/* メインナビゲーション項目 */}
-            <div className="flex space-x-1 sm:space-x-2">
-              {navigationItems.map((item) => {
-                const Icon = item.icon
-                const active = isActive(item.path)
-                return (
-                  <Button
-                    key={item.id}
-                    variant={active ? 'default' : 'ghost'}
-                    size="sm"
-                    onClick={() => handleNavigation(item.path)}
-                    className={`
-                      flex items-center space-x-1 sm:space-x-2 px-3 sm:px-4 py-2
-                      transition-all duration-200 hover:scale-105
-                      ${active 
-                        ? 'bg-blue-600 text-white shadow-md' 
-                        : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50'
-                      }
-                    `}
-                    aria-label={item.description}
-                    aria-current={active ? 'page' : undefined}
-                  >
-                    <Icon className="w-4 h-4" />
-                    <span className="hidden sm:inline text-sm font-medium">
-                      {item.label}
-                    </span>
-                  </Button>
-                )
-              })}
-            </div>
-
+          {/* 右側：通知センター + ユーザーメニュー */}
+          <div className="ml-auto flex items-center gap-2">
             {/* 通知センター */}
             <div className="hide-on-menu-open">
               <NotificationCenter />
             </div>
 
-            {/* ユーザーメニュー */}
+            {/* ユーザーメニュー（アバター） */}
             <UserMenu />
           </div>
         </div>
 
-        {/* モバイル用メニューパネル */}
-        <div className="sm:hidden relative" ref={menuRef}>
+        {/* メニューパネル（全サイズ） */}
+        <div className="relative" ref={menuRef}>
           <div
-            id="mobile-nav-panel"
+            id="nav-panel"
             className={`absolute left-0 right-0 mt-2 bg-card border border-border rounded-lg shadow-lg overflow-hidden transform origin-top transition-all duration-200 z-[1001] ${
               isMenuOpen ? 'scale-y-100 opacity-100' : 'scale-y-0 opacity-0 pointer-events-none'
             }`}
@@ -193,7 +162,7 @@ export default function Navigation() {
                 const active = isActive(item.path)
                 return (
                   <button
-                    key={`mobile-panel-${item.id}`}
+                    key={`nav-panel-${item.id}`}
                     onClick={() => handleNavigation(item.path)}
                     className={`flex items-center gap-3 px-4 py-3 text-left transition-colors ${
                       active ? 'text-primary bg-secondary' : 'text-foreground hover:bg-secondary'
@@ -211,7 +180,7 @@ export default function Navigation() {
               <div className="border-t border-border my-1" />
               {/* ログアウト */}
               <button
-                key={`mobile-panel-logout`}
+                key={`nav-panel-logout`}
                 onClick={async () => {
                   try {
                     await signOut()
