@@ -32,11 +32,20 @@ export default function UserMenu() {
     return () => document.removeEventListener('click', onClick)
   }, [open])
 
-  const avatarUrl = (user as any)?.user_metadata?.avatar_url || (user as any)?.user_metadata?.picture || ''
-  const displayName = (user as any)?.user_metadata?.full_name || (user as any)?.user_metadata?.name || (user as any)?.email || 'ゲスト'
-  const email = (user as any)?.email || ''
   const isAuthenticated = Boolean(user)
+  const avatarUrl = (user as any)?.user_metadata?.avatar_url || (user as any)?.user_metadata?.picture || ''
+  const displayName = isAuthenticated
+    ? (user as any)?.user_metadata?.full_name ||
+      (user as any)?.user_metadata?.name ||
+      (user as any)?.email ||
+      'ユーザー'
+    : 'サインイン'
+  const email = isAuthenticated ? (user as any)?.email || '' : ''
 
+  const handleGoToSignIn = () => {
+    setOpen(false)
+    router.push('/auth/signin')
+  }
   const handleProfileEdit = () => {
     setOpen(false)
     router.push('/profile/edit')
@@ -91,8 +100,20 @@ export default function UserMenu() {
               )}
             </div>
             <div className="min-w-0">
-              <div className="text-sm font-semibold text-foreground truncate">{displayName}</div>
-              {email && <div className="text-xs text-muted-foreground truncate">{email}</div>}
+              {isAuthenticated ? (
+                <>
+                  <div className="text-sm font-semibold text-foreground truncate">{displayName}</div>
+                  {email && <div className="text-xs text-muted-foreground truncate">{email}</div>}
+                </>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleGoToSignIn}
+                  className="text-sm font-semibold text-primary hover:text-primary/80 transition-colors"
+                >
+                  サインイン
+                </button>
+              )}
             </div>
           </div>
 
@@ -101,17 +122,41 @@ export default function UserMenu() {
             <button
               role="menuitem"
               onClick={handleProfileEdit}
-              className="w-full flex items-center gap-3 px-4 py-2 text-sm text-foreground hover:bg-secondary"
+              disabled={!isAuthenticated}
+              aria-disabled={!isAuthenticated}
+              className={cn(
+                'w-full flex items-center gap-3 px-4 py-2 text-sm transition-colors',
+                isAuthenticated
+                  ? 'text-foreground hover:bg-secondary'
+                  : 'pointer-events-none cursor-default text-muted-foreground/70 hover:bg-transparent opacity-60'
+              )}
             >
-              <UserRound className="w-4 h-4 text-muted-foreground" />
+              <UserRound
+                className={cn(
+                  'w-4 h-4',
+                  isAuthenticated ? 'text-muted-foreground' : 'text-muted-foreground/60'
+                )}
+              />
               プロフィール編集
             </button>
             <button
               role="menuitem"
               onClick={handleSettings}
-              className="w-full flex items-center gap-3 px-4 py-2 text-sm text-foreground hover:bg-secondary"
+              disabled={!isAuthenticated}
+              aria-disabled={!isAuthenticated}
+              className={cn(
+                'w-full flex items-center gap-3 px-4 py-2 text-sm transition-colors',
+                isAuthenticated
+                  ? 'text-foreground hover:bg-secondary'
+                  : 'pointer-events-none cursor-default text-muted-foreground/70 hover:bg-transparent opacity-60'
+              )}
             >
-              <Settings className="w-4 h-4 text-muted-foreground" />
+              <Settings
+                className={cn(
+                  'w-4 h-4',
+                  isAuthenticated ? 'text-muted-foreground' : 'text-muted-foreground/60'
+                )}
+              />
               設定
             </button>
             <div className="border-t border-border my-1" />

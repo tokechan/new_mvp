@@ -173,12 +173,31 @@ export async function ensurePushSubscription(): Promise<PushSubscriptionResult> 
       }
     }
 
+    const normalizedServerKey =
+      applicationServerKey instanceof Uint8Array
+        ? applicationServerKey
+        : new Uint8Array(applicationServerKey as ArrayBufferLike)
+
+    const byteKey = new Uint8Array(Array.from(normalizedServerKey))
+
+    console.debug('[Push] normalized server key', {
+      length: normalizedServerKey.length,
+      firstByte: normalizedServerKey[0],
+    })
+
+    console.debug('[Push] byte key', {
+      length: byteKey.length,
+      firstByte: byteKey[0],
+    })
+
+    const subscriptionOptions: PushSubscriptionOptionsInit = {
+      userVisibleOnly: true,
+      applicationServerKey: byteKey,
+    }
+
     const targetSubscription =
       existingSubscription ??
-      (await registration.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey,
-      }))
+      (await registration.pushManager.subscribe(subscriptionOptions))
 
     await tryPostSubscription(targetSubscription, userId, buildMetadata())
 
