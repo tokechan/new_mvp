@@ -109,10 +109,17 @@ export function useRealtime(callbacks: RealtimeCallbacks) {
         matchesCurrentUser: session?.user?.id === user.id
       })
 
-      // 最新の家事一覧を取得して更新（completions展開を外す）
+      // 最新の家事一覧を取得（完了記録のメタデータ込みで更新）
       const { data: choresData, error } = await supabase
         .from('chores')
-        .select('*')
+        .select(`
+          *,
+          completions (
+            id,
+            user_id,
+            created_at
+          )
+        `)
         .or(`owner_id.eq.${user.id},partner_id.eq.${user.id}`)
         .order('created_at', { ascending: false })
 
@@ -153,10 +160,17 @@ export function useRealtime(callbacks: RealtimeCallbacks) {
     setEventCount(prev => prev + 1)
 
     try {
-      // 最新の家事一覧を取得して更新（completions展開を外す）
+      // 最新の家事一覧を取得（完了記録のメタデータ込みで更新）
       const { data: choresData, error } = await supabase
         .from('chores')
-        .select('*')
+        .select(`
+          *,
+          completions (
+            id,
+            user_id,
+            created_at
+          )
+        `)
         .or(`owner_id.eq.${user.id},partner_id.eq.${user.id}`)
         .order('created_at', { ascending: false })
 

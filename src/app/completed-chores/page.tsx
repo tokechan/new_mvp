@@ -6,7 +6,7 @@ import { ChoreService, ExtendedChore } from '@/services/choreService'
 import { sendThankYou } from '@/services/thankYouService'
 import { useAuthState } from '@/hooks/useAuthState'
 import { ThankYouModal } from '@/components/ThankYouModal'
-import { Smile, ThumbsUp, Heart, Handshake, Flame, FileText, Clock, Home } from 'lucide-react'
+import { Smile, ThumbsUp, Heart, Handshake, Flame, Clock, Home, CheckCircle2, FileText } from 'lucide-react'
 import { useToast } from '@/components/ui/toast'
 import { Button } from '@/components/ui/Button'
 
@@ -134,8 +134,11 @@ export default function CompletedChoresPage() {
     <div className="min-h-screen bg-background">
       <div className="container mx-auto p-4 max-w-4xl">
         <div className="mb-6">
-          <h1 className="text-2xl font-bold text-primary">完了した家事</h1>
-          <p className="text-muted-foreground mt-2">
+          <h1 className="text-2xl font-bold text-foreground mb-2 flex items-center">
+            <CheckCircle2 className="w-6 h-6 mr-2 text-primary" aria-hidden="true" />
+            完了した家事
+          </h1>
+          <p className="text-muted-foreground">
             完了した家事一覧です。ありがとうメッセージを送ることができます。
           </p>
         </div>
@@ -166,7 +169,7 @@ export default function CompletedChoresPage() {
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-xl font-semibold text-foreground break-words whitespace-normal">{chore.title}</h2>
                   <div className="flex items-center gap-2">
-                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-primary/10 text-success border border-success/40">
+                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-primary/20 text-primary border border-primary/40 backdrop-blur-sm">
                       完了済み
                     </span>
                     <span className="text-xs text-muted-foreground">

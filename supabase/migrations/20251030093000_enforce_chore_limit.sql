@@ -7,7 +7,7 @@ security definer
 set search_path = public, pg_temp
 as $$
 declare
-  chore_limit constant integer := 10;
+  chore_limit constant integer := 3;
   raw_users uuid[] := array_remove(array[NEW.owner_id, NEW.partner_id], null);
   affected_users uuid[];
   target_user uuid;

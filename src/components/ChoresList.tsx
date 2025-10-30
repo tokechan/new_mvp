@@ -16,6 +16,7 @@ import { RealtimeDebugPanel } from './RealtimeDebugPanel'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useScreenReader, useFocusManagement } from '@/hooks/useScreenReader'
 import { useKeyboardNavigation } from '@/hooks/useKeyboardNavigation'
+import { useToast } from '@/components/ui/toast'
 
 // 型定義
 type ThankYou = Database['public']['Tables']['thanks']['Row']
@@ -27,6 +28,7 @@ type ThankYou = Database['public']['Tables']['thanks']['Row']
 export default function ChoresList() {
   const { user } = useAuth()
   const { addNotification } = useNotifications()
+  const { showToast } = useToast()
   
   // useChoresフックを使用してデータ管理を統一
   const { 
@@ -184,6 +186,7 @@ export default function ChoresList() {
     } catch (error: unknown) {
       if (error instanceof ChoreLimitReachedError) {
         announceError(error.message)
+        showToast({ message: error.message, variant: 'warning' })
         addNotification({
           title: '家事を追加できません',
           type: 'warning',
@@ -313,6 +316,7 @@ export default function ChoresList() {
               onShowThankYou={() => {}}
               onHideThankYou={() => {}}
               partnerInfo={partnerInfo}
+              currentUserId={user?.id}
               data-chore-name={chore.title}
             />
           ))
@@ -331,7 +335,7 @@ export default function ChoresList() {
       )}
 
       {/* リアルタイムデバッグパネル（開発環境のみ） */}
-      <RealtimeDebugPanel realtimeEvents={realtimeEvents} />
+      {/* <RealtimeDebugPanel realtimeEvents={realtimeEvents} /> */}
     </div>
   )
 }
