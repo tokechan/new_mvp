@@ -106,7 +106,7 @@ export default function Navigation() {
 
   return (
     <nav 
-      className="bg-muted border-b border-gray-200 sm:shadow-sm"
+      className="bg-card border-b border-gray-200 sm:shadow-sm"
       role="navigation"
       aria-label="メインナビゲーション"
     >

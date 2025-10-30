@@ -87,7 +87,7 @@ export default function UserMenu() {
         <div
           role="menu"
           aria-label="ユーザーメニューポップアップ"
-          className="absolute right-0 mt-2 w-64 bg-muted border border-gray-200 rounded-xl shadow-xl z-[1200]"
+          className="absolute right-0 mt-2 w-64 bg-card border border-gray-200 rounded-xl shadow-xl z-[1200]"
         >
           {/* ヘッダー */}
           <div className="flex items-center gap-3 p-3 border-b border-gray-200">
