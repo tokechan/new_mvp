@@ -118,7 +118,7 @@ export default function Navigation() {
         {/* ヘッダー行：左にハンバーガー + ロゴ、中央にロゴ（モバイル）、右にアイコン */}
         <div className="relative flex items-center h-16">
           {/* 左側：ハンバーガー + ロゴ */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 mr-3">
             {/* ハンバーガーメニュー（全サイズで表示） */}
             <button
               onClick={() => setIsMenuOpen((prev) => !prev)}
@@ -129,14 +129,10 @@ export default function Navigation() {
             >
               {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
-            {/* PC表示用ロゴ（ハンバーガーの右） */}
-            <div className="hidden sm:block select-none">
-              <YOUDOLogo width={100} height={36} />
-            </div>
           </div>
 
-          {/* 中央：モバイル用ロゴ（PCでは非表示） */}
-          <div className="absolute left-1/2 -translate-x-1/2 sm:hidden select-none">
+          {/* ロゴ：ハンバーガーメニューの右側（常時表示） */}
+          <div className="select-none">
             <YOUDOLogo width={100} height={36} />
           </div>
 
