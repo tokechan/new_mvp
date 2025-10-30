@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/Button'
 import { profileService } from '@/services/profileService'
 import { PartnerService } from '@/services/partnerService'
 import { supabase } from '@/lib/supabase'
-import { Bell, BellOff, BellRing, FileText, Loader2, LogOut } from 'lucide-react'
+import { Bell, BellOff, BellRing, FileText, Loader2 } from 'lucide-react'
 import FooterChoreInput from '@/components/FooterChoreInput'
 import { ensurePushSubscription, disablePushSubscription } from '@/services/pushSubscriptionService'
 import { useToast } from '@/components/ui/toast'
@@ -227,7 +227,7 @@ export default function Home() {
 
   return (
     <>
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-28 sm:pt-12 sm:pb-12">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-28">
         {/* ユーザー情報とアクション */}
         <div className="bg-card rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
           <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
@@ -253,23 +253,6 @@ export default function Home() {
               >
                 <Bell className="w-4 h-4 mr-1" />
                 通知テスト
-              </Button>
-              <Button 
-                onClick={async () => {
-                  try {
-                    await signOut()
-                    router.push('/auth/signin')
-                  } catch (error) {
-                    console.error('ログアウトに失敗しました:', error)
-                  }
-                }}
-                variant="outline"
-                size="sm"
-                title="ログアウト"
-                className="bg-primary text-white hover:bg-primary/90"
-              >
-                <LogOut className="w-4 h-4 mr-1" />
-                ログアウト
               </Button>
             </div>
           </div>
