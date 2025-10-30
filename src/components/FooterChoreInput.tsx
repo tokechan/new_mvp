@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
 import { Plus } from 'lucide-react'
 import { useChores } from '@/hooks/useChores'
+import { ChoreLimitReachedError } from '@/services/choreService'
 import { useScreenReader } from '@/hooks/useScreenReader'
 import { useNotifications } from '@/contexts/NotificationContext'
 
@@ -35,7 +36,18 @@ export default function FooterChoreInput() {
         type: 'success',
         message: `家事「${value}」を追加しました`
       })
-    } catch (error) {
+    } catch (error: unknown) {
+      if (error instanceof ChoreLimitReachedError) {
+        console.warn('家事追加が上限により拒否されました (FooterChoreInput):', error)
+        announceError(error.message)
+        addNotification({
+          title: '家事を追加できません',
+          type: 'warning',
+          message: error.message
+        })
+        return
+      }
+
       console.error('フッター入力からの家事追加エラー:', error)
       announceError('家事の追加に失敗しました')
       addNotification({

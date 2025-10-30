@@ -1,11 +1,14 @@
 // Supabaseクライアントのモック
 jest.mock('@/lib/supabase', () => ({
   supabase: {
-    from: jest.fn()
+    from: jest.fn(),
+    auth: {
+      getSession: jest.fn()
+    }
   }
 }))
 
-import { ChoreService } from '../choreService'
+import { ChoreLimitReachedError, ChoreService } from '../choreService'
 import { supabase } from '@/lib/supabase'
 
 // モックされたsupabaseクライアントの型定義
@@ -14,6 +17,7 @@ const mockSupabase = supabase as jest.Mocked<typeof supabase>
 describe('ChoreService', () => {
   beforeEach(() => {
     jest.clearAllMocks()
+    mockSupabase.auth.getSession.mockResolvedValue({ data: { session: null }, error: null } as any)
   })
 
   describe('getChores', () => {
@@ -98,16 +102,47 @@ describe('ChoreService', () => {
          select: jest.fn().mockReturnValue(mockSingleQuery)
        }
        
-       const mockCreateFromQuery = {
+      const mockCreateFromQuery = {
          insert: jest.fn().mockReturnValue(mockInsertQuery)
        }
-       
+
        mockSupabase.from.mockReturnValue(mockCreateFromQuery as any)
-      
+      mockSupabase.auth.getSession.mockResolvedValue({ data: { session: { user: { id: 'user1' } } }, error: null } as any)
+
       const result = await ChoreService.createChore(newChore)
       
       expect(mockSupabase.from).toHaveBeenCalledWith('chores')
       expect(result).toEqual(mockResponse)
+    })
+
+    it('should throw ChoreLimitReachedError when chore limit exceeded', async () => {
+      const newChore = {
+        title: 'テスト家事',
+        owner_id: 'user1'
+      }
+
+      const limitError = {
+        message: 'chore_limit_exceeded',
+        code: 'P0001',
+        details: 'limit reached',
+        hint: null
+      }
+
+      const mockSingleQuery = {
+        single: jest.fn().mockResolvedValue({ data: null, error: limitError })
+      }
+
+      const mockInsertQuery = {
+        select: jest.fn().mockReturnValue(mockSingleQuery)
+      }
+
+      const mockCreateFromQuery = {
+        insert: jest.fn().mockReturnValue(mockInsertQuery)
+      }
+
+      mockSupabase.from.mockReturnValue(mockCreateFromQuery as any)
+
+      await expect(ChoreService.createChore(newChore as any)).rejects.toBeInstanceOf(ChoreLimitReachedError)
     })
   })
 
