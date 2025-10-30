@@ -19,7 +19,8 @@ import { YOUDOLogo } from '@/components/YOUDOLogo'
 export default function Navigation() {
   const router = useRouter()
   const pathname = usePathname()
-  const { signOut } = useAuth()
+  const { user, signOut } = useAuth()
+  const isAuthenticated = Boolean(user)
 
   // ナビゲーション項目の定義
   const navigationItems = [
@@ -60,6 +61,9 @@ export default function Navigation() {
    * ナビゲーション項目クリック時の処理
    */
   const handleNavigation = (path: string) => {
+    if (!isAuthenticated) {
+      return
+    }
     router.push(path)
   }
 
@@ -164,9 +168,16 @@ export default function Navigation() {
                   <button
                     key={`nav-panel-${item.id}`}
                     onClick={() => handleNavigation(item.path)}
-                    className={`flex items-center gap-3 px-4 py-3 text-left transition-colors ${
-                      active ? 'text-primary bg-secondary' : 'text-foreground hover:bg-secondary'
-                    }`}
+                    disabled={!isAuthenticated}
+                    aria-disabled={!isAuthenticated}
+                    className={cn(
+                      'flex items-center gap-3 px-4 py-3 text-left transition-colors',
+                      isAuthenticated
+                        ? active
+                          ? 'text-primary bg-secondary'
+                          : 'text-foreground hover:bg-secondary'
+                        : 'pointer-events-none cursor-default text-muted-foreground/70 hover:bg-transparent opacity-60'
+                    )}
                     aria-label={item.description}
                     aria-current={active ? 'page' : undefined}
                   >
@@ -182,6 +193,7 @@ export default function Navigation() {
               <button
                 key={`nav-panel-logout`}
                 onClick={async () => {
+                  if (!isAuthenticated) return
                   try {
                     await signOut()
                     router.push('/auth/signin')
@@ -189,10 +201,22 @@ export default function Navigation() {
                     console.error('ログアウトに失敗しました:', error)
                   }
                 }}
-                className={`flex items-center gap-3 px-4 py-3 text-left text-foreground hover:bg-secondary`}
+                disabled={!isAuthenticated}
+                aria-disabled={!isAuthenticated}
+                className={cn(
+                  'flex items-center gap-3 px-4 py-3 text-left transition-colors',
+                  isAuthenticated
+                    ? 'text-foreground hover:bg-secondary'
+                    : 'pointer-events-none cursor-default text-muted-foreground/70 hover:bg-transparent opacity-60'
+                )}
                 aria-label="ログアウト"
               >
-                <LogOut className="w-5 h-5" />
+                <LogOut
+                  className={cn(
+                    'w-5 h-5',
+                    isAuthenticated ? 'text-destructive' : 'text-muted-foreground/70'
+                  )}
+                />
                 <span className="text-sm font-medium">ログアウト</span>
               </button>
             </div>
