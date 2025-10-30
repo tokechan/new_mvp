@@ -89,9 +89,14 @@ export class ChoreService {
   static async getChores(userId: string): Promise<ExtendedChore[]> {
     const { data, error } = await supabase
       .from('chores')
-      .select(`
+        .select(`
         *,
-        completions (*)
+        completions (
+          id,
+          chore_id,
+          user_id,
+          created_at
+        )
       `)
       .or(`owner_id.eq.${userId},partner_id.eq.${userId}`)
       .order('created_at', { ascending: false })
@@ -345,6 +350,7 @@ export class ChoreService {
           *,
           completions (
             id,
+            chore_id,
             user_id,
             created_at
           )

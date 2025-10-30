@@ -116,6 +116,7 @@ export function useRealtime(callbacks: RealtimeCallbacks) {
           *,
           completions (
             id,
+            chore_id,
             user_id,
             created_at
           )
@@ -167,6 +168,7 @@ export function useRealtime(callbacks: RealtimeCallbacks) {
           *,
           completions (
             id,
+            chore_id,
             user_id,
             created_at
           )
