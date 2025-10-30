@@ -18,7 +18,9 @@ export interface ExtendedChore extends Chore {
 export class ChoreLimitReachedError extends Error {
   code: 'CHORE_LIMIT_REACHED' = 'CHORE_LIMIT_REACHED'
 
-  constructor(message = '家事は最大5件まで登録できます。既存の家事を削除してから再度お試しください。') {
+  constructor(
+    message = '家事は最大10件まで登録できます。これ以上の追加は正式リリースまでお待ちください。'
+  ) {
     super(message)
     this.name = 'ChoreLimitReachedError'
   }

@@ -35,11 +35,11 @@ export default function NotificationCenter() {
     }
   }, [isAuthenticated])
 
-  // 通知アイコンの色を決定
-  const getNotificationIconColor = (type: Notification['type']) => {
+  // 通知アイコンの色（文字色 + 背景色）を決定
+  const getNotificationIconClasses = (type: Notification['type']) => {
     switch (type) {
       case 'success':
-        return 'text-success'
+        return 'text-primary'
       case 'warning':
         return 'text-warning'
       case 'error':
@@ -223,7 +223,7 @@ export default function NotificationCenter() {
                 >
                   <div className="flex items-start space-x-3">
                     {/* 通知タイプアイコン */}
-                    <div className={`flex-shrink-0 ${getNotificationIconColor(notification.type)}`}>
+                    <div className={`flex-shrink-0 ${getNotificationIconClasses(notification.type)}`}>
                       {notification.type === 'success' && (
                         <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                           <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />

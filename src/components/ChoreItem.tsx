@@ -130,7 +130,7 @@ export function ChoreItem({
             </h3>
             {chore.done && chore.completed_at && (
               <div className="flex items-center justify-center mt-2 animate-fade-in">
-                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-primary/10 text-success border border-success/40">
+                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-primary/20 text-primary border border-primary/40 backdrop-blur-sm">
                   <Sparkles className="w-3 h-3 mr-1" aria-hidden="true" />
                   {formatCompletionDate()}に完了
                 </span>

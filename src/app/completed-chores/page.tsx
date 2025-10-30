@@ -166,7 +166,7 @@ export default function CompletedChoresPage() {
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-xl font-semibold text-foreground break-words whitespace-normal">{chore.title}</h2>
                   <div className="flex items-center gap-2">
-                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-primary/10 text-success border border-success/40">
+                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-primary/20 text-primary border border-primary/40 backdrop-blur-sm">
                       完了済み
                     </span>
                     <span className="text-xs text-muted-foreground">
