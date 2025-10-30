@@ -132,7 +132,7 @@ export default function CompletedChoresPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container mx-auto p-4 max-w-4xl">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-8 max-w-4xl">
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-foreground mb-2 flex items-center">
             <CheckCircle2 className="w-6 h-6 mr-2 text-primary" aria-hidden="true" />
