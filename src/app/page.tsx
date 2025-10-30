@@ -59,7 +59,7 @@ export default function Home() {
     <>
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-28 sm:pb-12">
         {/* ユーザー情報とアクション */}
-        <div className="bg-muted rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
+        <div className="bg-card rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
           <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
             <div className="flex items-baseline gap-2">
               <p className="text-sm text-gray-600">こんにちは</p>
@@ -78,6 +78,7 @@ export default function Home() {
                 variant="outline"
                 size="sm"
                 title="通知センターの表示テスト"
+                className="bg-primary text-white hover:bg-primary/90"
               >
                 <Bell className="w-4 h-4 mr-1" />
                 通知テスト
@@ -94,6 +95,7 @@ export default function Home() {
                 variant="outline"
                 size="sm"
                 title="ログアウト"
+                className="bg-primary text-white hover:bg-primary/90"
               >
                 <LogOut className="w-4 h-4 mr-1" />
                 ログアウト
@@ -109,47 +111,7 @@ export default function Home() {
           </h1>
         </div>
 
-        {/* デバッグ機能 */}
-        {/* <div className="bg-surface rounded-lg shadow-sm border border-amber-300 p-4 mb-8">
-          <div className="flex items-center justify-between">
-            <p className="font-medium text-gray-900">リアルタイム通知の挙動確認</p>
-            <NotificationCenter />
-          </div>
-          <div className="mt-4 flex gap-2">
-            <Button
-              onClick={async () => {
-                setThanksTesting(true)
-                setThanksTestResult(null)
-                try {
-                  const { error } = await supabase.from('thanks').insert({
-                    from_user_id: user.id,
-                    message: 'テストありがとう',
-                    created_at: new Date().toISOString()
-                  })
-                  if (error) {
-                    setThanksTestResult(`エラー: ${error.message}`)
-                  } else {
-                    setThanksTestResult('成功: thanksにINSERTしました')
-                  }
-                } catch (err: any) {
-                  setThanksTestResult(`例外: ${err?.message || '原因不明'}`)
-                } finally {
-                  setThanksTesting(false)
-                }
-              }}
-              size="sm"
-              title="thanksにINSERTして通知受信を確認"
-              disabled={thanksTesting}
-            >
-              {thanksTesting ? 'テスト中...' : 'ありがとう受信テスト'}
-            </Button>
-          </div>
-          {thanksTestResult && (
-            <div className="mt-2 text-sm text-gray-700">
-              結果: {thanksTestResult}
-            </div>
-          )}
-        </div> */}
+ 
 
         {/* 家事管理メインコンテンツ */}
         <ChoresList />
