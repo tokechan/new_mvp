@@ -1,8 +1,10 @@
 -- Enforce a maximum number of chores per user (owner or partner).
-
+-- SECURITY DEFINER ensures the count runs with the function owner's rights.
 create or replace function public.enforce_chore_limit()
 returns trigger
 language plpgsql
+security definer
+set search_path = public, pg_temp
 as $$
 declare
   chore_limit constant integer := 5;
@@ -53,3 +55,7 @@ create trigger enforce_chore_limit
 before insert or update on public.chores
 for each row
 execute function public.enforce_chore_limit();
+
+revoke execute on function public.enforce_chore_limit() from public;
+-- grant execute on function public.enforce_chore_limit() to postgres;
+-- grant execute on function public.enforce_chore_limit() to <your_admin_role>;
