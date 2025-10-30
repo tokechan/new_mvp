@@ -59,7 +59,7 @@ export default function Home() {
     <>
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-28 sm:pb-12">
         {/* ユーザー情報とアクション */}
-        <div className="bg-surface rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
+        <div className="bg-muted rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
           <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
             <div className="flex items-baseline gap-2">
               <p className="text-sm text-gray-600">こんにちは</p>
