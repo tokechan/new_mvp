@@ -66,11 +66,11 @@ export default function ThankYouCelebration({
   // 背景グラデーションのクラス（Tailwind のパージ回避のため列挙）
   const themeGradient: Record<string, string> = {
     multi: 'bg-gradient-to-br from-yellow-100 via-pink-100 to-primary/10',
-    yellow: 'bg-gradient-to-br from-yellow-50 via-amber-100 to-orange-50',
-    blue: 'bg-gradient-to-br from-primary/10 via-primary/20 to-primary/30',
-    pink: 'bg-gradient-to-br from-pink-50 via-rose-100 to-fuchsia-50',
-    purple: 'bg-gradient-to-br from-purple-50 via-violet-100 to-fuchsia-50',
-    orange: 'bg-gradient-to-br from-orange-50 via-amber-100 to-yellow-50',
+    yellow: 'bg-gradient-to-br from-yellow-50/40 via-amber-100/50 to-orange-50/40',
+    blue: 'bg-gradient-to-br from-primary/40 via-primary/30 to-primary/50',
+    pink: 'bg-gradient-to-br from-pink-50/40 via-rose-100/50 to-fuchsia-50/40',
+    purple: 'bg-gradient-to-br from-purple-50/40 via-violet-100/50 to-fuchsia-50/40',
+    orange: 'bg-gradient-to-br from-orange-50/40 via-amber-100/50 to-yellow-50/40',
   }
 
 
@@ -87,6 +87,16 @@ export default function ThankYouCelebration({
     orange: 'text-orange-500',
   }
   const iconAccentClass = iconAccentTone[theme] || iconAccentTone.multi
+  // アイコン背景色（透明度を50%にしてガラス感を演出）
+  const iconBackgroundTone: Record<string, string> = {
+    multi: 'bg-pink-300/30',
+    yellow: 'bg-amber-300/30',
+    blue: 'bg-primary/30',
+    pink: 'bg-pink-300/30',
+    purple: 'bg-violet-300/30',
+    orange: 'bg-orange-300/30',
+  }
+  const iconBackgroundClass = iconBackgroundTone[theme] || iconBackgroundTone.multi
   // 閉じるボタン背景色（テーマに調和する同系色・彩度控えめ）
   const buttonBgTone: Record<string, string> = {
     multi: 'bg-pink-300',
@@ -268,13 +278,15 @@ export default function ThankYouCelebration({
 
       {/* 中央アイコン +（アニメーション後に）メッセージ表示 */}
       <div className="relative z-10 text-center px-6 max-w-3xl">
-        <div className="flex justify-center mb-2">
-          {primaryEmoji === '😊' && <Smile className={`w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 ${iconAccentClass}`} aria-hidden="true" />}
-          {primaryEmoji === '👍' && <ThumbsUp className={`w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 ${iconAccentClass}`} aria-hidden="true" />}
-          {primaryEmoji === '❤️' && <Heart className={`w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 ${iconAccentClass}`} aria-hidden="true" />}
-          {primaryEmoji === '🙏' && <Handshake className={`w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 ${iconAccentClass}`} aria-hidden="true" />}
-          {primaryEmoji === '🔥' && <Flame className={`w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 ${iconAccentClass}`} aria-hidden="true" />}
-          {!primaryEmoji && <Heart className={`w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 ${iconAccentClass}`} aria-hidden="true" />}
+        <div className={`flex justify-center mb-2`}>
+          <div className={`rounded-full p-6 sm:p-7 md:p-8 backdrop-blur-md ${iconBackgroundClass}`}>
+            {primaryEmoji === '😊' && <Smile className={`w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 ${iconAccentClass}`} aria-hidden="true" />}
+            {primaryEmoji === '👍' && <ThumbsUp className={`w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 ${iconAccentClass}`} aria-hidden="true" />}
+            {primaryEmoji === '❤️' && <Heart className={`w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 ${iconAccentClass}`} aria-hidden="true" />}
+            {primaryEmoji === '🙏' && <Handshake className={`w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 ${iconAccentClass}`} aria-hidden="true" />}
+            {primaryEmoji === '🔥' && <Flame className={`w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 ${iconAccentClass}`} aria-hidden="true" />}
+            {!primaryEmoji && <Heart className={`w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 ${iconAccentClass}`} aria-hidden="true" />}
+          </div>
         </div>
         {showMessage && (
           <p className="font-extrabold text-2xl sm:text-3xl md:text-4xl text-neutral-600 tracking-tight leading-tight whitespace-pre-wrap break-words">
