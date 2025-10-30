@@ -10,8 +10,178 @@ import { Button } from '@/components/ui/Button'
 import { profileService } from '@/services/profileService'
 import { PartnerService } from '@/services/partnerService'
 import { supabase } from '@/lib/supabase'
-import { Bell, LogOut, FileText } from 'lucide-react'
+import { Bell, BellOff, BellRing, FileText, Loader2, LogOut } from 'lucide-react'
 import FooterChoreInput from '@/components/FooterChoreInput'
+import { ensurePushSubscription, disablePushSubscription } from '@/services/pushSubscriptionService'
+import { useToast } from '@/components/ui/toast'
+
+const pushFeatureEnabled =
+  process.env.NEXT_PUBLIC_ENABLE_PWA === 'true' &&
+  process.env.NEXT_PUBLIC_ENABLE_PUSH_SUBSCRIPTIONS === 'true'
+
+type PushToggleStatus = 'checking' | 'enabled' | 'disabled' | 'unsupported' | 'error'
+
+function PushNotificationToggle() {
+  const { showToast } = useToast()
+  const [status, setStatus] = useState<PushToggleStatus>('checking')
+  const [busy, setBusy] = useState(false)
+
+  useEffect(() => {
+    if (!pushFeatureEnabled) {
+      return
+    }
+
+    let cancelled = false
+
+    const detectStatus = async () => {
+      if (typeof window === 'undefined') return
+      if (!('Notification' in window) || !('serviceWorker' in navigator) || !('PushManager' in window)) {
+        if (!cancelled) setStatus('unsupported')
+        return
+      }
+
+      try {
+        const registration = await navigator.serviceWorker.ready
+        const subscription = await registration.pushManager.getSubscription()
+
+        if (cancelled) return
+
+        if (Notification.permission === 'denied') {
+          setStatus('disabled')
+          return
+        }
+
+        setStatus(subscription ? 'enabled' : 'disabled')
+      } catch (error) {
+        console.error('Failed to determine push subscription status', error)
+        if (!cancelled) setStatus('error')
+      }
+    }
+
+    detectStatus()
+
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  const handleToggle = async () => {
+    if (!pushFeatureEnabled) {
+      showToast({ message: 'プッシュ通知機能は現在無効です。', variant: 'warning' })
+      return
+    }
+
+    if (busy || status === 'checking') {
+      return
+    }
+
+    setBusy(true)
+    try {
+      if (status === 'enabled') {
+        const result = await disablePushSubscription()
+
+        if (result.state === 'unsupported') {
+          setStatus('unsupported')
+          showToast({ message: result.message ?? 'この端末では通知を利用できません。', variant: 'warning' })
+          return
+        }
+
+        if (result.state === 'error') {
+          setStatus('error')
+          showToast({
+            message: result.message ?? '通知をオフにできませんでした。時間を置いて再試行してください。',
+            variant: 'error',
+          })
+          return
+        }
+
+        setStatus('disabled')
+        showToast({
+          message: result.message ?? '通知をオフにしました。',
+          variant: 'info',
+        })
+        return
+      }
+
+      const result = await ensurePushSubscription()
+
+      if (result.state === 'unsupported') {
+        setStatus('unsupported')
+        showToast({ message: result.message ?? 'この端末では通知を利用できません。', variant: 'warning' })
+        return
+      }
+
+      if (result.state === 'permission-denied') {
+        setStatus('disabled')
+        showToast({ message: result.message ?? '通知許可をオンにしてください。', variant: 'warning' })
+        return
+      }
+
+      if (result.state === 'error') {
+        setStatus('error')
+        showToast({
+          message: result.message ?? '通知をオンにできませんでした。時間を置いて再試行してください。',
+          variant: 'error',
+        })
+        return
+      }
+
+      setStatus('enabled')
+      showToast({
+        message: result.message ?? '通知をオンにしました。',
+        variant: 'success',
+      })
+    } catch (error) {
+      console.error('Failed to toggle push notifications', error)
+      setStatus('error')
+      showToast({
+        message: error instanceof Error ? error.message : '通知設定の更新に失敗しました。',
+        variant: 'error',
+      })
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  if (!pushFeatureEnabled) {
+    return null
+  }
+
+  const isEnabled = status === 'enabled'
+  const isDisabled = status === 'disabled'
+  const label =
+    status === 'checking'
+      ? '確認中…'
+      : status === 'unsupported'
+        ? '通知不可'
+        : isEnabled
+          ? '通知 ON'
+          : isDisabled
+            ? '通知 OFF'
+            : '通知 再設定'
+
+  const icon = busy ? (
+    <Loader2 className="w-4 h-4 mr-1 animate-spin" aria-hidden="true" />
+  ) : isEnabled ? (
+    <BellRing className="w-4 h-4 mr-1" aria-hidden="true" />
+  ) : (
+    <BellOff className="w-4 h-4 mr-1" aria-hidden="true" />
+  )
+
+  return (
+    <Button
+      onClick={handleToggle}
+      variant={isEnabled ? 'default' : 'outline'}
+      size="sm"
+      aria-pressed={isEnabled}
+      disabled={busy || status === 'unsupported'}
+      className={isEnabled ? 'bg-primary text-white hover:bg-primary/90' : 'bg-white text-primary border-primary/40 hover:bg-primary/10'}
+    >
+      {icon}
+      <span className="whitespace-nowrap">{label}</span>
+    </Button>
+  )
+}
 
 export default function Home() {
   const { user, loading, signOut } = useAuth()
@@ -66,6 +236,7 @@ export default function Home() {
               <p className="font-medium text-gray-900 truncate">{displayName || user.email?.split('@')[0] || 'ユーザー'}さん</p>
             </div>
             <div className="flex items-center gap-2">
+              <PushNotificationToggle />
               <Button 
                 onClick={() => {
                   addNotification({
