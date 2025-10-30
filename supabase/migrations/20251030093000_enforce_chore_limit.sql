@@ -7,7 +7,7 @@ security definer
 set search_path = public, pg_temp
 as $$
 declare
-  chore_limit constant integer := 5;
+  chore_limit constant integer := 10;
   raw_users uuid[] := array_remove(array[NEW.owner_id, NEW.partner_id], null);
   affected_users uuid[];
   target_user uuid;
@@ -34,7 +34,8 @@ begin
       into current_count
     from public.chores
     where (owner_id = target_user or partner_id = target_user)
-      and (exclude_id is null or id <> exclude_id);
+      and (exclude_id is null or id <> exclude_id)
+      and coalesce(done, false) = false;
 
     if current_count >= chore_limit then
       raise exception using
