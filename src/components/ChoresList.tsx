@@ -8,6 +8,7 @@ import { useRealtime } from '@/hooks/useRealtime' // リアルタイム機能を
 import { Chore, PartnerInfo } from '@/types/chore'
 import { supabase } from '@/lib/supabase'
 import { Database } from '@/lib/supabase'
+import { ChoreLimitReachedError } from '@/services/choreService'
 import ThankYouMessage from './ThankYouMessage'
 import { ChoreItem } from './ChoreItem'
 import { PartnerSetup } from './PartnerSetup'
@@ -180,7 +181,17 @@ export default function ChoresList() {
         type: 'success',
         message: `家事「${title}」を追加しました`
       })
-    } catch (error) {
+    } catch (error: unknown) {
+      if (error instanceof ChoreLimitReachedError) {
+        announceError(error.message)
+        addNotification({
+          title: '家事を追加できません',
+          type: 'warning',
+          message: error.message
+        })
+        return
+      }
+
       announceError('家事の追加に失敗しました')
       addNotification({
         title: 'エラー',

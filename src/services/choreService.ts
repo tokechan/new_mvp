@@ -15,6 +15,15 @@ export interface ExtendedChore extends Chore {
   completions?: Completion[]
 }
 
+export class ChoreLimitReachedError extends Error {
+  code: 'CHORE_LIMIT_REACHED' = 'CHORE_LIMIT_REACHED'
+
+  constructor(message = '家事は最大5件まで登録できます。既存の家事を削除してから再度お試しください。') {
+    super(message)
+    this.name = 'ChoreLimitReachedError'
+  }
+}
+
 // E2E/開発高速化モード用のローカルストレージフォールバック
 const LOCAL_CHORES_KEY = '__e2e_chores'
 const isSkipAuth = () => shouldUseClientMockAuth()
@@ -117,7 +126,7 @@ export class ChoreService {
       .single()
 
     if (error) {
-      console.error('🚨 [ChoreService.createChore] 家事の作成に失敗:', {
+      const commonLogPayload = {
         error,
         errorCode: error.code,
         errorMessage: error.message,
@@ -126,7 +135,14 @@ export class ChoreService {
         choreData,
         userId: session?.user?.id,
         timestamp: new Date().toISOString(),
-      })
+      }
+
+      if (error.message === 'chore_limit_exceeded') {
+        console.warn('⚠️ [ChoreService.createChore] 家事登録上限に到達:', commonLogPayload)
+        throw new ChoreLimitReachedError()
+      }
+
+      console.error('🚨 [ChoreService.createChore] 家事の作成に失敗:', commonLogPayload)
       throw new Error(`家事の作成に失敗しました: ${error.message}`)
     }
 
