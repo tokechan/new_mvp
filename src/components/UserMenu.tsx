@@ -72,7 +72,7 @@ export default function UserMenu() {
         aria-haspopup="menu"
         aria-expanded={open}
         aria-label="ユーザーメニュー"
-        className="flex items-center justify-center w-9 h-9 rounded-full border border-border bg-card hover:bg-secondary shadow-sm overflow-hidden focus:outline-none focus:ring-2 focus:ring-primary"
+        className="flex items-center justify-center w-9 h-9 rounded-full border border-border bg-card hover:bg-primary/20 hover:border-primary/40 shadow-sm overflow-hidden focus:outline-none focus:ring-2 focus:ring-primary/40 transition-colors"
       >
         {avatarUrl ? (
           // eslint-disable-next-line @next/next/no-img-element

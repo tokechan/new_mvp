@@ -122,7 +122,7 @@ export default function Navigation() {
             {/* ハンバーガーメニュー（全サイズで表示） */}
             <button
               onClick={() => setIsMenuOpen((prev) => !prev)}
-              className="p-2 rounded-lg text-gray-700 hover:text-blue-600 hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="p-2 rounded-lg text-gray-700 hover:text-primary hover:bg-primary/20 focus:outline-none focus:ring-2 focus:ring-primary/40"
               aria-label="メニューを開閉"
               aria-controls="nav-panel"
               aria-expanded={isMenuOpen}

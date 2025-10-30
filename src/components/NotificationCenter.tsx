@@ -117,9 +117,9 @@ export default function NotificationCenter() {
         disabled={!isAuthenticated}
         aria-disabled={!isAuthenticated}
         className={cn(
-          'relative p-2 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-ring',
+          'relative p-2 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-primary/40',
           isAuthenticated
-            ? 'text-muted-foreground hover:text-foreground'
+            ? 'text-muted-foreground hover:text-primary hover:bg-primary/20'
             : 'cursor-default text-muted-foreground/60 opacity-60 focus:ring-0'
         )}
         aria-label="通知を開く"
