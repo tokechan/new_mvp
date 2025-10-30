@@ -8,7 +8,10 @@ import { ChoreCompletionModal } from '@/components/ChoreCompletionModal'
 import { CongratulationsModal } from '@/components/CongratulationsModal'
 import ThankYouMessage from './ThankYouMessage'
 import { Chore } from '@/types/chore'
-import { RotateCcw, Heart, Trash2, Check, Sparkles } from 'lucide-react'
+import { Database } from '@/lib/supabase'
+import { RotateCcw, Heart, Check, Sparkles } from 'lucide-react'
+
+type CompletionRecord = Database['public']['Tables']['completions']['Row']
 
 interface ChoreItemProps {
   chore: Chore
@@ -39,6 +42,19 @@ export function ChoreItem({
   const [showCompletionModal, setShowCompletionModal] = useState(false)
   const [showCongratulationsModal, setShowCongratulationsModal] = useState(false)
   const router = useRouter()
+
+  const completions = (chore as Chore & { completions?: CompletionRecord[] }).completions ?? []
+  const sortedCompletions = [...completions]
+    .filter((c): c is CompletionRecord => !!c && !!c.created_at)
+    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+  const latestCompletion = sortedCompletions[0]
+  const latestCompletedBy = latestCompletion?.user_id ?? null
+  const completionTimestamp = chore.completed_at ?? latestCompletion?.created_at ?? null
+  const shouldShowThankButton =
+    chore.done &&
+    !!latestCompletedBy &&
+    !!currentUserId &&
+    latestCompletedBy !== currentUserId
 
   /**
    * 家事の完了/未完了を切り替える
@@ -83,9 +99,9 @@ export function ChoreItem({
    * 完了日時のフォーマット
    */
   const formatCompletionDate = () => {
-    if (!chore.completed_at) return ''
+    if (!completionTimestamp) return ''
     
-    const date = new Date(chore.completed_at)
+    const date = new Date(completionTimestamp)
     const now = new Date()
     const diffInHours = (now.getTime() - date.getTime()) / (1000 * 60 * 60)
     
@@ -128,14 +144,7 @@ export function ChoreItem({
             `}>
               {chore.title}
             </h3>
-            {chore.done && chore.completed_at && (
-              <div className="flex items-center justify-center mt-2 animate-fade-in">
-                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-primary/20 text-primary border border-primary/40 backdrop-blur-sm">
-                  <Sparkles className="w-3 h-3 mr-1" aria-hidden="true" />
-                  {formatCompletionDate()}に完了
-                </span>
-              </div>
-            )}
+            {/* 完了メタ表示は一旦非表示 */}
           </div>
 
           {/* ボタン群（下部） */}
@@ -169,7 +178,7 @@ export function ChoreItem({
             </Button>
 
 
-            {chore.done && !isOwnChore && (
+            {shouldShowThankButton && (
               <Button
                 variant="outline"
                 size="icon"

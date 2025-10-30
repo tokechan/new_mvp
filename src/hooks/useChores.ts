@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
 import { Chore, ChoreInsert, RealtimeEvents } from '@/types/chore'
-import { ChoreService } from '@/services/choreService'
+import { ChoreService, ExtendedChore } from '@/services/choreService'
 import { shouldUseMockAuth } from '@/utils/authMode'
 
 /**
@@ -59,7 +59,7 @@ const ensureTestSession = async () => {
  */
 export function useChores() {
   const { user } = useAuth()
-  const [chores, setChores] = useState<Chore[]>([])
+  const [chores, setChores] = useState<ExtendedChore[]>([])
   const [loading, setLoading] = useState(true)
   const [isAdding, setIsAdding] = useState(false)
   const [realtimeEvents, setRealtimeEvents] = useState<RealtimeEvents>({
@@ -94,25 +94,10 @@ export function useChores() {
         expiresAt: session?.expires_at
       })
 
-      const { data, error } = await supabase
-        .from('chores')
-        .select('*')
-        .or(`owner_id.eq.${user.id},partner_id.eq.${user.id}`)
-        .order('created_at', { ascending: false })
+      const choresData = await ChoreService.getChores(user.id)
 
-      if (error) {
-        console.error('❌ 家事の取得に失敗しました:', error)
-        console.error('❌ エラー詳細:', {
-          code: error.code,
-          message: error.message,
-          details: error.details,
-          hint: error.hint
-        })
-        throw error
-      }
-
-      console.log('✅ 家事を取得しました:', data?.length || 0, '件')
-      setChores(data || [])
+      console.log('✅ 家事を取得しました:', choresData?.length || 0, '件')
+      setChores(choresData)
     } catch (error) {
       console.error('❌ 家事の取得中にエラーが発生しました:', error)
       setChores([])
@@ -176,7 +161,7 @@ export function useChores() {
       
       // 🔄 即座にローカル状態を更新（リアルタイムイベントを待たない）
       console.log('🔄 Adding chore to local state immediately:', newChore.title)
-      setChores(prev => [newChore as any, ...prev])
+      setChores(prev => [newChore, ...prev])
       
       // リアルタイムイベント情報を更新
       setRealtimeEvents(prev => ({

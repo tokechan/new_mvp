@@ -59,7 +59,7 @@ export default function FooterChoreInput() {
         message: '家事の追加に失敗しました'
       })
     }
-  }, [text, addChore, announceFormError, announceSuccess, announceError, addNotification])
+  }, [text, addChore, announceFormError, announceSuccess, announceError, addNotification, showToast])
 
   return (
     <div className="fixed bottom-1 left-0 right-0 z-50">

@@ -338,10 +338,17 @@ export class ChoreService {
         }
       }
 
-      // 3. 更新された家事データを取得して返す（completionsの展開を外し、RLS起因の失敗を回避）
+      // 3. 更新された家事データを取得して返す（完了記録のメタデータも含める）
       const { data, error } = await supabase
         .from('chores')
-        .select('*')
+        .select(`
+          *,
+          completions (
+            id,
+            user_id,
+            created_at
+          )
+        `)
         .eq('id', choreId)
         .single()
 

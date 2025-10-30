@@ -7,11 +7,12 @@
  * 家事データの型定義
  * Supabaseの生成型（Tables<'chores'>）をベースにし、派生フィールドを追加
  */
-import type { Tables, TablesInsert } from '@/lib/supabase'
+import type { Tables, TablesInsert, Database } from '@/lib/supabase'
 
 export type Chore = Tables<'chores'> & {
   owner_name?: string
   completed_at?: string
+  completions?: Database['public']['Tables']['completions']['Row'][]
 }
 
 /**

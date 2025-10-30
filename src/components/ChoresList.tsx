@@ -316,6 +316,7 @@ export default function ChoresList() {
               onShowThankYou={() => {}}
               onHideThankYou={() => {}}
               partnerInfo={partnerInfo}
+              currentUserId={user?.id}
               data-chore-name={chore.title}
             />
           ))
@@ -334,7 +335,7 @@ export default function ChoresList() {
       )}
 
       {/* リアルタイムデバッグパネル（開発環境のみ） */}
-      <RealtimeDebugPanel realtimeEvents={realtimeEvents} />
+      {/* <RealtimeDebugPanel realtimeEvents={realtimeEvents} /> */}
     </div>
   )
 }
