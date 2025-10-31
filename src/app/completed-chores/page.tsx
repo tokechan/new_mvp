@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { ChoreService, ExtendedChore } from '@/services/choreService'
 import { sendThankYou } from '@/services/thankYouService'
 import { useAuthState } from '@/hooks/useAuthState'
@@ -9,6 +9,7 @@ import { ThankYouModal } from '@/components/ThankYouModal'
 import { Smile, ThumbsUp, Heart, Handshake, Flame, Clock, Home, CheckCircle2, FileText } from 'lucide-react'
 import { useToast } from '@/components/ui/toast'
 import { Button } from '@/components/ui/Button'
+import { cn } from '@/lib/utils'
 
 /**
  * 完了した家事一覧ページ
@@ -17,6 +18,7 @@ import { Button } from '@/components/ui/Button'
 export default function CompletedChoresPage() {
   const { user } = useAuthState()
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { showToast } = useToast()
   const [completedChores, setCompletedChores] = useState<ExtendedChore[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -24,6 +26,15 @@ export default function CompletedChoresPage() {
   const [isSending, setIsSending] = useState(false)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [selectedIcon, setSelectedIcon] = useState<string>('')
+  const [activeHighlightId, setActiveHighlightId] = useState<string | null>(null)
+
+  const highlightParam = searchParams.get('highlight')
+
+  useEffect(() => {
+    if (highlightParam) {
+      setActiveHighlightId(highlightParam)
+    }
+  }, [highlightParam])
 
   /**
    * 完了した家事を取得
@@ -114,6 +125,22 @@ export default function CompletedChoresPage() {
     }
   }, [user, fetchCompletedChores])
 
+  useEffect(() => {
+    if (!isLoading && activeHighlightId) {
+      const targetId = `completed-chore-${activeHighlightId}`
+      const element = document.getElementById(targetId)
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      }
+      const timer = setTimeout(() => {
+        setActiveHighlightId(null)
+        router.replace('/completed-chores', { scroll: false })
+      }, 4000)
+      return () => clearTimeout(timer)
+    }
+    return undefined
+  }, [isLoading, activeHighlightId, router])
+
   if (!user) {
     return (
       <div className="container mx-auto p-4">
@@ -162,8 +189,18 @@ export default function CompletedChoresPage() {
         </div>
       ) : (
         <div className="grid gap-4">
-          {completedChores.map((chore) => (
-            <div key={chore.id} className="bg-card border border-border rounded-lg shadow-sm">
+          {completedChores.map((chore) => {
+            const isHighlighted = activeHighlightId === String(chore.id)
+            return (
+            <div
+              key={chore.id}
+              id={`completed-chore-${chore.id}`}
+              tabIndex={-1}
+              className={cn(
+                'bg-card border border-border rounded-lg shadow-sm transition-shadow duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40',
+                isHighlighted && 'ring-2 ring-primary/60 shadow-lg'
+              )}
+            >
               <div className="p-6">
                 {/* カードヘッダー：タイトル + 完了バッジ + 日付 */}
                 <div className="flex items-center justify-between mb-4">
@@ -255,7 +292,8 @@ export default function CompletedChoresPage() {
                 </div>
               </div>
             </div>
-          ))}
+            )
+          })}
 
           {/* リスト最下部：ホームへ戻るボタン */}
           <div className="flex justify-center pt-4 pb-6">

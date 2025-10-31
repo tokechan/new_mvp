@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/card'
 import { ChoreCompletionModal } from '@/components/ChoreCompletionModal'
@@ -180,14 +181,21 @@ export function ChoreItem({
 
             {shouldShowThankButton && (
               <Button
+                asChild
                 variant="outline"
                 size="icon"
-                aria-label="ありがとう"
-                onClick={onShowThankYou}
-                className="bg-primary/10 border border-primary/40 text-primary hover:bg-primary/20 hover:border-primary/50 h-9 w-9 sm:h-10 sm:w-10 p-0 grid place-items-center transition-all duration-200 hover:transform hover:scale-105 focus:ring-2 focus:ring-offset-2 focus:ring-primary shadow-sm"
+                className="h-9 w-9 sm:h-10 sm:w-10 p-0 grid place-items-center rounded-md bg-primary/10 border border-primary/40 text-primary transition-transform duration-200 hover:-translate-y-0.5 hover:bg-primary/20 hover:border-primary/50 focus:ring-2 focus:ring-offset-2 focus:ring-primary shadow-sm"
               >
-                <Heart className="w-5 h-5" aria-hidden="true" />
-                <span className="sr-only">ありがとう</span>
+                <Link
+                  href={`/completed-chores?highlight=${chore.id}`}
+                  prefetch={false}
+                  scroll={false}
+                  aria-label="完了した家事の詳細を見る"
+                  className="flex items-center justify-center"
+                >
+                  <Heart className="w-5 h-5" aria-hidden="true" />
+                  <span className="sr-only">完了した家事の詳細を見る</span>
+                </Link>
               </Button>
             )}
 
