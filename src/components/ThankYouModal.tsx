@@ -70,8 +70,8 @@ export function ThankYouModal({
           {selectedIcon && (
             <div className="mb-3 flex items-center justify-center">
               <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-foreground border border-primary/30 text-sm">
-                <span aria-hidden="true">{selectedIcon}</span>
-                <span className="text-xs text-muted-foreground">選択中のリアクション</span>
+                <span className="font-medium text-foreground">{selectedIcon}</span>
+                <span className="text-xs text-muted-foreground">リアクション</span>
               </span>
             </div>
           )}
@@ -82,7 +82,7 @@ export function ThankYouModal({
               id="thank-you-message"
               value={message}
               onChange={(e) => setMessage(e.target.value)}
-              placeholder={selectedIcon ? `${selectedIcon} ありがとうメッセージを入力してください...` : 'ありがとうメッセージを入力してください...'}
+              placeholder={selectedIcon ? `「${selectedIcon}」の気持ちをひと言で伝えましょう...` : 'ありがとうメッセージを入力してください...'}
               className="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-none"
               rows={4}
               disabled={isSending}
