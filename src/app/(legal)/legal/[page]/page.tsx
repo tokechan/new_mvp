@@ -31,8 +31,13 @@ export function generateStaticParams() {
   return Object.keys(LEGAL_PAGES).map((page) => ({ page }))
 }
 
-export async function generateMetadata({ params }: { params: { page: PageParam } }) {
-  const meta = LEGAL_PAGES[params.page]
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ page: PageParam }>
+}) {
+  const { page } = await params
+  const meta = LEGAL_PAGES[page]
   if (!meta) {
     return {}
   }
@@ -55,14 +60,19 @@ async function loadMarkdown(page: PageParam) {
   }
 }
 
-export default async function LegalPage({ params }: { params: { page: string } }) {
-  const meta = LEGAL_PAGES[params.page as PageParam]
+export default async function LegalPage({
+  params,
+}: {
+  params: Promise<{ page: string }>
+}) {
+  const { page } = await params
+  const meta = LEGAL_PAGES[page as PageParam]
 
   if (!meta) {
     notFound()
   }
 
-  const content = await loadMarkdown(params.page as PageParam)
+  const content = await loadMarkdown(page as PageParam)
 
   if (!content) {
     notFound()
