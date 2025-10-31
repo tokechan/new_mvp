@@ -34,9 +34,10 @@ export function generateStaticParams() {
 export async function generateMetadata({
   params,
 }: {
-  params: { page: PageParam }
+  params: Promise<{ page: PageParam }>
 }) {
-  const meta = LEGAL_PAGES[params.page]
+  const { page } = await params
+  const meta = LEGAL_PAGES[page]
   if (!meta) {
     return {}
   }
@@ -62,15 +63,16 @@ async function loadMarkdown(page: PageParam) {
 export default async function LegalPage({
   params,
 }: {
-  params: { page: string }
+  params: Promise<{ page: string }>
 }) {
-  const meta = LEGAL_PAGES[params.page as PageParam]
+  const { page } = await params
+  const meta = LEGAL_PAGES[page as PageParam]
 
   if (!meta) {
     notFound()
   }
 
-  const content = await loadMarkdown(params.page as PageParam)
+  const content = await loadMarkdown(page as PageParam)
 
   if (!content) {
     notFound()
