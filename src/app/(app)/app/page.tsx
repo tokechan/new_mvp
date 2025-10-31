@@ -175,7 +175,11 @@ function PushNotificationToggle() {
       size="sm"
       aria-pressed={isEnabled}
       disabled={busy || status === 'unsupported'}
-      className={isEnabled ? 'bg-primary text-primary-foreground hover:bg-primary/90' : 'bg-white text-primary-foreground border-primary/40 hover:bg-primary/10'}
+      className={
+        isEnabled 
+        ? 'bg-primary text-primary-foreground hover:bg-primary/90' 
+        : 'bg-muted text-muted-foreground border-primary/40 hover:bg-muted/80'}
+      
     >
       {icon}
       <span className="whitespace-nowrap">{label}</span>
