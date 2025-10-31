@@ -74,7 +74,7 @@ function AuthCallbackContent() {
         }
         
         // 認証成功時はホームページにリダイレクト
-        router.push('/')
+        router.push('/app')
       } catch (error) {
         console.error('❌ 認証コールバック処理エラー:', error)
         router.push('/auth/signin?error=認証処理中にエラーが発生しました')

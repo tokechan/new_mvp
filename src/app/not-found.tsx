@@ -20,7 +20,7 @@ export default function NotFound() {
           </p>
           <div className="space-y-3">
             <Link
-              href="/"
+              href="/app"
               className="block w-full px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
             >
               ホームに戻る

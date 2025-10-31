@@ -40,7 +40,7 @@ export default function SharePage() {
    */
   const handlePartnerLinked = () => {
     // ホームページに戻る
-    router.push('/')
+    router.push('/app')
   }
 
   return (

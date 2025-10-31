@@ -18,7 +18,7 @@ export default function LandingPage() {
    */
   const handlePartnerLinked = () => {
     // ホームページに戻る
-    router.push('/')
+    router.push('/app')
   }
 
   return (
@@ -122,7 +122,7 @@ export default function LandingPage() {
             パートナーと家事を共有して、より良い毎日を築きましょう。
           </p>
           <button
-            onClick={() => router.push('/')}
+            onClick={() => router.push('/app')}
             className="inline-flex items-center px-8 py-3 bg-card text-primary font-semibold rounded-lg hover:bg-muted transition-colors"
           >
             ホームに戻る

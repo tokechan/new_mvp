@@ -66,7 +66,7 @@ function ThankYouPageContent() {
           <h1 className="text-2xl font-bold text-gray-900 mb-4">エラー</h1>
           <p className="text-gray-600 mb-6">家事IDが指定されていません。</p>
           <button
-            onClick={() => router.push('/')}
+            onClick={() => router.push('/app')}
             className="bg-primary text-white px-4 py-2 rounded-md hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
           >
             ホームに戻る

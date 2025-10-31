@@ -84,7 +84,7 @@ function SignInContent() {
         console.debug('🔐 サインイン失敗詳細', { message: error.message })
         setLocalError(errorMessage)
       } else {
-        router.push('/')
+        router.push('/app')
       }
     } catch (err) {
       setLocalError('予期しないエラーが発生しました。ネットワーク接続をご確認の上、再度お試しください。')
