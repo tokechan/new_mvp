@@ -26,32 +26,34 @@ export function CongratulationsModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md rounded-2xl sm:rounded-2xl [&>button]:hidden">
-        <DialogHeader>
-          <DialogTitle className="text-lg font-semibold text-foreground text-center">
+      <DialogContent className="sm:max-w-md rounded-3xl border-none bg-card p-0 shadow-2xl [&>button]:hidden">
+        <DialogHeader className="px-6 pt-6 pb-4 border-b border-border/60 text-center space-y-2">
+          <DialogTitle className="text-xl font-bold text-foreground">
             家事を完了しました！
           </DialogTitle>
+          <p className="text-sm text-muted-foreground">お疲れさまでした、ひと息つきましょう。</p>
         </DialogHeader>
 
-        <div className="py-6 flex justify-center">
-          <div className="inline-flex items-center space-x-3 p-4 bg-primary/10 rounded-lg border border-primary/30">
-            <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center animate-bounce">
-              {/* サムズアップアイコンに変更 */}
-              <ThumbsUp className="w-6 h-6 text-primary-foreground" aria-hidden="true" />
+        <div className="px-6 py-6">
+          <div className="rounded-2xl border border-primary/30 bg-primary/5 px-5 py-6 flex flex-col items-center gap-4 text-center">
+            <div className="w-14 h-14 rounded-full bg-primary/20 text-primary flex items-center justify-center">
+              <ThumbsUp className="w-7 h-7" aria-hidden="true" />
             </div>
-            <div className="flex-1">
-              <p className="font-medium text-primary">{chore.title}</p>
-              <p className="text-lg font-semibold text-primary mt-1">お疲れさまでした！</p>
+            <div className="space-y-1">
+              <p className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">完了した家事</p>
+              <p className="text-lg font-semibold text-foreground">{chore.title}</p>
+              <p className="text-base font-semibold text-primary">お疲れさまでした！</p>
             </div>
           </div>
         </div>
 
-        <DialogFooter className="flex !flex-row !justify-center !items-center sm:!justify-center sm:!items-center gap-0">
+        <DialogFooter className="px-6 pb-6 pt-0 flex !flex-row !justify-center">
           <Button
             aria-label="閉じる"
             onClick={onClose}
             size="icon"
-            className="h-10 w-10 rounded-full p-0 grid place-items-center bg-primary text-primary-foreground hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+            variant="secondary"
+            className="h-12 w-12 rounded-full border border-primary/40 bg-primary/10 text-primary hover:bg-primary/20"
           >
             <X className="w-5 h-5" aria-hidden="true" />
             <span className="sr-only">閉じる</span>
