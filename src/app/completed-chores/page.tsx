@@ -1,9 +1,9 @@
 import { Suspense } from 'react'
-import dynamic from 'next/dynamic'
+import nextDynamic from 'next/dynamic'
 
 export const dynamic = 'force-dynamic'
 
-const CompletedChoresClient = dynamic(() => import('./CompletedChoresClient'), {
+const CompletedChoresClient = nextDynamic(() => import('./CompletedChoresClient'), {
   suspense: true,
 })
 
