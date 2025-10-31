@@ -1,11 +1,7 @@
 import { Suspense } from 'react'
-import nextDynamic from 'next/dynamic'
+import CompletedChoresClient from './CompletedChoresClient'
 
 export const dynamic = 'force-dynamic'
-
-const CompletedChoresClient = nextDynamic(() => import('./CompletedChoresClient'), {
-  suspense: true,
-})
 
 export default function CompletedChoresPage() {
   return (
