@@ -190,19 +190,23 @@ export default function SettingsPage() {
               <p className="text-sm text-muted-foreground">
                 プッシュ通知を受け取るには、ホーム画面に追加したうえで通知を許可する必要があります。
               </p>
-              <Button
-                onClick={handleEnablePush}
-                disabled={pushState === 'loading' || (!pushFeatureEnabled && pushState !== 'disabled')}
-              >
-                {pushState === 'loading' ? '有効化中…' : 'プッシュ通知を有効にする'}
-              </Button>
-              <Button
-                variant="outline"
-                onClick={handleDisablePush}
-                disabled={pushState === 'loading' || !pushFeatureEnabled}
-              >
-                {pushState === 'loading' ? '処理中…' : 'プッシュ通知を無効にする'}
-              </Button>
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
+                <Button
+                  onClick={handleEnablePush}
+                  disabled={pushState === 'loading' || (!pushFeatureEnabled && pushState !== 'disabled')}
+                  className="sm:flex-1"
+                >
+                  {pushState === 'loading' ? '有効化中…' : 'プッシュ通知を有効にする'}
+                </Button>
+                <Button
+                  variant="secondary"
+                  onClick={handleDisablePush}
+                  disabled={pushState === 'loading' || !pushFeatureEnabled}
+                  className="sm:flex-1 border border-border hover:bg-secondary/80"
+                >
+                  {pushState === 'loading' ? '処理中…' : 'プッシュ通知を無効にする'}
+                </Button>
+              </div>
               {pushMessage && (
                 <p
                   className={`text-sm ${
