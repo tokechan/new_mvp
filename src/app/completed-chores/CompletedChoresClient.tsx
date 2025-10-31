@@ -56,9 +56,9 @@ function CompletedChoresPageInner() {
   /**
    * アイコンボタンクリック時の処理
    */
-  const handleIconClick = (chore: ExtendedChore, icon: string) => {
+  const handleIconClick = (chore: ExtendedChore, reactionLabel: string) => {
     setSelectedChore(chore)
-    setSelectedIcon(icon)
+    setSelectedIcon(reactionLabel)
     setIsModalOpen(true)
   }
 
@@ -76,7 +76,8 @@ function CompletedChoresPageInner() {
       }
 
       // アイコンとメッセージを組み合わせて送信
-      const fullMessage = `${selectedIcon} ${message}`
+      const prefix = selectedIcon ? `【${selectedIcon}】 ` : ''
+      const fullMessage = `${prefix}${message}`
 
       await sendThankYou(user.id, {
         toUserId,
@@ -225,7 +226,7 @@ function CompletedChoresPageInner() {
                 {/* リアクションボタン */}
                 <div className="flex flex-wrap gap-3 justify-center mb-4">
                   <Button
-                    onClick={() => handleIconClick(chore, '😊')}
+                    onClick={() => handleIconClick(chore, '嬉しい')}
                     disabled={isSending}
                     size="icon"
                     className="h-10 w-10 rounded-full p-0 grid place-items-center bg-primary/10 border border-primary/40 text-primary hover:bg-primary/20 hover:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
@@ -235,7 +236,7 @@ function CompletedChoresPageInner() {
                     <Smile className="w-5 h-5" aria-hidden="true" />
                   </Button>
                   <Button
-                    onClick={() => handleIconClick(chore, '👍')}
+                    onClick={() => handleIconClick(chore, 'いいね')}
                     disabled={isSending}
                     size="icon"
                     className="h-10 w-10 rounded-full p-0 grid place-items-center bg-primary/10 border border-primary/40 text-primary hover:bg-primary/20 hover:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
@@ -245,7 +246,7 @@ function CompletedChoresPageInner() {
                     <ThumbsUp className="w-5 h-5" aria-hidden="true" />
                   </Button>
                   <Button
-                    onClick={() => handleIconClick(chore, '❤️')}
+                    onClick={() => handleIconClick(chore, '愛してる')}
                     disabled={isSending}
                     size="icon"
                     className="h-10 w-10 rounded-full p-0 grid place-items-center bg-primary/10 border border-primary/40 text-primary hover:bg-primary/20 hover:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
@@ -255,7 +256,7 @@ function CompletedChoresPageInner() {
                     <Heart className="w-5 h-5" aria-hidden="true" />
                   </Button>
                   <Button
-                    onClick={() => handleIconClick(chore, '🙏')}
+                    onClick={() => handleIconClick(chore, 'お疲れさま')}
                     disabled={isSending}
                     size="icon"
                     className="h-10 w-10 rounded-full p-0 grid place-items-center bg-primary/10 border border-primary/40 text-primary hover:bg-primary/20 hover:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
@@ -265,7 +266,7 @@ function CompletedChoresPageInner() {
                     <Handshake className="w-5 h-5" aria-hidden="true" />
                   </Button>
                   <Button
-                    onClick={() => handleIconClick(chore, '🔥')}
+                    onClick={() => handleIconClick(chore, 'すごい')}
                     disabled={isSending}
                     size="icon"
                     className="h-10 w-10 rounded-full p-0 grid place-items-center bg-primary/10 border border-primary/40 text-primary hover:bg-primary/20 hover:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
