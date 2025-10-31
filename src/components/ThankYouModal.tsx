@@ -2,7 +2,13 @@
 
 import { useState } from 'react'
 import { Undo2, Send } from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
+
+export interface ThankYouReaction {
+  label: string
+  Icon: LucideIcon
+}
 
 interface ThankYouModalProps {
   isOpen: boolean
@@ -10,7 +16,7 @@ interface ThankYouModalProps {
   onSend: (message: string) => void
   choreTitle: string
   isSending: boolean
-  selectedIcon?: string
+  selectedReaction?: ThankYouReaction
 }
 
 /**
@@ -23,9 +29,10 @@ export function ThankYouModal({
   onSend,
   choreTitle,
   isSending,
-  selectedIcon
+  selectedReaction
 }: ThankYouModalProps) {
   const [message, setMessage] = useState('')
+  const ReactionIcon = selectedReaction?.Icon
 
   /**
    * メッセージ送信処理
@@ -67,10 +74,11 @@ export function ThankYouModal({
           </div>
 
           {/* 選択中リアクション表示 */}
-          {selectedIcon && (
+          {selectedReaction && ReactionIcon && (
             <div className="mb-3 flex items-center justify-center">
-              <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-foreground border border-primary/30 text-sm">
-                <span className="font-medium text-foreground">{selectedIcon}</span>
+              <span className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-primary/10 text-foreground border border-primary/30 text-sm">
+                <ReactionIcon className="w-4 h-4 text-primary" aria-hidden="true" />
+                <span className="font-medium text-foreground">{selectedReaction.label}</span>
                 <span className="text-xs text-muted-foreground">リアクション</span>
               </span>
             </div>
@@ -82,7 +90,7 @@ export function ThankYouModal({
               id="thank-you-message"
               value={message}
               onChange={(e) => setMessage(e.target.value)}
-              placeholder={selectedIcon ? `「${selectedIcon}」の気持ちをひと言で伝えましょう...` : 'ありがとうメッセージを入力してください...'}
+              placeholder={selectedReaction ? `「${selectedReaction.label}」の気持ちをひと言で伝えましょう...` : 'ありがとうメッセージを入力してください...'}
               className="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-none"
               rows={4}
               disabled={isSending}

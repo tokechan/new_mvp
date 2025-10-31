@@ -34,6 +34,13 @@ export default function ThankYouCelebration({
 
   // 絵文字抽出とテーマ判定
   const EMOJI_ORDER = ['😊', '👍', '❤️', '🙏', '🔥'] as const
+  const LABEL_TO_EMOJI: Record<string, (typeof EMOJI_ORDER)[number]> = {
+    '嬉しい': '😊',
+    'いいね': '👍',
+    '愛してる': '❤️',
+    'お疲れさま': '🙏',
+    'すごい': '🔥',
+  }
   const extractPrimaryEmoji = (msg: string) => {
     const s = (msg || '').trim()
     for (const e of EMOJI_ORDER) {
@@ -41,7 +48,15 @@ export default function ThankYouCelebration({
     }
     // 先頭が絵文字のケースにも対応
     const first = s.charAt(0)
-    return EMOJI_ORDER.includes(first as any) ? (first as (typeof EMOJI_ORDER)[number]) : null
+    if (EMOJI_ORDER.includes(first as any)) {
+      return first as (typeof EMOJI_ORDER)[number]
+    }
+    const labelMatch = s.match(/【([^】]+)】/)
+    if (labelMatch) {
+      const mapped = LABEL_TO_EMOJI[labelMatch[1]]
+      if (mapped) return mapped
+    }
+    return null
   }
   const deriveThemeFromEmoji = (emoji: string | null) => {
     switch (emoji) {
@@ -319,8 +334,9 @@ function sanitizePartnerMessage(input: string): string {
   const src = input || ''
   // 先頭の「◯◯から:」または「◯◯から：」を除去（ES5互換）
   const withoutPrefix = src.replace(/^\s*[^:：]+から[:：]\s*/, '')
+  const withoutBracket = withoutPrefix.replace(/^\s*【[^】]+】\s*/, '')
   // 絵文字を構成するサロゲートペア、VS(\uFE0F)、ZWJ(\u200D)、BMP絵文字領域（Misc Symbols, Dingbats 等）も除去（ES5互換）
-  const noEmoji = withoutPrefix.replace(/[\uD800-\uDBFF\uDC00-\uDFFF]|\uFE0F|\u200D|[\u2600-\u26FF\u2700-\u27BF]/g, '')
+  const noEmoji = withoutBracket.replace(/[\uD800-\uDBFF\uDC00-\uDFFF]|\uFE0F|\u200D|[\u2600-\u26FF\u2700-\u27BF]/g, '')
   // 連続スペースを1つにまとめる
   return noEmoji.replace(/\s{2,}/g, ' ').trim()
 }
