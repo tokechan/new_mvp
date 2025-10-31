@@ -36,7 +36,7 @@ describe('Navigation', () => {
 
   describe('レンダリング', () => {
     it('should render all navigation items correctly', () => {
-      mockUsePathname.mockReturnValue('/')
+      mockUsePathname.mockReturnValue('/app')
       
       render(<Navigation />)
 
@@ -50,7 +50,7 @@ describe('Navigation', () => {
     })
 
     it('should render navigation buttons with correct accessibility attributes', () => {
-      mockUsePathname.mockReturnValue('/')
+      mockUsePathname.mockReturnValue('/app')
       
       render(<Navigation />)
 
@@ -66,7 +66,7 @@ describe('Navigation', () => {
 
   describe('アクティブ状態の判定', () => {
     it('should highlight home button when on home page', () => {
-      mockUsePathname.mockReturnValue('/')
+      mockUsePathname.mockReturnValue('/app')
       
       render(<Navigation />)
 
@@ -120,11 +120,11 @@ describe('Navigation', () => {
       const homeButton = screen.getByRole('button', { name: /home/i })
       fireEvent.click(homeButton)
 
-      expect(mockPush).toHaveBeenCalledWith('/')
+      expect(mockPush).toHaveBeenCalledWith('/app')
     })
 
     it('should navigate to completed-chores when done-list button is clicked', () => {
-      mockUsePathname.mockReturnValue('/')
+      mockUsePathname.mockReturnValue('/app')
       
       render(<Navigation />)
 
@@ -135,7 +135,7 @@ describe('Navigation', () => {
     })
 
     it('should navigate to share when share button is clicked', () => {
-      mockUsePathname.mockReturnValue('/')
+      mockUsePathname.mockReturnValue('/app')
       
       render(<Navigation />)
 
@@ -148,7 +148,7 @@ describe('Navigation', () => {
 
   describe('エラーハンドリング', () => {
     it('should handle router push errors gracefully', () => {
-      mockUsePathname.mockReturnValue('/')
+      mockUsePathname.mockReturnValue('/app')
       mockPush.mockImplementation(() => {
         throw new Error('Navigation failed')
       })
@@ -176,7 +176,7 @@ describe('Navigation', () => {
         value: 375,
       })
 
-      mockUsePathname.mockReturnValue('/')
+      mockUsePathname.mockReturnValue('/app')
       
       render(<Navigation />)
 

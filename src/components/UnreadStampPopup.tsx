@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/Button'
+import { Check, ChevronLeft, ChevronRight, Heart } from 'lucide-react'
 
 interface UnreadStamp {
   id: string
@@ -99,17 +100,13 @@ export function UnreadStampPopup({
       case 'completion':
         return (
           <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center">
-            <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-            </svg>
+            <Check className="w-8 h-8 text-white" aria-hidden="true" />
           </div>
         )
       case 'thanks':
         return (
           <div className="w-16 h-16 bg-pink-500 rounded-full flex items-center justify-center">
-            <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd" />
-            </svg>
+            <Heart className="w-8 h-8 text-white" aria-hidden="true" />
           </div>
         )
       default:
@@ -172,9 +169,7 @@ export function UnreadStampPopup({
                 disabled={currentIndex === 0}
                 className="w-8 h-8 p-0"
               >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
+                <ChevronLeft className="w-4 h-4" aria-hidden="true" />
               </Button>
               
               <span className="text-sm text-gray-500">
@@ -188,9 +183,7 @@ export function UnreadStampPopup({
                 disabled={currentIndex === stamps.length - 1}
                 className="w-8 h-8 p-0"
               >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
+                <ChevronRight className="w-4 h-4" aria-hidden="true" />
               </Button>
             </div>
           )}

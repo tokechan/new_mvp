@@ -27,7 +27,7 @@ export default function Navigation() {
     {
       id: 'home',
       label: 'Home',
-      path: '/',
+      path: '/app',
       icon: Home,
       description: 'ホーム - 家事管理'
     },
@@ -51,8 +51,8 @@ export default function Navigation() {
    * ナビゲーション項目がアクティブかどうかを判定
    */
   const isActive = (path: string) => {
-    if (path === '/') {
-      return pathname === '/'
+    if (path === '/app') {
+      return pathname === '/app'
     }
     return pathname.startsWith(path)
   }
@@ -122,7 +122,7 @@ export default function Navigation() {
             {/* ハンバーガーメニュー（全サイズで表示） */}
             <button
               onClick={() => setIsMenuOpen((prev) => !prev)}
-              className="p-2 rounded-lg text-gray-700 hover:text-primary hover:bg-primary/20 focus:outline-none focus:ring-2 focus:ring-primary/40"
+              className="p-2 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/20 focus:outline-none focus:ring-2 focus:ring-primary/40"
               aria-label="メニューを開閉"
               aria-controls="nav-panel"
               aria-expanded={isMenuOpen}

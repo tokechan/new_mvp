@@ -16,6 +16,7 @@
 
 import { useRouter } from 'next/navigation'
 import PartnerInvitation from '@/components/PartnerInvitation'
+import { ArrowRight } from 'lucide-react'
 
 /**
  * 価格ページ
@@ -104,9 +105,7 @@ export default function LandingPage() {
             className="inline-flex items-center px-8 py-3 bg-card text-primary font-semibold rounded-lg hover:bg-muted transition-colors"
           >
             ホームに戻る
-            <svg className="ml-2 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
+            <ArrowRight className="ml-2 w-5 h-5" aria-hidden="true" />
           </button>
         </div>
       </section>
