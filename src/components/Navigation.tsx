@@ -21,6 +21,13 @@ export default function Navigation() {
   const pathname = usePathname()
   const { user, signOut } = useAuth()
   const isAuthenticated = Boolean(user)
+  const isMarketingPage =
+    !isAuthenticated &&
+    (pathname === '/' ||
+      pathname?.startsWith('/features') ||
+      pathname?.startsWith('/pricing') ||
+      pathname?.startsWith('/legal'))
+  const isAuthPage = pathname?.startsWith('/auth/')
 
   // ナビゲーション項目の定義
   const navigationItems = [
@@ -107,6 +114,34 @@ export default function Navigation() {
       } catch {}
     }
   }, [isMenuOpen])
+
+  if (isMarketingPage) {
+    return (
+      <nav
+        className="bg-card border-b border-gray-200 sm:shadow-sm"
+        role="navigation"
+        aria-label="マーケティングヘッダー"
+      >
+        <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-4 sm:px-6 lg:px-8">
+          <Link href="/" className="flex items-center" aria-label="YOUDO ホームに戻る">
+            <YOUDOLogo width={100} height={36} />
+          </Link>
+          <div className="flex items-center gap-3">
+            <Button asChild variant="outline" size="sm">
+              <Link href="/auth/signin">サインイン</Link>
+            </Button>
+            <Button asChild size="sm">
+              <Link href="/auth/signup">サインアップ</Link>
+            </Button>
+          </div>
+        </div>
+      </nav>
+    )
+  }
+
+  if (isAuthPage) {
+    return null
+  }
 
   return (
     <nav 
