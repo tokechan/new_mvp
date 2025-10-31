@@ -300,9 +300,18 @@ export default function ChoresList() {
         aria-label="家事一覧"
       >
         {chores.length === 0 ? (
-          <p className="text-gray-500 text-center py-8">
-            まだ家事が登録されていません。下の入力欄から追加してください。
-          </p>
+          <div
+            className="col-span-2 flex flex-col gap-2 rounded-lg border border-info/30 bg-info/10 p-6 text-info shadow-sm"
+            role="listitem"
+            aria-live="polite"
+          >
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium text-info">登録待ち</span>
+            </div>
+            <p className="text-sm leading-relaxed">
+              まだ家事が登録されていません。下の入力欄から追加してください。
+            </p>
+          </div>
         ) : (
           chores.map((chore) => (
             <ChoreItem
