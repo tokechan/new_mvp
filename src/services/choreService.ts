@@ -19,7 +19,7 @@ export class ChoreLimitReachedError extends Error {
   code: 'CHORE_LIMIT_REACHED' = 'CHORE_LIMIT_REACHED'
 
   constructor(
-    message = '家事は最大3件まで登録できます。これ以上の追加は正式リリースまでお待ちください。'
+    message = '家事の登録上限に達しました。既存の家事を整理するか、上限プランをご検討ください。'
   ) {
     super(message)
     this.name = 'ChoreLimitReachedError'
