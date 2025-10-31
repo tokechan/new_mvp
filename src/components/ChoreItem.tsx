@@ -179,6 +179,18 @@ export function ChoreItem({
             </Button>
 
 
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              aria-label="家事を削除する"
+              onClick={() => onDelete(String(chore.id))}
+              className="h-9 w-9 sm:h-10 sm:w-10 p-0 grid place-items-center bg-destructive/10 border border-destructive/40 text-destructive transition-all duration-200 hover:-translate-y-0.5 hover:bg-destructive/20 hover:border-destructive/50 focus:ring-2 focus:ring-offset-2 focus:ring-destructive shadow-sm"
+            >
+              <Trash2 className="w-5 h-5" aria-hidden="true" />
+              <span className="sr-only">家事を削除する</span>
+            </Button>
+
             {shouldShowThankButton && (
               <Button
                 asChild
