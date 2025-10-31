@@ -97,7 +97,7 @@ export default function SignUp() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background py-12 px-2 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex items-center justify-center bg-background py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
         <div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-foreground">
@@ -128,7 +128,7 @@ export default function SignUp() {
           </div>
         )}
 
-        <form className="mt-8 space-y-6" onSubmit={handleEmailSignUp} noValidate>
+        <form className="mt-4 space-y-6" onSubmit={handleEmailSignUp} noValidate>
           <div className="space-y-4">
             <ValidatedInput
               label="お名前"
