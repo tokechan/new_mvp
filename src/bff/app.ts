@@ -1,4 +1,5 @@
 import { Hono } from 'hono'
+import { cors } from 'hono/cors'
 import { z } from 'zod'
 import { zValidator } from '@hono/zod-validator'
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
@@ -83,6 +84,32 @@ function mapPayloadToRow(payload: SubscriptionPayload) {
 
 export function createBffApp() {
   const app = new Hono<{ Bindings: BffBindings; Variables: BffVariables }>()
+
+  const allowedOrigins = [
+    'http://localhost:3000',
+    'http://localhost:3001',
+    'http://localhost:3002',
+    'http://192.168.50.101:3000',
+    'https://household-mvp-staging.fleatoke.workers.dev',
+    'https://mvp-staging.yutatokeshi.workers.dev',
+    'https://you-do.dev',
+  ]
+
+  app.use(
+    '*',
+    cors({
+      origin: (requestOrigin) => {
+        if (!requestOrigin) return '*'
+        if (allowedOrigins.includes(requestOrigin)) return requestOrigin
+        if (requestOrigin.endsWith('.workers.dev')) return requestOrigin
+        return ''
+      },
+      allowMethods: ['GET', 'POST', 'OPTIONS'],
+      allowHeaders: ['Content-Type', 'Authorization'],
+      maxAge: 86400,
+      credentials: true,
+    })
+  )
 
   app.use('*', async (c, next) => {
     const supabase = getSupabaseClient(c.env)
