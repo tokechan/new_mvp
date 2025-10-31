@@ -127,7 +127,12 @@ export default function Navigation() {
             <YOUDOLogo width={100} height={36} />
           </Link>
           <div className="flex items-center gap-3">
-            <Button asChild variant="outline" size="sm">
+            <Button
+              asChild
+              variant="outline"
+              size="sm"
+              className="border-primary/30 text-foreground hover:bg-primary/10 hover:text-primary"
+            >
               <Link href="/auth/signin">サインイン</Link>
             </Button>
             <Button asChild size="sm">
