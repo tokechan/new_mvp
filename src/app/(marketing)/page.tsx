@@ -68,7 +68,7 @@ export default function LandingPage() {
             </div>
             
             <div className="text-center">
-              <div className="w-16 h-16 bg-primary/10 dark:bg-primary/30 rounded-xl flex items-center justify-center mx-auto mb-4">
+            <div className="w-16 h-16 bg-accent/20 dark:bg-accent/30 rounded-xl flex items-center justify-center mx-auto mb-4">
                 <Handshake className="w-8 h-8 text-primary" aria-hidden="true" />
               </div>
               <h3 className="text-xl font-semibold text-foreground dark:text-foreground mb-2">
@@ -80,7 +80,7 @@ export default function LandingPage() {
             </div>
             
             <div className="text-center">
-              <div className="w-16 h-16 bg-primary/10 dark:bg-primary/30 rounded-xl flex items-center justify-center mx-auto mb-4">
+              <div className="w-16 h-16 bg-accent/20 dark:bg-accent/30 rounded-xl flex items-center justify-center mx-auto mb-4">
                 <CheckCircle2 className="w-8 h-8 text-primary" aria-hidden="true" />
               </div>
               <h3 className="text-xl font-semibold text-foreground dark:text-foreground mb-2">
@@ -96,7 +96,8 @@ export default function LandingPage() {
 
       {/* パートナー招待セクション */}
       <section className="py-16 bg-muted dark:bg-secondary">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-4xl mx-auto rounded-xl border border-border/40 bg-card px-4 py-12 shadow-sm sm:px-6 lg:px-8
+        ">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-foreground dark:text-foreground mb-4">
               今すぐパートナーを招待
@@ -124,7 +125,7 @@ export default function LandingPage() {
             onClick={() => router.push('/app')}
             className="inline-flex items-center px-8 py-3 bg-card text-primary font-semibold rounded-lg hover:bg-muted transition-colors"
           >
-            ホームに戻る
+            YOUDOを試す
             <ArrowRight className="ml-2 w-5 h-5" aria-hidden="true" />
           </button>
         </div>
