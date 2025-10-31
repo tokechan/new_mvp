@@ -1,6 +1,6 @@
 {
-  "name": "ThankYou Chores - 家事管理アプリ",
-  "short_name": "ThankYou Chores",
+  "name": "YOUDO - パートナーと一緒に家事を管理し、感謝を伝えるアプリ",
+  "short_name": "YOUDO",
   "description": "パートナーと一緒に家事を管理し、感謝を伝えるアプリ",
   "start_url": "/",
   "display": "standalone",

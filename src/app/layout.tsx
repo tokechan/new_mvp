@@ -7,6 +7,7 @@ import { ToastProvider } from '@/components/ui/toast'
 import Navigation from '@/components/Navigation'
 import ThemeProvider from '@/components/ThemeProvider'
 import PwaInitializer from '@/components/PwaInitializer'
+import Footer from '@/components/Footer'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -48,12 +49,13 @@ export default function RootLayout({
           <AuthProvider>
             <NotificationProvider>
               <ToastProvider>
-                <div className="min-h-screen bg-background">
+                <div className="flex min-h-screen flex-col bg-background">
                   <PwaInitializer />
                   <Navigation />
-                  <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+                  <main className="mx-auto w-full max-w-4xl flex-1 px-4 pb-12 pt-8 sm:px-6 lg:px-8">
                     {children}
                   </main>
+                  <Footer />
                 </div>
               </ToastProvider>
             </NotificationProvider>
