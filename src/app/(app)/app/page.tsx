@@ -175,7 +175,7 @@ function PushNotificationToggle() {
       size="sm"
       aria-pressed={isEnabled}
       disabled={busy || status === 'unsupported'}
-      className={isEnabled ? 'bg-primary text-white hover:bg-primary/90' : 'bg-white text-primary border-primary/40 hover:bg-primary/10'}
+      className={isEnabled ? 'bg-primary text-primary-foreground hover:bg-primary/90' : 'bg-white text-primary-foreground border-primary/40 hover:bg-primary/10'}
     >
       {icon}
       <span className="whitespace-nowrap">{label}</span>
@@ -232,12 +232,13 @@ export default function Home() {
         <div className="bg-card rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
           <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
             <div className="flex items-baseline gap-2">
-              <p className="text-sm text-gray-600">こんにちは</p>
-              <p className="font-medium text-gray-900 truncate">{displayName || user.email?.split('@')[0] || 'ユーザー'}さん</p>
+              <p className="text-sm text-foreground">こんにちは</p>
+              <p className="font-medium text-foreground truncate">{displayName || user.email?.split('@')[0] || 'ユーザー'}さん</p>
             </div>
             <div className="flex items-center gap-2">
               <PushNotificationToggle />
-              <Button 
+              {/* 通知テストボタン  デバッグ用に残しておく*/}
+              {/* <Button 
                 onClick={() => {
                   addNotification({
                     title: 'テスト通知',
@@ -249,18 +250,18 @@ export default function Home() {
                 variant="outline"
                 size="sm"
                 title="通知センターの表示テスト"
-                className="bg-primary text-white hover:bg-primary/90"
+                className="bg-primary text-primary-foreground hover:bg-primary/90"
               >
                 <Bell className="w-4 h-4 mr-1" />
                 通知テスト
-              </Button>
+              </Button> */}
             </div>
           </div>
         </div>
 
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-foreground mb-2 flex items-center">
-            <FileText className="w-6 h-6 mr-2 text-primary" aria-hidden="true" />
+            <FileText className="w-6 h-6 mr-2 text-primary-foreground" aria-hidden="true" />
             YOUDO List
           </h1>
         </div>
