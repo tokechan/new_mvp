@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { ChoreService, ExtendedChore } from '@/services/choreService'
 import { sendThankYou } from '@/services/thankYouService'
@@ -15,7 +15,7 @@ import { cn } from '@/lib/utils'
  * 完了した家事一覧ページ
  * 完了した家事の表示とありがとうメッセージの送信を担当
  */
-export default function CompletedChoresPage() {
+function CompletedChoresPageInner() {
   const { user } = useAuthState()
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -323,5 +323,13 @@ export default function CompletedChoresPage() {
         selectedIcon={selectedIcon}
       />
     </div>
+  )
+}
+
+export default function CompletedChoresPage() {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center py-12">読み込み中...</div>}>
+      <CompletedChoresPageInner />
+    </Suspense>
   )
 }
