@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { ChoreService, ExtendedChore } from '@/services/choreService'
 import { sendThankYou } from '@/services/thankYouService'
 import { useAuthState } from '@/hooks/useAuthState'
-import { ThankYouModal } from '@/components/ThankYouModal'
+import { ThankYouModal, type ThankYouReaction } from '@/components/ThankYouModal'
 import { Smile, ThumbsUp, Heart, Handshake, Flame, Clock, Home, CheckCircle2, FileText, ClipboardList } from 'lucide-react'
 import { useToast } from '@/components/ui/toast'
 import { Button } from '@/components/ui/Button'
@@ -15,6 +15,16 @@ import { cn } from '@/lib/utils'
  * 完了した家事一覧ページ
  * 完了した家事の表示とありがとうメッセージの送信を担当
  */
+type ReactionOption = ThankYouReaction & { key: string }
+
+const REACTIONS: ReactionOption[] = [
+  { key: 'smile', label: '嬉しい', Icon: Smile },
+  { key: 'thumbs', label: 'いいね', Icon: ThumbsUp },
+  { key: 'heart', label: '愛してる', Icon: Heart },
+  { key: 'handshake', label: 'お疲れさま', Icon: Handshake },
+  { key: 'flame', label: 'すごい', Icon: Flame },
+]
+
 function CompletedChoresPageInner() {
   const { user } = useAuthState()
   const router = useRouter()
@@ -25,7 +35,7 @@ function CompletedChoresPageInner() {
   const [selectedChore, setSelectedChore] = useState<ExtendedChore | null>(null)
   const [isSending, setIsSending] = useState(false)
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const [selectedIcon, setSelectedIcon] = useState<string>('')
+  const [selectedReaction, setSelectedReaction] = useState<ThankYouReaction | null>(null)
   const [activeHighlightId, setActiveHighlightId] = useState<string | null>(null)
 
   const highlightParam = searchParams.get('highlight')
@@ -56,9 +66,9 @@ function CompletedChoresPageInner() {
   /**
    * アイコンボタンクリック時の処理
    */
-  const handleIconClick = (chore: ExtendedChore, reactionLabel: string) => {
+  const handleIconClick = (chore: ExtendedChore, reaction: ReactionOption) => {
     setSelectedChore(chore)
-    setSelectedIcon(reactionLabel)
+    setSelectedReaction(reaction)
     setIsModalOpen(true)
   }
 
@@ -76,7 +86,7 @@ function CompletedChoresPageInner() {
       }
 
       // アイコンとメッセージを組み合わせて送信
-      const prefix = selectedIcon ? `【${selectedIcon}】 ` : ''
+      const prefix = selectedReaction ? `【${selectedReaction.label}】 ` : ''
       const fullMessage = `${prefix}${message}`
 
       await sendThankYou(user.id, {
@@ -103,7 +113,7 @@ function CompletedChoresPageInner() {
   const handleCloseModal = () => {
     setIsModalOpen(false)
     setSelectedChore(null)
-    setSelectedIcon('')
+    setSelectedReaction(null)
   }
 
   /**
@@ -225,56 +235,22 @@ function CompletedChoresPageInner() {
 
                 {/* リアクションボタン */}
                 <div className="flex flex-wrap gap-3 justify-center mb-4">
-                  <Button
-                    onClick={() => handleIconClick(chore, '嬉しい')}
-                    disabled={isSending}
-                    size="icon"
-                    className="h-10 w-10 rounded-full p-0 grid place-items-center bg-primary/10 border border-primary/40 text-primary hover:bg-primary/20 hover:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
-                    title="嬉しい"
-                    aria-label="嬉しい"
-                  >
-                    <Smile className="w-5 h-5" aria-hidden="true" />
-                  </Button>
-                  <Button
-                    onClick={() => handleIconClick(chore, 'いいね')}
-                    disabled={isSending}
-                    size="icon"
-                    className="h-10 w-10 rounded-full p-0 grid place-items-center bg-primary/10 border border-primary/40 text-primary hover:bg-primary/20 hover:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
-                    title="いいね"
-                    aria-label="いいね"
-                  >
-                    <ThumbsUp className="w-5 h-5" aria-hidden="true" />
-                  </Button>
-                  <Button
-                    onClick={() => handleIconClick(chore, '愛してる')}
-                    disabled={isSending}
-                    size="icon"
-                    className="h-10 w-10 rounded-full p-0 grid place-items-center bg-primary/10 border border-primary/40 text-primary hover:bg-primary/20 hover:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
-                    title="愛してる"
-                    aria-label="愛してる"
-                  >
-                    <Heart className="w-5 h-5" aria-hidden="true" />
-                  </Button>
-                  <Button
-                    onClick={() => handleIconClick(chore, 'お疲れさま')}
-                    disabled={isSending}
-                    size="icon"
-                    className="h-10 w-10 rounded-full p-0 grid place-items-center bg-primary/10 border border-primary/40 text-primary hover:bg-primary/20 hover:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
-                    title="お疲れさま"
-                    aria-label="お疲れさま"
-                  >
-                    <Handshake className="w-5 h-5" aria-hidden="true" />
-                  </Button>
-                  <Button
-                    onClick={() => handleIconClick(chore, 'すごい')}
-                    disabled={isSending}
-                    size="icon"
-                    className="h-10 w-10 rounded-full p-0 grid place-items-center bg-primary/10 border border-primary/40 text-primary hover:bg-primary/20 hover:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
-                    title="すごい"
-                    aria-label="すごい"
-                  >
-                    <Flame className="w-5 h-5" aria-hidden="true" />
-                  </Button>
+                  {REACTIONS.map((reaction) => {
+                    const Icon = reaction.Icon
+                    return (
+                      <Button
+                        key={`${chore.id}-${reaction.key}`}
+                        onClick={() => handleIconClick(chore, reaction)}
+                        disabled={isSending}
+                        size="icon"
+                        className="h-10 w-10 rounded-full p-0 grid place-items-center bg-primary/10 border border-primary/40 text-primary hover:bg-primary/20 hover:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+                        title={reaction.label}
+                        aria-label={reaction.label}
+                      >
+                        <Icon className="w-5 h-5" aria-hidden="true" />
+                      </Button>
+                    )
+                  })}
                 </div>
 
                 {/* 詳細情報 */}
@@ -323,7 +299,7 @@ function CompletedChoresPageInner() {
         onSend={handleSendThankYou}
         choreTitle={selectedChore?.title || ''}
         isSending={isSending}
-        selectedIcon={selectedIcon}
+        selectedReaction={selectedReaction || undefined}
       />
     </div>
   )
