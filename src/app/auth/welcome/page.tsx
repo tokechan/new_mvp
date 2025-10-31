@@ -26,7 +26,7 @@ export default function WelcomePage() {
   // 既にログイン済みの場合はホームにリダイレクト
   useEffect(() => {
     if (user) {
-      router.push('/')
+      router.push('/app')
     }
   }, [user, router])
 
@@ -97,7 +97,7 @@ export default function WelcomePage() {
       if (error) {
         setError(error.message || 'サインインに失敗しました')
       } else {
-        router.push('/')
+        router.push('/app')
       }
     } catch (err) {
       setError('予期しないエラーが発生しました')

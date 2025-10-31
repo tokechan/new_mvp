@@ -34,7 +34,7 @@ function AuthCallbackContent() {
         if (event === 'SIGNED_IN' && session) {
           console.log('✅ 認証成功:', session.user.email)
           // 認証成功時はホームページにリダイレクト
-          router.push('/')
+          router.push('/app')
         } else if (event === 'SIGNED_OUT') {
           console.log('❌ 認証失敗またはサインアウト')
           router.push('/auth/signin?error=認証に失敗しました')
@@ -47,7 +47,7 @@ function AuthCallbackContent() {
       const { data: { session } } = await supabase.auth.getSession()
       if (session) {
         console.log('✅ 既存セッション確認:', session.user.email)
-        router.push('/')
+        router.push('/app')
       }
     }
     

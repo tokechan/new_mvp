@@ -301,7 +301,7 @@ function CompletedChoresPageInner() {
           <div className="flex justify-center pt-4 pb-6">
             <Button
               type="button"
-              onClick={() => router.push('/')}
+              onClick={() => router.push('/app')}
               size="icon"
               className="h-12 w-12 rounded-full p-0 grid place-items-center text-primary border border-primary/40 bg-primary/10 hover:bg-primary/20 hover:border-primary/50 shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
               aria-label="ホームへ戻る"

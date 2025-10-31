@@ -87,7 +87,7 @@ export default function InvitePage({ params }: InvitePageProps) {
         setAcceptanceResult({ success: true })
         // 3秒後にホームページにリダイレクト
         setTimeout(() => {
-          router.push('/')
+          router.push('/app')
         }, 3000)
       } else {
         setError(response.error || '招待の受諾に失敗しました')
@@ -145,7 +145,7 @@ export default function InvitePage({ params }: InvitePageProps) {
             </div>
             <div className="mt-6">
               <button
-                onClick={() => router.push('/')}
+                onClick={() => router.push('/app')}
                 className="px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
               >
                 家事一覧を見る
@@ -181,7 +181,7 @@ export default function InvitePage({ params }: InvitePageProps) {
                 再試行
               </button>
               <button
-                onClick={() => router.push('/')}
+                onClick={() => router.push('/app')}
                 className="w-full px-4 py-2 bg-secondary text-secondary-foreground rounded-lg hover:bg-secondary/80 transition-colors"
               >
                 ホームに戻る
