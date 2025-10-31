@@ -21,8 +21,15 @@ export const metadata: Metadata = {
     title: 'YOUDO',
   },
   icons: {
-    icon: '/icon-192x192.svg',
-    apple: '/icon-192x192.svg',
+    icon: [
+      { url: '/icon-192x192.svg', type: 'image/svg+xml', sizes: '192x192' },
+      { url: '/icon-512x512.svg', type: 'image/svg+xml', sizes: '512x512' },
+    ],
+    apple: [
+      { url: '/icons/apple-touch-icon-152x152.png', sizes: '152x152' },
+      { url: '/icons/apple-touch-icon-180x180.png', sizes: '180x180' },
+      { url: '/icons/apple-touch-icon-192x192.png', sizes: '192x192' },
+    ],
   },
 }
 
