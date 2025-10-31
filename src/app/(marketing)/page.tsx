@@ -23,7 +23,7 @@ export default function LandingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-secondary to-primary/10 dark:from-background dark:to-secondary">
+    <div className="min-h-screen bg-card dark:bg-background">
       {/* ヒーローセクション */}
       <section className="relative overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24">
