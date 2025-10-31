@@ -5,7 +5,7 @@
 
 import { useRouter } from 'next/navigation'
 import PartnerInvitation from '@/components/PartnerInvitation'
-import { ArrowRight } from 'lucide-react'
+import { ArrowRight, HeartHandshake, Handshake, CheckCircle2 } from 'lucide-react'
 
 /**
  * ランディングページ - パートナー招待
@@ -56,8 +56,8 @@ export default function LandingPage() {
           
           <div className="grid md:grid-cols-3 gap-8">
             <div className="text-center">
-              <div className="w-16 h-16 bg-accent/20 dark:bg-accent/30 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-2xl">💝</span>
+              <div className="w-16 h-16 bg-accent/20 dark:bg-accent/30 rounded-xl flex items-center justify-center mx-auto mb-4">
+                <HeartHandshake className="w-8 h-8 text-primary" aria-hidden="true" />
               </div>
               <h3 className="text-xl font-semibold text-foreground dark:text-foreground mb-2">
                 感謝を伝え合う
@@ -68,8 +68,8 @@ export default function LandingPage() {
             </div>
             
             <div className="text-center">
-              <div className="w-16 h-16 bg-primary/10 dark:bg-primary/30 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-2xl">🤝</span>
+              <div className="w-16 h-16 bg-primary/10 dark:bg-primary/30 rounded-xl flex items-center justify-center mx-auto mb-4">
+                <Handshake className="w-8 h-8 text-primary" aria-hidden="true" />
               </div>
               <h3 className="text-xl font-semibold text-foreground dark:text-foreground mb-2">
                 協力して効率アップ
@@ -80,8 +80,8 @@ export default function LandingPage() {
             </div>
             
             <div className="text-center">
-              <div className="w-16 h-16 bg-primary/10 dark:bg-primary/30 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-2xl">✅</span>
+              <div className="w-16 h-16 bg-primary/10 dark:bg-primary/30 rounded-xl flex items-center justify-center mx-auto mb-4">
+                <CheckCircle2 className="w-8 h-8 text-primary" aria-hidden="true" />
               </div>
               <h3 className="text-xl font-semibold text-foreground dark:text-foreground mb-2">
                 進捗の見える化
