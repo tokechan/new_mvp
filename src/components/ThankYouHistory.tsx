@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { getThankYouHistory, sendThankYouForChore } from '@/services/thankYouService'
 import type { ThankYouMessage } from '@/services/thankYouService'
+import { AlertTriangle, Heart } from 'lucide-react'
 
 interface ThankYouHistoryProps {
   /** 特定の家事IDを指定した場合、その家事に関する感謝メッセージのみ表示 */
@@ -113,9 +114,7 @@ export default function ThankYouHistory({
     return (
       <div className={`${compact ? 'p-4' : 'p-6'} text-center`}>
         <div className="text-destructive mb-4">
-          <svg className="w-12 h-12 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.268 18.5c-.77.833.192 2.5 1.732 2.5z" />
-          </svg>
+          <AlertTriangle className="w-12 h-12 mx-auto mb-2" aria-hidden="true" />
           <p>{error}</p>
         </div>
         <button
@@ -131,9 +130,7 @@ export default function ThankYouHistory({
   if (thankYouMessages.length === 0) {
     return (
       <div className={`${compact ? 'p-4' : 'p-6'} text-center text-muted-foreground`}>
-        <svg className="w-12 h-12 mx-auto mb-4 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-        </svg>
+        <Heart className="w-12 h-12 mx-auto mb-4 text-muted-foreground" aria-hidden="true" />
         <p>{emptyMessage}</p>
       </div>
     )
@@ -181,14 +178,17 @@ export default function ThankYouHistory({
               </div>
               
               <div className="ml-4">
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                  isReceived ? 'bg-info/20' : 'bg-primary/20'
-                }`}>
-                  <svg className={`w-4 h-4 ${
-                    isReceived ? 'text-info' : 'text-success'
-                  }`} fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd" />
-                  </svg>
+                <div
+                  className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                    isReceived ? 'bg-info/20' : 'bg-primary/20'
+                  }`}
+                >
+                  <Heart
+                    className={`w-4 h-4 ${
+                      isReceived ? 'text-info' : 'text-success'
+                    }`}
+                    aria-hidden="true"
+                  />
                 </div>
               </div>
             </div>
