@@ -47,10 +47,10 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-foreground dark:text-foreground mb-4">
-              なぜパートナーと一緒に？
+              Make it !!
             </h2>
             <p className="text-lg text-muted-foreground dark:text-muted-foreground">
-              二人で家事を管理することで得られるメリット
+              まずはやる事をリストアップしてみましょう
             </p>
           </div>
           
@@ -60,10 +60,10 @@ export default function LandingPage() {
                 <HeartHandshake className="w-8 h-8 text-primary" aria-hidden="true" />
               </div>
               <h3 className="text-xl font-semibold text-foreground dark:text-foreground mb-2">
-                感謝を伝え合う
+                Share it !!
               </h3>
               <p className="text-muted-foreground dark:text-muted-foreground">
-                完了した家事に「ありがとう」を送って、お互いを労い合えます。
+                パートナーと家事を共有して、可視化しましょう
               </p>
             </div>
             
@@ -72,10 +72,10 @@ export default function LandingPage() {
                 <Handshake className="w-8 h-8 text-primary" aria-hidden="true" />
               </div>
               <h3 className="text-xl font-semibold text-foreground dark:text-foreground mb-2">
-                協力して効率アップ
+                Thanks it !!
               </h3>
               <p className="text-muted-foreground dark:text-muted-foreground">
-                家事の分担が明確になり、お互いの負担を軽減できます。
+                パートナーが完了した家事に”ありがとう”を送って、お互いを労い合えます。
               </p>
             </div>
             
@@ -117,11 +117,9 @@ export default function LandingPage() {
       <section className="py-16 bg-primary dark:bg-primary">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl font-bold text-primary-foreground mb-4">
-            一緒に始めませんか？
+            今すぐ試してみませんか？
           </h2>
-          <p className="text-xl text-primary-foreground/80 mb-8">
-            パートナーと家事を共有して、より良い毎日を築きましょう。
-          </p>
+          
           <button
             onClick={() => router.push('/app')}
             className="inline-flex items-center px-8 py-3 bg-card text-primary font-semibold rounded-lg hover:bg-muted transition-colors"
