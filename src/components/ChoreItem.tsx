@@ -10,7 +10,7 @@ import { CongratulationsModal } from '@/components/CongratulationsModal'
 import ThankYouMessage from './ThankYouMessage'
 import { Chore } from '@/types/chore'
 import { Database } from '@/lib/supabase'
-import { RotateCcw, Heart, Check, Sparkles } from 'lucide-react'
+import { RotateCcw, Heart, Check, Sparkles, Trash2 } from 'lucide-react'
 
 type CompletionRecord = Database['public']['Tables']['completions']['Row']
 
