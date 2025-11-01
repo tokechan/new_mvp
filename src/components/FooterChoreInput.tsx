@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { type CSSProperties, useState, useCallback } from 'react'
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
 import { Plus } from 'lucide-react'
@@ -61,9 +61,13 @@ export default function FooterChoreInput() {
     }
   }, [text, addChore, announceFormError, announceSuccess, announceError, addNotification, showToast])
 
+  const footerOffsetStyle: CSSProperties = {
+    bottom: 'calc(env(safe-area-inset-bottom, 0px) + 3.5rem)',
+  }
+
   return (
-    <div className="fixed bottom-1 left-0 right-0 z-50">
-      <form onSubmit={handleSubmit} className="px-3 pt-3 pb-5">
+    <div className="fixed left-0 right-0 z-50 pointer-events-none" style={footerOffsetStyle}>
+      <form onSubmit={handleSubmit} className="px-3 pt-3 pb-5 pointer-events-auto">
         <div className="mx-auto max-w-3xl">
           <div className="relative overflow-hidden rounded-2xl bg-primary/20 backdrop-blur-md shadow-md focus-within:ring-2 focus-within:ring-primary/60 transition-colors">
             {/* Liquid装飾（半透明のバブル） */}

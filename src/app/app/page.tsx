@@ -239,7 +239,7 @@ export default function Home() {
   console.log('Rendering main content');
   return (
     <>
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-28">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-40">
         {/* ユーザー情報とアクション */}
         <div className="bg-card rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
           <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
