@@ -49,7 +49,7 @@ export async function generateMetadata({
 }
 
 async function loadMarkdown(page: PageParam) {
-  const filePath = path.join(process.cwd(), 'public', 'legal', `${page}.md`)
+  const filePath = path.join(process.cwd(), 'docs', 'legal', `${page}.md`)
 
   try {
     const file = await fs.readFile(filePath, 'utf8')
