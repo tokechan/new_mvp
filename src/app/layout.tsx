@@ -1,5 +1,4 @@
 import type { Metadata, Viewport } from 'next'
-import { Inter } from 'next/font/google'
 import './globals.css'
 import { AuthProvider } from '@/contexts/AuthContext'
 import { NotificationProvider } from '@/contexts/NotificationContext'
@@ -8,8 +7,6 @@ import Navigation from '@/components/Navigation'
 import ThemeProvider from '@/components/ThemeProvider'
 import PwaInitializer from '@/components/PwaInitializer'
 import Footer from '@/components/Footer'
-
-const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
   title: 'YOUDO - 家事共有アプリ',
@@ -51,7 +48,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ja" suppressHydrationWarning>
-      <body className={inter.className}>
+      <body className="font-sans">
         <ThemeProvider>
           <AuthProvider>
             <NotificationProvider>
