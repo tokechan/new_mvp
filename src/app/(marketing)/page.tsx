@@ -4,7 +4,6 @@
 // 作成日: 2025-01-27
 
 import { useRouter } from 'next/navigation'
-import PartnerInvitation from '@/components/PartnerInvitation'
 import { ArrowRight, HeartHandshake, Handshake, CheckCircle2 } from 'lucide-react'
 
 /**
@@ -13,14 +12,6 @@ import { ArrowRight, HeartHandshake, Handshake, CheckCircle2 } from 'lucide-reac
  */
 export default function LandingPage() {
   const router = useRouter()
-
-  /**
-   * パートナー連携完了時の処理
-   */
-  const handlePartnerLinked = () => {
-    // ホームページに戻る
-    router.push('/app')
-  }
 
   return (
     <div className="min-h-screen bg-card dark:bg-background">
@@ -95,21 +86,15 @@ export default function LandingPage() {
       </section>
 
       {/* パートナー招待セクション */}
-      <section className="py-16 bg-muted dark:bg-secondary">
-        <div className="max-w-4xl mx-auto rounded-xl border border-border/40 bg-card px-4 py-12 shadow-sm sm:px-6 lg:px-8
-        ">
-          <div className="text-center mb-12">
+      <section className="py-16 bg-card dark:bg-card border-t">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center">
             <h2 className="text-3xl font-bold text-foreground dark:text-foreground mb-4">
               今すぐパートナーを招待
             </h2>
             <p className="text-lg text-muted-foreground dark:text-muted-foreground">
               招待リンクやQRコードを使って、簡単にパートナーと連携できます。
             </p>
-          </div>
-          
-          {/* パートナー招待コンポーネント */}
-          <div className="max-w-2xl mx-auto">
-            <PartnerInvitation onPartnerLinked={handlePartnerLinked} />
           </div>
         </div>
       </section>

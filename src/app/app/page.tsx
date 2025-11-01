@@ -195,6 +195,8 @@ export default function Home() {
   const [thanksTesting, setThanksTesting] = useState(false)
   const [thanksTestResult, setThanksTestResult] = useState<string | null>(null)
 
+  console.log('Home component rendered', { user, loading });
+
   const fetchDisplayName = useCallback(async () => {
     if (!user) return
     try {
@@ -206,18 +208,22 @@ export default function Home() {
   }, [user])
 
   useEffect(() => {
+    console.log('Auth effect triggered', { user, loading });
     if (!user && !loading) {
+      console.log('Redirecting to /auth/signin');
       router.push('/auth/signin')
     }
   }, [user, loading, router])
 
   useEffect(() => {
+    console.log('Fetch display name effect triggered', { user });
     if (user) {
       fetchDisplayName()
     }
   }, [user, fetchDisplayName])
 
   if (loading) {
+    console.log('Rendering loading state');
     return (
       <div className="flex min-h-screen items-center justify-center">
         <div className="text-lg">読み込み中...</div>
@@ -226,9 +232,11 @@ export default function Home() {
   }
 
   if (!user) {
+    console.log('Rendering null because no user');
     return null
   }
 
+  console.log('Rendering main content');
   return (
     <>
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-28">
