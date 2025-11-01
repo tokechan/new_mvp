@@ -14,7 +14,7 @@ export default function SettingsPage() {
   const [language, setLanguage] = useState('ja')
   const { theme, resolvedTheme, setTheme } = useTheme()
   const [pushState, setPushState] = useState<
-    'idle' | 'loading' | 'subscribed' | 'already' | 'disabled' | 'error' | 'unsubscribed'
+    'idle' | 'loading' | 'subscribed' | 'disabled' | 'error' | 'unsubscribed'
   >('idle')
   const [pushMessage, setPushMessage] = useState<string | null>(null)
 
@@ -49,12 +49,6 @@ export default function SettingsPage() {
         return
       }
 
-      if (result.state === 'already-subscribed') {
-        setPushState('already')
-        setPushMessage('プッシュ通知は既に有効です。')
-        return
-      }
-
       if (result.state === 'error') {
         setPushState('error')
         setPushMessage(result.message ?? 'プッシュ通知の有効化に失敗しました。')
@@ -62,7 +56,7 @@ export default function SettingsPage() {
       }
 
       setPushState('subscribed')
-      setPushMessage('プッシュ通知を有効にしました。')
+      setPushMessage(result.message ?? 'プッシュ通知を有効にしました。')
     } catch (error) {
       console.error('Failed to enable push notifications', error)
       setPushState('error')
@@ -210,7 +204,7 @@ export default function SettingsPage() {
               {pushMessage && (
                 <p
                   className={`text-sm ${
-                    pushState === 'subscribed' || pushState === 'already' || pushState === 'unsubscribed'
+                    pushState === 'subscribed' || pushState === 'unsubscribed'
                       ? 'text-emerald-600'
                       : 'text-destructive'
                   }`}
