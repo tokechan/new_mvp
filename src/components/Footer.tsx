@@ -1,8 +1,18 @@
 "use client"
 
 import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 
 export default function Footer() {
+  const pathname = usePathname()
+  const isOnboardingPage = pathname?.startsWith('/onboarding')
+  const isDevToolsPage = pathname?.startsWith('/dev-tools')
+  
+  // オンボーディングページとDevToolsページでは非表示
+  if (isOnboardingPage || isDevToolsPage) {
+    return null
+  }
+
   return (
     <footer className="mt-12 border-t border-border bg-card/30">
       <div className="mx-auto flex max-w-4xl flex-col gap-4 px-4 py-6 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">

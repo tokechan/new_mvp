@@ -28,6 +28,8 @@ export default function Navigation() {
       pathname?.startsWith('/pricing') ||
       pathname?.startsWith('/legal'))
   const isAuthPage = pathname?.startsWith('/auth/')
+  const isOnboardingPage = pathname?.startsWith('/onboarding')
+  const isDevToolsPage = pathname?.startsWith('/dev-tools')
 
   // ナビゲーション項目の定義
   const navigationItems = [
@@ -144,7 +146,7 @@ export default function Navigation() {
     )
   }
 
-  if (isAuthPage) {
+  if (isAuthPage || isOnboardingPage || isDevToolsPage) {
     return null
   }
 

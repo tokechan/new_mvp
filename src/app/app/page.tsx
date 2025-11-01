@@ -14,6 +14,7 @@ import { Bell, BellOff, BellRing, FileText, Loader2 } from 'lucide-react'
 import FooterChoreInput from '@/components/FooterChoreInput'
 import { ensurePushSubscription, disablePushSubscription } from '@/services/pushSubscriptionService'
 import { useToast } from '@/components/ui/toast'
+import { isOnboardingComplete } from '@/utils/onboardingStorage'
 
 const pushFeatureEnabled =
   process.env.NEXT_PUBLIC_ENABLE_PWA === 'true' &&
@@ -212,6 +213,11 @@ export default function Home() {
     if (!user && !loading) {
       console.log('Redirecting to /auth/signin');
       router.push('/auth/signin')
+    }
+    // オンボーディング完了チェック
+    if (user && !loading && !isOnboardingComplete()) {
+      console.log('Redirecting to /onboarding');
+      router.push('/onboarding')
     }
   }, [user, loading, router])
 
