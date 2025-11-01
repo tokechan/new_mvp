@@ -4,7 +4,7 @@
 // 作成日: 2025-01-27
 
 import { useRouter } from 'next/navigation'
-import { ArrowRight, HeartHandshake, Handshake, CheckCircle2 } from 'lucide-react'
+import { ArrowRight, HeartHandshake, Handshake, CheckCircle2, ListCheck } from 'lucide-react'
 
 /**
  * ランディングページ - パートナー招待
@@ -21,13 +21,14 @@ export default function LandingPage() {
           <div className="text-center">
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-foreground dark:text-foreground mb-6">
               <span className="block">家事を</span>
-              <span className="block text-primary dark:text-primary">一緒に管理</span>
-              <span className="block">しませんか？</span>
+              <span className="block text-primary dark:text-primary">一緒に楽しもう</span>
+              <span className="block">って思わない？</span>
+              <span className="block">いやそうだよ</span>
             </h1>
             <p className="text-xl text-muted-foreground dark:text-muted-foreground mb-8 max-w-3xl mx-auto">
-              パートナーと家事を共有して、もっと効率的で楽しい毎日を。
+              パートナーと一緒に家事を共有してもっと効率的で楽しい毎日にしたいですよね
               <br className="hidden sm:block" />
-              招待リンクやQRコードで簡単に始められます。
+              招待リンクやQRコードで簡単に始められます            
             </p>
           </div>
         </div>
@@ -38,7 +39,7 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-foreground dark:text-foreground mb-4">
-              Make it !!
+              Let&apos;s do it !!
             </h2>
             <p className="text-lg text-muted-foreground dark:text-muted-foreground">
               まずはやる事をリストアップしてみましょう
@@ -46,6 +47,17 @@ export default function LandingPage() {
           </div>
           
           <div className="grid md:grid-cols-3 gap-8">
+          <div className="text-center">
+              <div className="w-16 h-16 bg-accent/20 dark:bg-accent/30 rounded-xl flex items-center justify-center mx-auto mb-4">
+                <ListCheck className="w-8 h-8 text-primary" aria-hidden="true" />
+              </div>
+              <h3 className="text-xl font-semibold text-foreground dark:text-foreground mb-2">
+                Make it !!
+              </h3>
+              <p className="text-muted-foreground dark:text-muted-foreground">
+                やる事をリストアップしてみましょう
+              </p>
+            </div>
             <div className="text-center">
               <div className="w-16 h-16 bg-accent/20 dark:bg-accent/30 rounded-xl flex items-center justify-center mx-auto mb-4">
                 <HeartHandshake className="w-8 h-8 text-primary" aria-hidden="true" />
@@ -66,21 +78,11 @@ export default function LandingPage() {
                 Thanks it !!
               </h3>
               <p className="text-muted-foreground dark:text-muted-foreground">
-                パートナーが完了した家事に”ありがとう”を送って、お互いを労い合えます。
+                パートナーが完了した家事に”ありがとう”を送って、お互いを労い合えます
               </p>
             </div>
             
-            <div className="text-center">
-              <div className="w-16 h-16 bg-accent/20 dark:bg-accent/30 rounded-xl flex items-center justify-center mx-auto mb-4">
-                <CheckCircle2 className="w-8 h-8 text-primary" aria-hidden="true" />
-              </div>
-              <h3 className="text-xl font-semibold text-foreground dark:text-foreground mb-2">
-                進捗の見える化
-              </h3>
-              <p className="text-muted-foreground dark:text-muted-foreground">
-                お互いの家事の進捗がリアルタイムで分かり、感謝の気持ちも伝えられます。
-              </p>
-            </div>
+            
           </div>
         </div>
       </section>
@@ -93,7 +95,7 @@ export default function LandingPage() {
               今すぐパートナーを招待
             </h2>
             <p className="text-lg text-muted-foreground dark:text-muted-foreground">
-              招待リンクやQRコードを使って、簡単にパートナーと連携できます。
+              招待リンクやQRコードを使って、簡単にパートナーと連携できます
             </p>
           </div>
         </div>
@@ -103,7 +105,7 @@ export default function LandingPage() {
       <section className="py-16 bg-primary dark:bg-primary">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl font-bold text-primary-foreground mb-4">
-            今すぐ試してみませんか？
+            今すぐ試してたほうがいいよ?
           </h2>
           
           <button
