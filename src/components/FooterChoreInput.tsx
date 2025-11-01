@@ -69,10 +69,10 @@ export default function FooterChoreInput() {
     <div className="fixed left-0 right-0 z-50 pointer-events-none" style={footerOffsetStyle}>
       <form onSubmit={handleSubmit} className="px-3 pt-3 pb-5 pointer-events-auto">
         <div className="mx-auto max-w-3xl">
-          <div className="relative overflow-hidden rounded-2xl bg-primary/20 backdrop-blur-md shadow-md focus-within:ring-2 focus-within:ring-primary/60 transition-colors">
+          <div className="relative overflow-hidden rounded-[30px] border border-white/30 bg-white/5 backdrop-blur-[45px] backdrop-saturate-200 shadow-[0_30px_60px_rgba(15,23,42,0.18)] focus-within:ring-2 focus-within:ring-primary/40 transition-all">
             {/* Liquid装飾（半透明のバブル） */}
-            <div className="absolute -top-8 -left-6 w-32 h-32 bg-primary/30 rounded-full blur-2xl opacity-60 pointer-events-none" />
-            <div className="absolute -bottom-10 -right-8 w-44 h-44 bg-primary/25 rounded-full blur-3xl opacity-50 pointer-events-none" />
+            <div className="absolute -top-12 -left-14 w-56 h-56 bg-primary/50 rounded-full blur-[110px] opacity-60 pointer-events-none" />
+            <div className="absolute -bottom-16 -right-14 w-64 h-64 bg-primary/40 rounded-full blur-[130px] opacity-45 pointer-events-none" />
 
             <Input
               type="text"
@@ -81,13 +81,13 @@ export default function FooterChoreInput() {
               onChange={(e) => setText(e.target.value)}
               disabled={isAdding}
               aria-label="新しい家事名"
-              className="w-full h-12 pr-16 rounded-2xl text-base bg-white/25 text-foreground placeholder:text-muted-foreground border-0 shadow-none focus-visible:ring-0 focus:outline-none"
+              className="w-full h-12 pr-20 rounded-[28px] text-base bg-white/5 text-foreground placeholder:text-muted-foreground border border-white/25 shadow-[inset_0_8px_18px_rgba(255,255,255,0.25)] focus-visible:ring-0 focus:outline-none backdrop-blur-[30px] backdrop-saturate-150"
             />
             <Button
               type="submit"
               disabled={isAdding || !text.trim()}
               aria-label="家事を追加"
-              className="absolute right-2 top-2 h-8 w-8 rounded-full bg-primary/40 text-primary-foreground border border-primary/50 shadow-md hover:bg-primary/50 focus:ring-2 focus:ring-primary/70 transition"
+              className="absolute right-4 top-1/2 h-9 w-9 -translate-y-1/2 rounded-full bg-white/25 text-primary-600 border border-white/50 shadow-[0_10px_20px_rgba(15,23,42,0.18)] hover:bg-white/35 focus:ring-2 focus:ring-primary/60 transition backdrop-blur-[30px]"
               variant="default"
               size="icon"
             >
