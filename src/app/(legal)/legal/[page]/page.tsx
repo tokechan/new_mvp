@@ -1,5 +1,3 @@
-import { promises as fs } from 'fs'
-import path from 'path'
 import { notFound } from 'next/navigation'
 import MarkdownRenderer from '@/components/MarkdownRenderer'
 
@@ -27,6 +25,11 @@ const LEGAL_PAGES = {
 
 type PageParam = keyof typeof LEGAL_PAGES
 
+const LEGAL_CONTENT_LOADERS: Record<PageParam, () => Promise<string>> = {
+  privacy: async () => (await import('@/content/legal/privacy.md?raw')).default,
+  terms: async () => (await import('@/content/legal/terms.md?raw')).default,
+}
+
 export function generateStaticParams() {
   return Object.keys(LEGAL_PAGES).map((page) => ({ page }))
 }
@@ -49,13 +52,15 @@ export async function generateMetadata({
 }
 
 async function loadMarkdown(page: PageParam) {
-  const filePath = path.join(process.cwd(), 'public', 'legal', `${page}.md`)
+  const loader = LEGAL_CONTENT_LOADERS[page]
+  if (!loader) {
+    return null
+  }
 
   try {
-    const file = await fs.readFile(filePath, 'utf8')
-    return file
+    return await loader()
   } catch (error) {
-    console.error(`Failed to read legal markdown: ${filePath}`, error)
+    console.error(`Failed to import legal markdown for ${page}`, error)
     return null
   }
 }

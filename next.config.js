@@ -26,6 +26,14 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
+  webpack(config) {
+    config.module.rules.push({
+      test: /\.md$/i,
+      resourceQuery: /raw/,
+      type: 'asset/source',
+    })
+    return config
+  },
 };
 
 module.exports = nextConfig;
