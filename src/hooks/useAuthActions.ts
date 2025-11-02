@@ -84,11 +84,11 @@ export function useAuthActions() {
    * Googleでサインイン
    * 初回サインイン時はプロフィールが自動作成される
    */
-  const signInWithGoogle = async () => {
+  const signInWithGoogle = async (redirectPath?: string) => {
     try {
       setLoading(true)
       setError(null)
-      const result = await authService.signInWithGoogle()
+      const result = await authService.signInWithGoogle(redirectPath)
       if (result.error) {
         const errorMessage = (result.error instanceof Error ? result.error.message : null) || 'Google認証に失敗しました'
         setError(errorMessage)

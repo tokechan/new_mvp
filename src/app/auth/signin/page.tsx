@@ -23,6 +23,8 @@ function SignInContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { signIn, signInWithGoogle, resendConfirmation, error: authError, clearError } = useAuth()
+  const redirectParam = searchParams.get('redirect')
+  const decodedRedirect = redirectParam ? decodeURIComponent(redirectParam) : null
 
   // URLパラメータからエラーメッセージを取得
   useEffect(() => {
@@ -84,7 +86,7 @@ function SignInContent() {
         console.debug('🔐 サインイン失敗詳細', { message: error.message })
         setLocalError(errorMessage)
       } else {
-        router.push('/app')
+        router.push(decodedRedirect ?? '/app')
       }
     } catch (err) {
       setLocalError('予期しないエラーが発生しました。ネットワーク接続をご確認の上、再度お試しください。')
@@ -101,7 +103,7 @@ function SignInContent() {
 
     try {
       console.log('Google認証を開始します...')
-      const { error } = await signInWithGoogle()
+      const { error } = await signInWithGoogle(decodedRedirect ?? undefined)
       
       if (error) {
         console.error('Google認証エラー:', error)

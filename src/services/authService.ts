@@ -87,14 +87,19 @@ export class AuthService {
   /**
    * Googleアカウントでサインイン
    */
-  async signInWithGoogle(): Promise<AuthResult> {
+  async signInWithGoogle(redirectPath?: string): Promise<AuthResult> {
     try {
       console.log('🔄 Google認証開始')
-      
+
+      const baseRedirect = `${window.location.origin}/auth/callback`
+      const redirectTo = redirectPath
+        ? `${baseRedirect}?redirect=${encodeURIComponent(redirectPath)}`
+        : baseRedirect
+
       const { data, error } = await this.supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
+          redirectTo,
           queryParams: {
             access_type: 'offline',
             prompt: 'consent',

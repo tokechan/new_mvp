@@ -84,7 +84,7 @@ export default function InvitePage({ params }: InvitePageProps) {
       const response: AcceptInvitationResponse = await acceptInvitation(code)
       
       if (response.success) {
-        setAcceptanceResult({ success: true })
+        setAcceptanceResult(response.data ?? { success: true })
         // 3秒後にホームページにリダイレクト
         setTimeout(() => {
           router.push('/app')
@@ -132,12 +132,12 @@ export default function InvitePage({ params }: InvitePageProps) {
             <div className="space-y-3 text-muted-foreground">
               <p>
                 <span className="font-medium text-foreground">
-                  {acceptanceResult.partner_name}
+                  {acceptanceResult?.partner_name ?? 'パートナー'}
                 </span>
                 さんとの連携が完了しました
               </p>
               <p>
-                共有された家事: <span className="font-bold text-primary">{acceptanceResult.shared_chores_count}件</span>
+                共有された家事: <span className="font-bold text-primary">{acceptanceResult?.shared_chores_count ?? 0}件</span>
               </p>
               <p className="text-sm">
                 これから一緒に家事を管理しましょう！
