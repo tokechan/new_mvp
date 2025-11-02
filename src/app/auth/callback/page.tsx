@@ -73,8 +73,10 @@ function AuthCallbackContent() {
           })
         }
         
-        // 認証成功時はホームページにリダイレクト
-        router.push('/app')
+        // 認証成功時はリダイレクト先を考慮
+        const redirectParam = searchParams.get('redirect')
+        const redirectPath = redirectParam ? decodeURIComponent(redirectParam) : '/app'
+        router.push(redirectPath)
       } catch (error) {
         console.error('❌ 認証コールバック処理エラー:', error)
         router.push('/auth/signin?error=認証処理中にエラーが発生しました')

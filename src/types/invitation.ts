@@ -26,6 +26,11 @@ export interface GetInvitationsResponse {
 
 export interface AcceptInvitationResponse {
   success: boolean
+  data?: {
+    partner_id: string
+    partner_name: string
+    shared_chores_count: number
+  }
   error?: string
 }
 

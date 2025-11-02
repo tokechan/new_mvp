@@ -1,6 +1,7 @@
 'use client'
 
 import { supabase } from '@/lib/supabase'
+import { PartnerService } from '@/services/partnerService'
 import {
   CreateInvitationRequest,
   CreateInvitationResponse,
@@ -143,7 +144,38 @@ export const acceptInvitation = async (
       return { success: false, error: '無効な招待コードです' }
     }
 
-    return { success: true }
+    // パートナー情報を取得してレスポンスに含める
+    let partnerData = null
+    try {
+      partnerData = await PartnerService.getPartnerInfo(user.id)
+    } catch (partnerError) {
+      console.warn('パートナー情報の取得に失敗しましたが、リンク自体は成功しています:', partnerError)
+    }
+
+    let sharedChoresCount = 0
+    if (partnerData) {
+      const { count, error: choreCountError } = await supabase
+        .from('chores')
+        .select('*', { count: 'exact', head: true })
+        .or(`owner_id.eq.${user.id},owner_id.eq.${partnerData.id}`)
+
+      if (choreCountError) {
+        console.warn('共有家事数の取得に失敗:', choreCountError)
+      } else if (typeof count === 'number') {
+        sharedChoresCount = count
+      }
+    }
+
+    return {
+      success: true,
+      data: partnerData
+        ? {
+            partner_id: partnerData.id,
+            partner_name: partnerData.display_name || 'パートナー',
+            shared_chores_count: sharedChoresCount,
+          }
+        : undefined,
+    }
   } catch (error) {
     console.error('招待受け入れエラー:', error)
     return { success: false, error: '招待の受け入れに失敗しました' }

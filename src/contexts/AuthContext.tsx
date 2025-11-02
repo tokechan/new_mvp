@@ -14,7 +14,7 @@ interface AuthContextType {
   signIn: (email: string, password: string) => Promise<{ error: any }>
   signUp: (email: string, password: string, name?: string) => Promise<{ error: any }>
   signOut: () => Promise<void>
-  signInWithGoogle: () => Promise<{ error: any }>
+  signInWithGoogle: (redirectPath?: string) => Promise<{ error: any }>
   resendConfirmation: (email: string) => Promise<{ error: any }>
   clearError: () => void
 }
