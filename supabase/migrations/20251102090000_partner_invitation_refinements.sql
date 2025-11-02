@@ -18,7 +18,7 @@ UPDATE public.partner_invitations AS pi
 SET inviter_name = COALESCE(pi.inviter_name, p.display_name),
     inviter_email = COALESCE(pi.inviter_email, au.email)
 FROM public.profiles AS p
-LEFT JOIN auth.users AS au ON au.id = pi.inviter_id
+LEFT JOIN auth.users AS au ON au.id = p.id
 WHERE pi.inviter_id = p.id
   AND (pi.inviter_name IS NULL OR pi.inviter_email IS NULL);
 
