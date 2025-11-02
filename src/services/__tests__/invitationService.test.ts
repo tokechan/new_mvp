@@ -20,6 +20,18 @@ jest.mock('@/lib/supabase', () => ({
 }))
 
 import { supabase } from '@/lib/supabase'
+jest.mock('@/services/partnerService', () => ({
+  PartnerService: {
+    getPartnerInfo: jest.fn().mockResolvedValue({
+      id: 'partner-456',
+      display_name: 'パートナー',
+      partner_id: 'user-123',
+      created_at: null,
+      partnership_created_at: null,
+      updated_at: null,
+    }),
+  },
+}))
 
 // モックされたsupabaseクライアント
 const mockSupabase = supabase as any
@@ -37,6 +49,8 @@ describe('invitationService', () => {
     accepted_at: null,
     invitee_email: 'invitee@example.com',
     invite_code: 'ABC123',
+    inviter_name: 'Tester',
+    inviter_email: 'test@example.com',
     status: 'pending',
     created_at: '2024-01-01T00:00:00Z',
     expires_at: '2024-01-08T00:00:00Z'
@@ -70,16 +84,32 @@ describe('invitationService', () => {
         error: null
       })
 
-      // 招待作成をモック
-      const mockInsert = {
+      const mockProfileSelect = {
+        select: jest.fn().mockReturnThis(),
+        eq: jest.fn().mockReturnThis(),
+        single: jest.fn().mockResolvedValue({
+          data: { display_name: 'Tester', partner_id: null },
+          error: null
+        })
+      }
+
+      const mockInsertBuilder = {
         select: jest.fn().mockReturnThis(),
         single: jest.fn().mockResolvedValue({
           data: mockInvitation,
           error: null
         })
       }
-      mockSupabase.from.mockReturnValue({
-        insert: jest.fn().mockReturnValue(mockInsert)
+      const mockInsert = jest.fn().mockReturnValue(mockInsertBuilder)
+
+      mockSupabase.from.mockImplementation((table: string) => {
+        if (table === 'profiles') {
+          return mockProfileSelect
+        }
+        if (table === 'partner_invitations') {
+          return { insert: mockInsert }
+        }
+        throw new Error(`Unexpected table: ${table}`)
       })
 
       const result = await createInvitation(mockRequest)
@@ -87,7 +117,7 @@ describe('invitationService', () => {
       expect(result.success).toBe(true)
       expect(result.invitation).toEqual(mockInvitation)
       expect(mockSupabase.rpc).toHaveBeenCalledWith('generate_invite_code')
-      expect(mockSupabase.from).toHaveBeenCalledWith('partner_invitations')
+      expect(mockInsert).toHaveBeenCalled()
     })
 
     it('未認証ユーザーの場合はエラーを返す', async () => {
@@ -108,6 +138,22 @@ describe('invitationService', () => {
         error: null
       })
 
+      const mockProfileSelect = {
+        select: jest.fn().mockReturnThis(),
+        eq: jest.fn().mockReturnThis(),
+        single: jest.fn().mockResolvedValue({
+          data: { display_name: 'Tester', partner_id: null },
+          error: null
+        })
+      }
+
+      mockSupabase.from.mockImplementation((table: string) => {
+        if (table === 'profiles') {
+          return mockProfileSelect
+        }
+        throw new Error(`Unexpected table: ${table}`)
+      })
+
       mockSupabase.rpc.mockResolvedValue({
         data: null,
         error: { message: 'Code generation failed' }
@@ -117,6 +163,40 @@ describe('invitationService', () => {
 
       expect(result.success).toBe(false)
       expect(result.error).toBe('招待コードの生成に失敗しました')
+    })
+
+    it('既にパートナーがいる場合はエラーを返す', async () => {
+      mockSupabase.auth.getUser.mockResolvedValue({
+        data: { user: mockUser },
+        error: null
+      })
+
+      const mockProfileSelect = {
+        select: jest.fn().mockReturnThis(),
+        eq: jest.fn().mockReturnThis(),
+        single: jest.fn().mockResolvedValue({
+          data: { display_name: 'Tester', partner_id: 'partner-999' },
+          error: null
+        })
+      }
+
+      mockSupabase.from.mockImplementation((table: string) => {
+        if (table === 'profiles') {
+          return mockProfileSelect
+        }
+        throw new Error(`Unexpected table: ${table}`)
+      })
+
+      mockSupabase.rpc.mockResolvedValue({
+        data: 'ABC123',
+        error: null
+      })
+
+      const result = await createInvitation(mockRequest)
+
+      expect(result.success).toBe(false)
+      expect(result.error).toBe('既にパートナーがリンクされています。招待を作成できません。')
+      expect(mockSupabase.rpc).not.toHaveBeenCalled()
     })
 
     it('例外が発生した場合はエラーを返す', async () => {
@@ -243,6 +323,20 @@ describe('invitationService', () => {
         error: null
       })
 
+      const mockOr = jest.fn().mockResolvedValue({
+        count: 0,
+        error: null
+      })
+
+      mockSupabase.from.mockImplementation((table: string) => {
+        if (table === 'chores') {
+          return {
+            select: jest.fn().mockReturnValue({ or: mockOr })
+          }
+        }
+        throw new Error(`Unexpected table: ${table}`)
+      })
+
       mockSupabase.rpc.mockResolvedValue({
         data: true,
         error: null
@@ -284,6 +378,40 @@ describe('invitationService', () => {
 
       expect(result.success).toBe(false)
       expect(result.error).toBe('無効な招待コードです')
+    })
+
+    it('自分自身の招待を受諾しようとした場合はエラーを返す', async () => {
+      mockSupabase.auth.getUser.mockResolvedValue({
+        data: { user: mockUser },
+        error: null
+      })
+
+      mockSupabase.rpc.mockResolvedValue({
+        data: null,
+        error: { message: 'SELF_LINK_NOT_ALLOWED', code: 'P0001' }
+      })
+
+      const result = await acceptInvitation(mockRequest)
+
+      expect(result.success).toBe(false)
+      expect(result.error).toBe('自分自身の招待は受諾できません。')
+    })
+
+    it('既にパートナーが存在する場合はエラーを返す', async () => {
+      mockSupabase.auth.getUser.mockResolvedValue({
+        data: { user: mockUser },
+        error: null
+      })
+
+      mockSupabase.rpc.mockResolvedValue({
+        data: null,
+        error: { message: 'PARTNERSHIP_ALREADY_EXISTS', code: 'P0001' }
+      })
+
+      const result = await acceptInvitation(mockRequest)
+
+      expect(result.success).toBe(false)
+      expect(result.error).toBe('既にパートナーがリンクされています。')
     })
   })
 
@@ -364,15 +492,32 @@ describe('invitationService', () => {
         error: null
       })
 
-      const mockInsert = {
+      const mockProfileSelect = {
+        select: jest.fn().mockReturnThis(),
+        eq: jest.fn().mockReturnThis(),
+        single: jest.fn().mockResolvedValue({
+          data: { display_name: 'Tester', partner_id: null },
+          error: null
+        })
+      }
+
+      const mockInsertBuilder = {
         select: jest.fn().mockReturnThis(),
         single: jest.fn().mockResolvedValue({
           data: mockInvitation,
           error: null
         })
       }
-      mockSupabase.from.mockReturnValue({
-        insert: jest.fn().mockReturnValue(mockInsert)
+      const mockInsert = jest.fn().mockReturnValue(mockInsertBuilder)
+
+      mockSupabase.from.mockImplementation((table: string) => {
+        if (table === 'profiles') {
+          return mockProfileSelect
+        }
+        if (table === 'partner_invitations') {
+          return { insert: mockInsert }
+        }
+        throw new Error(`Unexpected table: ${table}`)
       })
 
       const result = await InvitationService.createInvitation(mockRequest)

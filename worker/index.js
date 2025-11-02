@@ -7,8 +7,10 @@ import defaultWorker, {
   BucketCachePurge,
 } from '../.open-next/worker.js'
 import { createBffApp } from '../src/bff/app'
+import { createPartnerInvitationCleanupJob } from '../src/jobs/partnerInvitationCleanupJob'
 
 const bff = createBffApp()
+const partnerInvitationCleanupJob = createPartnerInvitationCleanupJob()
 
 export { DOQueueHandler, DOShardedTagCache, BucketCachePurge }
 
@@ -28,5 +30,8 @@ export default {
     }
 
     return defaultWorker.fetch(request, env, ctx)
+  },
+  async scheduled(event, env, ctx) {
+    ctx.waitUntil(partnerInvitationCleanupJob.run(env))
   },
 }

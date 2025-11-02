@@ -140,7 +140,9 @@ export type Database = {
           id: number
           invite_code: string
           invitee_email: string | null
+          inviter_email: string | null
           inviter_id: string
+          inviter_name: string | null
           status: string
         }
         Insert: {
@@ -151,7 +153,9 @@ export type Database = {
           id?: number
           invite_code: string
           invitee_email?: string | null
+          inviter_email?: string | null
           inviter_id: string
+          inviter_name?: string | null
           status?: string
         }
         Update: {
@@ -162,7 +166,9 @@ export type Database = {
           id?: number
           invite_code?: string
           invitee_email?: string | null
+          inviter_email?: string | null
           inviter_id?: string
+          inviter_name?: string | null
           status?: string
         }
         Relationships: [

@@ -7,7 +7,7 @@ security definer
 set search_path = public, pg_temp
 as $$
 declare
-  default_chore_limit constant integer := 3;
+  default_chore_limit constant integer := 10;
   chore_limit integer;
   target_owner uuid;
   current_count integer;
