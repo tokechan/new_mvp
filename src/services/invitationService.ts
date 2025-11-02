@@ -25,6 +25,29 @@ export const createInvitation = async (
       return { success: false, error: 'ユーザーが認証されていません' }
     }
 
+    // プロフィール情報と既存パートナー状態を確認
+    let profileDisplayName: string | null = null
+    let existingPartnerId: string | null = null
+    const { data: profileData, error: profileError } = await supabase
+      .from('profiles')
+      .select('display_name, partner_id')
+      .eq('id', user.id)
+      .single()
+
+    if (profileError && profileError.code !== 'PGRST116') {
+      console.error('プロフィール取得エラー:', profileError)
+      return { success: false, error: 'プロフィール情報の取得に失敗しました' }
+    }
+
+    if (profileData) {
+      profileDisplayName = profileData.display_name ?? null
+      existingPartnerId = profileData.partner_id ?? null
+    }
+
+    if (existingPartnerId) {
+      return { success: false, error: '既にパートナーがリンクされています。招待を作成できません。' }
+    }
+
     // 招待コードを生成
     const { data: codeData, error: codeError } = await supabase
       .rpc('generate_invite_code')
@@ -34,6 +57,12 @@ export const createInvitation = async (
       return { success: false, error: '招待コードの生成に失敗しました' }
     }
 
+    const inviterName =
+      profileDisplayName ??
+      (typeof user.user_metadata?.name === 'string' ? user.user_metadata.name : undefined) ??
+      (user.email ? user.email.split('@')[0] : undefined) ??
+      'ユーザー'
+
     // 招待を作成
     const { data, error } = await supabase
       .from('partner_invitations')
@@ -41,6 +70,8 @@ export const createInvitation = async (
         inviter_id: user.id,
         invite_code: codeData,
         invitee_email: request.invitee_email,
+        inviter_name: inviterName,
+        inviter_email: user.email,
         expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7日後
         status: 'pending'
       })
@@ -137,6 +168,12 @@ export const acceptInvitation = async (
 
     if (error) {
       console.error('招待受け入れエラー:', error)
+      if (error.message?.includes('SELF_LINK_NOT_ALLOWED')) {
+        return { success: false, error: '自分自身の招待は受諾できません。' }
+      }
+      if (error.message?.includes('PARTNERSHIP_ALREADY_EXISTS')) {
+        return { success: false, error: '既にパートナーがリンクされています。' }
+      }
       return { success: false, error: '招待の受け入れに失敗しました' }
     }
 

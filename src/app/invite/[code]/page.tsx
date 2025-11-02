@@ -3,7 +3,7 @@
 // 招待受諾ページ
 // 作成日: 2025-09-07
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
 import { 
@@ -13,9 +13,10 @@ import {
   getTimeUntilExpiration,
   getErrorMessage
 } from '@/lib/invitation-api'
-import type { 
+import type {
   GetInvitationResponse,
-  AcceptInvitationResponse 
+  AcceptInvitationResponse,
+  PartnerInvitation,
 } from '@/types/invitation'
 import { Handshake, PartyPopper } from 'lucide-react'
 
@@ -28,11 +29,11 @@ interface InvitePageProps {
 export default function InvitePage({ params }: InvitePageProps) {
   const [code, setCode] = useState<string>('')
   const router = useRouter()
-  const { user, signIn } = useAuth()
+  const { user } = useAuth()
   const [isLoading, setIsLoading] = useState(true)
   const [isAccepting, setIsAccepting] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [invitationData, setInvitationData] = useState<any | null>(null)
+  const [invitationData, setInvitationData] = useState<PartnerInvitation | null>(null)
   const [acceptanceResult, setAcceptanceResult] = useState<any | null>(null)
 
   // paramsを非同期で取得
@@ -59,7 +60,12 @@ export default function InvitePage({ params }: InvitePageProps) {
       const response: GetInvitationResponse = await getInvitation(code)
       
       if (response.success && response.invitation) {
-        setInvitationData(response.invitation)
+        const invitation = response.invitation
+        setInvitationData({
+          ...invitation,
+          inviter_name: invitation.inviter_name ?? '招待者',
+          inviter_email: invitation.inviter_email ?? '非公開',
+        })
       } else {
         setError(response.error || '招待情報の取得に失敗しました')
       }
@@ -70,10 +76,21 @@ export default function InvitePage({ params }: InvitePageProps) {
     }
   }, [code])
 
+  const isSelfInvitation = useMemo(() => {
+    if (!user || !invitationData) {
+      return false
+    }
+    return invitationData.inviter_id === user.id
+  }, [user, invitationData])
+
   // 招待を受諾
   const handleAcceptInvitation = async () => {
     if (!user) {
       setError('招待を受諾するにはログインが必要です')
+      return
+    }
+    if (isSelfInvitation) {
+      setError('自分自身の招待は受諾できません。')
       return
     }
 
@@ -216,8 +233,8 @@ export default function InvitePage({ params }: InvitePageProps) {
                   招待者情報
                 </h3>
                 <div className="text-sm text-info">
-                  <p><span className="font-medium">名前:</span> {invitationData.inviter_name}</p>
-                  <p><span className="font-medium">メール:</span> {invitationData.inviter_email}</p>
+                  <p><span className="font-medium">名前:</span> {invitationData.inviter_name ?? '招待者'}</p>
+                  <p><span className="font-medium">メール:</span> {invitationData.inviter_email ?? '非公開'}</p>
                 </div>
               </div>
 
@@ -249,9 +266,14 @@ export default function InvitePage({ params }: InvitePageProps) {
 
               {user ? (
                 <div className="space-y-3">
+                  {isSelfInvitation && (
+                    <p className="text-sm text-destructive text-center">
+                      自分自身の招待は受諾できません。
+                    </p>
+                  )}
                   <button
                     onClick={handleAcceptInvitation}
-                    disabled={isAccepting}
+                    disabled={isAccepting || isSelfInvitation}
                     className="w-full px-4 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
                   >
                     {isAccepting ? '招待を受諾中...' : '招待を受諾する'}

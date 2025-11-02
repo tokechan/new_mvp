@@ -10,6 +10,9 @@ command = "npm run build:cloudflare"
 directory = ".open-next/assets"
 binding = "ASSETS"
 
+[triggers]
+crons = ["0 * * * *"]
+
 # Staging Worker 設定
 [env.staging]
 name = "household-mvp-staging"

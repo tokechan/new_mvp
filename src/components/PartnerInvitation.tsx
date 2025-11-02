@@ -3,16 +3,11 @@
 // パートナー招待コンポーネント
 // 作成日: 2025-09-07
 
-import { useState, useEffect, useCallback } from 'react'
-import Image from 'next/image'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { 
   createInvitation,
   getInvitations,
-  generateQRCodeUrl,
-  getInvitationStatusText,
-  getInvitationStatusColor,
-  getTimeUntilExpiration,
   getErrorMessage
 } from '@/lib/invitation-api'
 import type { 
@@ -20,6 +15,8 @@ import type {
   GetInvitationsResponse,
   PartnerInvitation
 } from '@/types/invitation'
+import { PartnerInvitationActiveCard } from '@/components/PartnerInvitationActiveCard'
+import { PartnerInvitationCreateForm } from '@/components/PartnerInvitationCreateForm'
 
 interface PartnerInvitationProps {
   onPartnerLinked?: () => void // パートナー連携完了時のコールバック
@@ -29,10 +26,19 @@ export default function PartnerInvitation({ onPartnerLinked }: PartnerInvitation
   const { user } = useAuth()
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [invitations, setInvitations] = useState<any[]>([])
-  const [currentInvitation, setCurrentInvitation] = useState<any | null>(null)
+  const [invitations, setInvitations] = useState<PartnerInvitation[]>([])
+  const [currentInvitation, setCurrentInvitation] = useState<PartnerInvitation | null>(null)
   const [showQR, setShowQR] = useState(false)
   const [inviteeEmail, setInviteeEmail] = useState('')
+
+  const currentInviteUrl = useMemo(() => {
+    if (!currentInvitation) return ''
+    const baseUrl =
+      typeof window !== 'undefined'
+        ? window.location.origin
+        : process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3001'
+    return `${baseUrl}/invite/${currentInvitation.invite_code}`
+  }, [currentInvitation])
 
   // 招待一覧を取得
   const fetchInvitations = useCallback(async () => {
@@ -41,12 +47,12 @@ export default function PartnerInvitation({ onPartnerLinked }: PartnerInvitation
     try {
       setIsLoading(true)
       const response: GetInvitationsResponse = await getInvitations()
-      const invitations = response.success ? response.invitations || [] : []
+      const invitationList: PartnerInvitation[] = response.success ? response.invitations ?? [] : []
       
-      setInvitations(invitations || [])
+      setInvitations(invitationList)
       // 有効な招待があるかチェック
-      const activeInvitation = invitations?.find(
-        (inv: PartnerInvitation) => inv.status === 'pending' && new Date(inv.expires_at) > new Date()
+      const activeInvitation = invitationList.find(
+        (inv) => inv.status === 'pending' && new Date(inv.expires_at) > new Date()
       )
       setCurrentInvitation(activeInvitation || null)
       setError(null) // 成功時はエラーをクリア
@@ -122,96 +128,20 @@ export default function PartnerInvitation({ onPartnerLinked }: PartnerInvitation
 
       {/* 有効な招待がある場合 */}
       {currentInvitation ? (
-        <div className="space-y-4">
-          <div className="p-4 bg-info/10 border border-info/30 rounded-lg">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium text-info">
-                招待中
-              </span>
-              <span className={`px-2 py-1 rounded text-xs font-medium ${
-                getInvitationStatusColor(currentInvitation.status)
-              }`}>
-                {getInvitationStatusText(currentInvitation.status)}
-              </span>
-            </div>
-            
-            <div className="text-sm text-info mb-3">
-              {currentInvitation.invitee_email && (
-                <div>招待先: {currentInvitation.invitee_email}</div>
-              )}
-              <div>
-                有効期限: {(() => {
-                  const timeLeft = getTimeUntilExpiration(currentInvitation.expires_at)
-                  if (timeLeft.expired) return '期限切れ'
-                  if (timeLeft.days > 0) return `${timeLeft.days}日後`
-                  if (timeLeft.hours > 0) return `${timeLeft.hours}時間後`
-                  return `${timeLeft.minutes}分後`
-                })()}
-              </div>
-            </div>
-            
-            <div className="space-y-2">
-              <div className="flex gap-2">
-                <button
-                  onClick={() => handleCopyInviteUrl(`${window.location.origin}/invite/${currentInvitation.invite_code}`)}
-                  className="px-3 py-2 bg-primary text-primary-foreground rounded text-sm hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 transition-colors"
-                >
-                  招待URLをコピー
-                </button>
-                <button
-                  onClick={() => setShowQR(!showQR)}
-                  className="px-3 py-2 bg-secondary text-secondary-foreground rounded text-sm hover:bg-secondary/80 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 transition-colors"
-                >
-                  {showQR ? 'QRコードを隠す' : 'QRコードを表示'}
-                </button>
-              </div>
-              
-              {showQR && (
-                <div className="mt-3 text-center">
-                  <Image
-                    src={generateQRCodeUrl(`${window.location.origin}/invite/${currentInvitation.invite_code}`)}
-                    alt="招待QRコード"
-                    className="mx-auto border border-border rounded"
-                    width={200}
-                    height={200}
-                  />
-                  <p className="text-xs text-muted-foreground mt-2">
-                    QRコードをスキャンして招待を受け取れます
-                  </p>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
+        <PartnerInvitationActiveCard
+          invitation={currentInvitation}
+          inviteUrl={currentInviteUrl}
+          showQR={showQR}
+          onToggleQR={() => setShowQR((prev) => !prev)}
+          onCopyInviteUrl={handleCopyInviteUrl}
+        />
       ) : (
-        /* 新しい招待を作成 */
-        <div className="space-y-4">
-          <div>
-            <label htmlFor="invitee-email" className="block text-sm font-medium text-muted-foreground mb-2">
-              パートナーのメールアドレス（任意）
-            </label>
-            <input
-              id="invitee-email"
-              type="email"
-              value={inviteeEmail}
-              onChange={(e) => setInviteeEmail(e.target.value)}
-              placeholder="partner@example.com"
-              className="w-full px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-background text-foreground"
-              disabled={isLoading}
-            />
-            <p className="text-xs text-muted-foreground mt-1">
-              メールアドレスは記録用です。招待リンクは誰でも使用できます。
-            </p>
-          </div>
-          
-          <button
-            onClick={handleCreateInvitation}
-            disabled={isLoading}
-            className="w-full px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
-          >
-            {isLoading ? '招待リンクを生成中...' : '招待リンクを生成'}
-          </button>
-        </div>
+        <PartnerInvitationCreateForm
+          inviteeEmail={inviteeEmail}
+          onInviteeEmailChange={setInviteeEmail}
+          onSubmit={handleCreateInvitation}
+          isLoading={isLoading}
+        />
       )}
 
       {/* 招待履歴 */}
