@@ -23,7 +23,7 @@ export default function LandingPage() {
               <span className="block">家事を</span>
               <span className="block text-primary dark:text-primary">一緒に楽しもう</span>
               <span className="block">って思わない？</span>
-              <span className="block">いやそうだよ</span>
+              {/* <span className="block">いやそうだよ</span> */}
             </h1>
             <p className="text-xl text-muted-foreground dark:text-muted-foreground mb-8 max-w-3xl mx-auto">
               パートナーと一緒に家事を共有してもっと効率的で楽しい毎日にしたいですよね
