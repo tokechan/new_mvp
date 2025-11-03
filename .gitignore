@@ -155,7 +155,7 @@ run-test.html
 test-realtime-sync.html
 test-rls-policies.html
 test-business-logic.js
+test-rls-policies.env.js
 
 # Trae IDE
 .trae/
-

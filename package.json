@@ -39,6 +39,7 @@
     "env:setup:staging": "./scripts/setup-env.sh staging",
     "env:setup:production": "./scripts/setup-env.sh production",
     "security:check": "npm run env:check && git status --ignored | grep -E '\\.env|\\.open-next'",
+    "test:rls:prepare": "node scripts/generate-test-rls-env.mjs",
     "create:test-user": "node scripts/create-supabase-user.mjs",
     "postinstall": "node scripts/apply-patches.js"
   },
