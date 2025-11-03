@@ -4,6 +4,113 @@ import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { X, Smile, ThumbsUp, Heart, Handshake, Flame } from 'lucide-react'
 
+const EMOJI_ORDER = ['😊', '👍', '❤️', '🙏', '🔥'] as const
+
+const LABEL_TO_EMOJI: Record<string, (typeof EMOJI_ORDER)[number]> = {
+  嬉しい: '😊',
+  いいね: '👍',
+  愛してる: '❤️',
+  お疲れさま: '🙏',
+  すごい: '🔥',
+}
+
+const THEME_GRADIENT: Record<string, string> = {
+  multi: 'bg-gradient-to-br from-yellow-100 via-pink-100 to-primary/10',
+  yellow: 'bg-gradient-to-br from-yellow-50/40 via-amber-100/50 to-orange-50/40',
+  blue: 'bg-gradient-to-br from-primary/40 via-primary/30 to-primary/50',
+  pink: 'bg-gradient-to-br from-pink-50/40 via-rose-100/50 to-fuchsia-50/40',
+  purple: 'bg-gradient-to-br from-purple-50/40 via-violet-100/50 to-fuchsia-50/40',
+  orange: 'bg-gradient-to-br from-orange-50/40 via-amber-100/50 to-yellow-50/40',
+}
+
+const ICON_ACCENT_TONE: Record<string, string> = {
+  multi: 'text-pink-600',
+  yellow: 'text-amber-500',
+  blue: 'text-primary',
+  pink: 'text-pink-600',
+  purple: 'text-violet-600',
+  orange: 'text-orange-500',
+}
+
+const ICON_BACKGROUND_TONE: Record<string, string> = {
+  multi: 'bg-pink-300/30',
+  yellow: 'bg-amber-300/30',
+  blue: 'bg-primary/30',
+  pink: 'bg-pink-300/30',
+  purple: 'bg-violet-300/30',
+  orange: 'bg-orange-300/30',
+}
+
+const BUTTON_BG_TONE: Record<string, string> = {
+  multi: 'bg-pink-300',
+  yellow: 'bg-amber-300',
+  blue: 'bg-primary',
+  pink: 'bg-pink-300',
+  purple: 'bg-violet-300',
+  orange: 'bg-orange-300',
+}
+
+const BUTTON_HOVER_TONE: Record<string, string> = {
+  multi: 'hover:bg-pink-400',
+  yellow: 'hover:bg-amber-400',
+  blue: 'hover:bg-primary/90',
+  pink: 'hover:bg-pink-400',
+  purple: 'hover:bg-violet-400',
+  orange: 'hover:bg-orange-400',
+}
+
+const BUTTON_RING_TONE: Record<string, string> = {
+  multi: 'focus:ring-pink-300',
+  yellow: 'focus:ring-amber-300',
+  blue: 'focus:ring-primary',
+  pink: 'focus:ring-pink-300',
+  purple: 'focus:ring-violet-300',
+  orange: 'focus:ring-orange-300',
+}
+
+const CONFETTI_PALETTE: Record<string, string[]> = {
+  multi: ['#FF6B6B', '#FFD93D', '#6BCB77', '#4D96FF', '#B28DFF'],
+  yellow: ['#FDE68A', '#FCD34D', '#FBBF24', '#FB923C', '#FEF3C7'],
+  blue: ['#93C5FD', '#60A5FA', '#3B82F6', '#22D3EE', '#A5B4FC'],
+  pink: ['#FBCFE8', '#F472B6', '#FB7185', '#EC4899', '#FECDD3'],
+  purple: ['#D8B4FE', '#C084FC', '#A78BFA', '#F472B6', '#9333EA'],
+  orange: ['#FED7AA', '#FDBA74', '#FB923C', '#F59E0B', '#FCD34D'],
+}
+
+function extractPrimaryEmoji(msg: string): (typeof EMOJI_ORDER)[number] | null {
+  const trimmed = (msg || '').trim()
+  for (const emoji of EMOJI_ORDER) {
+    if (trimmed.includes(emoji)) return emoji
+  }
+  const first = trimmed.charAt(0)
+  if (EMOJI_ORDER.includes(first as (typeof EMOJI_ORDER)[number])) {
+    return first as (typeof EMOJI_ORDER)[number]
+  }
+  const labelMatch = trimmed.match(/【([^】]+)】/)
+  if (labelMatch) {
+    const mapped = LABEL_TO_EMOJI[labelMatch[1]]
+    if (mapped) return mapped
+  }
+  return null
+}
+
+function deriveThemeFromEmoji(emoji: string | null): string {
+  switch (emoji) {
+    case '😊':
+      return 'yellow'
+    case '👍':
+      return 'blue'
+    case '❤️':
+      return 'pink'
+    case '🙏':
+      return 'purple'
+    case '🔥':
+      return 'orange'
+    default:
+      return 'multi'
+  }
+}
+
 interface ThankYouCelebrationProps {
   /** 表示状態 */
   open: boolean
@@ -32,121 +139,16 @@ export default function ThankYouCelebration({
   const startTimeRef = useRef<number>(0)
   const [showMessage, setShowMessage] = useState(false)
 
-  // 絵文字抽出とテーマ判定
-  const EMOJI_ORDER = ['😊', '👍', '❤️', '🙏', '🔥'] as const
-  const LABEL_TO_EMOJI: Record<string, (typeof EMOJI_ORDER)[number]> = {
-    '嬉しい': '😊',
-    'いいね': '👍',
-    '愛してる': '❤️',
-    'お疲れさま': '🙏',
-    'すごい': '🔥',
-  }
-  const extractPrimaryEmoji = (msg: string) => {
-    const s = (msg || '').trim()
-    for (const e of EMOJI_ORDER) {
-      if (s.includes(e)) return e
-    }
-    // 先頭が絵文字のケースにも対応
-    const first = s.charAt(0)
-    if (EMOJI_ORDER.includes(first as any)) {
-      return first as (typeof EMOJI_ORDER)[number]
-    }
-    const labelMatch = s.match(/【([^】]+)】/)
-    if (labelMatch) {
-      const mapped = LABEL_TO_EMOJI[labelMatch[1]]
-      if (mapped) return mapped
-    }
-    return null
-  }
-  const deriveThemeFromEmoji = (emoji: string | null) => {
-    switch (emoji) {
-      case '😊':
-        return 'yellow'
-      case '👍':
-        return 'blue'
-      case '❤️':
-        return 'pink'
-      case '🙏':
-        return 'purple'
-      case '🔥':
-        return 'orange'
-      default:
-        return 'multi'
-    }
-  }
-
   const primaryEmoji = extractPrimaryEmoji(message)
   const theme = deriveThemeFromEmoji(primaryEmoji)
-
-  // 背景グラデーションのクラス（Tailwind のパージ回避のため列挙）
-  const themeGradient: Record<string, string> = {
-    multi: 'bg-gradient-to-br from-yellow-100 via-pink-100 to-primary/10',
-    yellow: 'bg-gradient-to-br from-yellow-50/40 via-amber-100/50 to-orange-50/40',
-    blue: 'bg-gradient-to-br from-primary/40 via-primary/30 to-primary/50',
-    pink: 'bg-gradient-to-br from-pink-50/40 via-rose-100/50 to-fuchsia-50/40',
-    purple: 'bg-gradient-to-br from-purple-50/40 via-violet-100/50 to-fuchsia-50/40',
-    orange: 'bg-gradient-to-br from-orange-50/40 via-amber-100/50 to-yellow-50/40',
-  }
-
-
+  const themeGradientClass = THEME_GRADIENT[theme] ?? THEME_GRADIENT.multi
   // メッセージ表示用：プレフィックス除去＋絵文字除去（ES5互換）
   const sanitizedMessage = sanitizePartnerMessage(message)
-
-  // アイコンのアクセントカラー（テーマに調和）
-  const iconAccentTone: Record<string, string> = {
-    multi: 'text-pink-600',
-    yellow: 'text-amber-500',
-    blue: 'text-primary',
-    pink: 'text-pink-600',
-    purple: 'text-violet-600',
-    orange: 'text-orange-500',
-  }
-  const iconAccentClass = iconAccentTone[theme] || iconAccentTone.multi
-  // アイコン背景色（透明度を50%にしてガラス感を演出）
-  const iconBackgroundTone: Record<string, string> = {
-    multi: 'bg-pink-300/30',
-    yellow: 'bg-amber-300/30',
-    blue: 'bg-primary/30',
-    pink: 'bg-pink-300/30',
-    purple: 'bg-violet-300/30',
-    orange: 'bg-orange-300/30',
-  }
-  const iconBackgroundClass = iconBackgroundTone[theme] || iconBackgroundTone.multi
-  // 閉じるボタン背景色（テーマに調和する同系色・彩度控えめ）
-  const buttonBgTone: Record<string, string> = {
-    multi: 'bg-pink-300',
-    yellow: 'bg-amber-300',
-    blue: 'bg-primary',
-    pink: 'bg-pink-300',
-    purple: 'bg-violet-300',
-    orange: 'bg-orange-300',
-  }
-  const buttonHoverTone: Record<string, string> = {
-    multi: 'hover:bg-pink-400',
-    yellow: 'hover:bg-amber-400',
-    blue: 'hover:bg-primary/90',
-    pink: 'hover:bg-pink-400',
-    purple: 'hover:bg-violet-400',
-    orange: 'hover:bg-orange-400',
-  }
-  const buttonRingTone: Record<string, string> = {
-    multi: 'focus:ring-pink-300',
-    yellow: 'focus:ring-amber-300',
-    blue: 'focus:ring-primary',
-    pink: 'focus:ring-pink-300',
-    purple: 'focus:ring-violet-300',
-    orange: 'focus:ring-orange-300',
-  }
-
-  // コンフェッティの配色をテーマに合わせる
-  const confettiPalette: Record<string, string[]> = {
-    multi: ['#FF6B6B', '#FFD93D', '#6BCB77', '#4D96FF', '#B28DFF'],
-    yellow: ['#FDE68A', '#FCD34D', '#FBBF24', '#FB923C', '#FEF3C7'],
-    blue: ['#93C5FD', '#60A5FA', '#3B82F6', '#22D3EE', '#A5B4FC'],
-    pink: ['#FBCFE8', '#F472B6', '#FB7185', '#EC4899', '#FECDD3'],
-    purple: ['#D8B4FE', '#C084FC', '#A78BFA', '#F472B6', '#9333EA'],
-    orange: ['#FED7AA', '#FDBA74', '#FB923C', '#F59E0B', '#FCD34D'],
-  }
+  const iconAccentClass = ICON_ACCENT_TONE[theme] ?? ICON_ACCENT_TONE.multi
+  const iconBackgroundClass = ICON_BACKGROUND_TONE[theme] ?? ICON_BACKGROUND_TONE.multi
+  const buttonBgClass = BUTTON_BG_TONE[theme] ?? BUTTON_BG_TONE.multi
+  const buttonHoverClass = BUTTON_HOVER_TONE[theme] ?? BUTTON_HOVER_TONE.multi
+  const buttonRingClass = BUTTON_RING_TONE[theme] ?? BUTTON_RING_TONE.multi
 
   // パーティクル型
   type Particle = {
@@ -164,8 +166,11 @@ export default function ThankYouCelebration({
   useEffect(() => {
     if (!open) return
 
-    const canvas = canvasRef.current!
-    const ctx = canvas.getContext('2d')!
+    const canvas = canvasRef.current
+    if (!canvas) return
+
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return
 
     const resize = () => {
       canvas.width = window.innerWidth
@@ -173,7 +178,7 @@ export default function ThankYouCelebration({
     }
     resize()
 
-    const colors = confettiPalette[theme] || confettiPalette.multi
+    const colors = CONFETTI_PALETTE[theme] ?? CONFETTI_PALETTE.multi
     const particles: Particle[] = []
 
     const spawnBurst = (count = 160) => {
@@ -271,11 +276,7 @@ export default function ThankYouCelebration({
       if (rafRef.current) cancelAnimationFrame(rafRef.current)
       startTimeRef.current = 0
       setShowMessage(false)
-      const c = canvasRef.current
-      if (c) {
-        const ctx2 = c.getContext('2d')
-        ctx2?.clearRect(0, 0, c.width, c.height)
-      }
+      ctx.clearRect(0, 0, canvas.width, canvas.height)
     }
   }, [open, durationMs, theme])
 
@@ -283,7 +284,7 @@ export default function ThankYouCelebration({
 
   return createPortal(
     <div
-      className={`fixed inset-0 z-[9999] flex items-center justify-center ${themeGradient[theme]}`}
+      className={`fixed inset-0 z-[9999] flex items-center justify-center ${themeGradientClass}`}
       role="dialog"
       aria-modal="true"
       aria-label="ありがとうのお祝い"
@@ -312,7 +313,7 @@ export default function ThankYouCelebration({
           <div className="mt-6 flex justify-center">
             <button
               onClick={onClose}
-              className={`h-12 w-12 rounded-full p-0 grid place-items-center ${buttonBgTone[theme]} shadow-md ${buttonHoverTone[theme]} focus:outline-none focus:ring-2 ${buttonRingTone[theme]}`}
+              className={`h-12 w-12 rounded-full p-0 grid place-items-center ${buttonBgClass} shadow-md ${buttonHoverClass} focus:outline-none focus:ring-2 ${buttonRingClass}`}
               aria-label="閉じる"
             >
               <X className="w-6 h-6 text-white" aria-hidden="true" />

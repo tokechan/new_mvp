@@ -433,7 +433,7 @@ export function useRealtime(callbacks: RealtimeCallbacks) {
       isReconnectingRef.current = false
       connect()
     }, 5000)
-  }, [user, connect, connectionError])
+  }, [user, connect])
 
   // ユーザーログイン時に自動接続
   useEffect(() => {
@@ -451,7 +451,7 @@ export function useRealtime(callbacks: RealtimeCallbacks) {
     return () => {
       // ここでは何もしない（切断は上の分岐で行う）
     }
-  }, [user, connectionError])
+  }, [user, connect, disconnect])
 
   // 接続エラー時の自動再接続
   useEffect(() => {
