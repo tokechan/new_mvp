@@ -179,17 +179,31 @@
             <div>テスト開始を待機中...</div>
         </div>
     </div>
-    
+    <script src="./test-rls-policies.env.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
         let currentUser = null;
         let testChoreId = null;
         let supabaseClient = null;
+        const testEnv = window.__TEST_RLS_ENV__ || {};
+
+        function requireEnv(key) {
+            const value = testEnv[key];
+            if (!value) {
+                const message = `必須環境変数 ${key} が設定されていません。` +
+                    'TEST_RLS_SUPABASE_URL と TEST_RLS_SUPABASE_ANON_KEY を設定し、' +
+                    '`node scripts/generate-test-rls-env.mjs` を実行して test-rls-policies.env.js を生成してください。';
+                console.error(message);
+                alert(message);
+                throw new Error(message);
+            }
+            return value;
+        }
         
         // Supabaseクライアントを初期化
         function initializeSupabase() {
-            const supabaseUrl = 'https://njbormsqqfwnzwbigxuh.supabase.co';
-            const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5qYm9ybXNxcWZ3bnp3YmlneHVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY4NTk0NTUsImV4cCI6MjA3MjQzNTQ1NX0.l7RtcUzoORpe1oUOW4MrahBH9fWjwpGqAc-QeCTYKIQ';
+            const supabaseUrl = requireEnv('SUPABASE_URL');
+            const supabaseAnonKey = requireEnv('SUPABASE_ANON_KEY');
             
             try {
                 supabaseClient = supabase.createClient(supabaseUrl, supabaseAnonKey);
