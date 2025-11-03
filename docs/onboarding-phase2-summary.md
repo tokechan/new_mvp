@@ -13,7 +13,7 @@ Phase 2 の PWA インストール案内機能を実装しました。
   - インストール済み状態の検出
 
 #### UI コンポーネント
-- `src/components/onboarding/PwaInstallPrompt.tsx` - Step 2: PWA インストール案内
+- `src/features/onboarding/components/PwaInstallPrompt.tsx` - Step 2: PWA インストール案内
 
 #### 統合
 - `src/app/onboarding/page.tsx` - PWA インストール案内コンポーネントを統合
@@ -223,7 +223,7 @@ iOS 16.4+ ではホーム画面から起動した場合のみ Web Push が利用
 
 詳細な設計は以下を参照：
 - `docs/onboarding-design.md` - 全体設計書
-- `src/components/onboarding/*.tsx` - 実装詳細
+- `src/features/onboarding/components/*.tsx` - 実装詳細
 - `docs/onboarding-phase1-summary.md` - Phase 1 完了報告
 
 ---

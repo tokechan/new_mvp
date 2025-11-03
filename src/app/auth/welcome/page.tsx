@@ -3,8 +3,8 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
-import { Button } from '@/components/ui/Button'
-import { ValidatedInput } from '@/components/ui/ValidatedInput'
+import { Button } from '@/shared/ui/Button'
+import { ValidatedInput } from '@/shared/ui/ValidatedInput'
 import { useFormValidation, validationRules } from '@/hooks/useFormValidation'
 
 /**

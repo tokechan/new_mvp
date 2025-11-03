@@ -2,7 +2,7 @@
 
 import { Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
-import ThankYouMessage from '@/components/ThankYouMessage'
+import ThankYouMessage from '@/features/thank-you/components/ThankYouMessage'
 import { useAuth } from '@/contexts/AuthContext'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'

@@ -1,16 +1,16 @@
 'use client'
 
 import { useRouter, usePathname } from 'next/navigation'
-import { Button } from '@/components/ui/Button'
+import { Button } from '@/shared/ui/Button'
 import { Home, CheckSquare, Share2, Menu, X, LogOut } from 'lucide-react'
-import NotificationCenter from '@/components/NotificationCenter'
-import UserMenu from '@/components/UserMenu'
+import NotificationCenter from '@/features/notifications/components/NotificationCenter'
+import UserMenu from '@/features/layout/components/UserMenu'
 import { useState, useEffect, useRef } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import Link from 'next/link'
 import { Bell } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { YOUDOLogo } from '@/components/YOUDOLogo'
+import { YOUDOLogo } from '@/shared/components/YOUDOLogo'
 
 /**
  * ナビゲーションコンポーネント

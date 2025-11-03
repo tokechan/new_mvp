@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
-import { useToast } from '@/components/ui/toast'
+import { useToast } from '@/shared/ui/toast'
 import { LogOut, Settings, UserRound } from 'lucide-react'
 import { cn } from '@/lib/utils'
 

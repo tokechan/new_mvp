@@ -287,10 +287,10 @@ localStorage.removeItem('youdo_onboarding_complete')
 
 詳細な設計は以下を参照：
 - `docs/onboarding-design.md` - 全体設計書
-- `src/components/onboarding/*.tsx` - 実装詳細
+- `src/features/onboarding/components/*.tsx` - 実装詳細
 - `src/hooks/useOnboarding.ts` - ステップ管理
 - `src/hooks/usePwaInstallPrompt.ts` - PWA 検出
-- `src/components/onboarding/PushNotificationPrompt.tsx` - プッシュ通知
+- `src/features/onboarding/components/PushNotificationPrompt.tsx` - プッシュ通知
 
 ---
 
@@ -298,9 +298,9 @@ localStorage.removeItem('youdo_onboarding_complete')
 
 ### 活用した既存機能
 - ✅ `src/services/pushSubscriptionService.ts` - プッシュ通知管理
-- ✅ `src/components/PwaInitializer.tsx` - Service Worker 登録
+- ✅ `src/shared/components/PwaInitializer.tsx` - Service Worker 登録
 - ✅ `src/app/app/page.tsx` - ホーム画面
-- ✅ `src/components/Navigation.tsx` / `Footer.tsx` - レイアウト
+- ✅ `src/features/layout/components/Navigation.tsx` / `Footer.tsx` - レイアウト
 
 ### 新しい機能
 - ✅ プラットフォーム別 PWA 検出

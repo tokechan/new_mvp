@@ -11,16 +11,16 @@ Phase 1 の基本構造と Step 1（機能紹介）を実装しました。
 - `src/hooks/useOnboarding.ts` - ステップ遷移・状態管理 Hook
 
 #### UI コンポーネント
-- `src/components/onboarding/OnboardingStepper.tsx` - ステップインジケーター
-- `src/components/onboarding/FeatureIntroduction.tsx` - Step 1: 機能紹介
+- `src/features/onboarding/components/OnboardingStepper.tsx` - ステップインジケーター
+- `src/features/onboarding/components/FeatureIntroduction.tsx` - Step 1: 機能紹介
 
 #### ページ
 - `src/app/onboarding/page.tsx` - オンボーディングメインページ
 
 #### 統合
 - `src/app/app/page.tsx` - 初回ユーザーリダイレクトロジックを追加
-- `src/components/Navigation.tsx` - オンボーディングページで非表示
-- `src/components/Footer.tsx` - オンボーディングページで非表示
+- `src/features/layout/components/Navigation.tsx` - オンボーディングページで非表示
+- `src/features/layout/components/Footer.tsx` - オンボーディングページで非表示
 
 ---
 
@@ -164,7 +164,7 @@ localStorage.removeItem('youdo_onboarding_complete')
 
 詳細な設計は以下を参照：
 - `docs/onboarding-design.md` - 全体設計書
-- `src/components/onboarding/*.tsx` - 実装詳細
+- `src/features/onboarding/components/*.tsx` - 実装詳細
 
 ---
 

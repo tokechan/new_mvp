@@ -1,8 +1,8 @@
 'use client'
 
 import { BellRing, BellOff, AlertCircle, CheckCircle2, ArrowRight, Loader2 } from 'lucide-react'
-import { Button } from '@/components/ui/Button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/shared/ui/Button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui/card'
 import { ensurePushSubscription } from '@/services/pushSubscriptionService'
 import { useState, useEffect } from 'react'
 

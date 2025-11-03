@@ -52,7 +52,7 @@
  * コンポーネントテストの基本パターン
  */
 import { render, screen, fireEvent } from '@testing-library/react'
-import { ChoreItem } from '@/components/ChoreItem'
+import { ChoreItem } from '@/features/chores/components/ChoreItem'
 
 describe('ChoreItem', () => {
   const mockChore = {

@@ -1,8 +1,8 @@
 'use client'
 
 import { Smartphone, Share2, Home, ArrowRight, CheckCircle2, SkipForward, Search } from 'lucide-react'
-import { Button } from '@/components/ui/Button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/shared/ui/Button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui/card'
 import { usePwaInstallPrompt } from '@/hooks/usePwaInstallPrompt'
 
 interface PwaInstallPromptProps {

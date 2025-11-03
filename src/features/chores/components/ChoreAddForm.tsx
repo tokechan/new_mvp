@@ -1,8 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { Button } from '@/components/ui/Button'
-import { Input } from '@/components/ui/Input'
+import { Button } from '@/shared/ui/Button'
+import { Input } from '@/shared/ui/Input'
 import { useScreenReader } from '@/hooks/useScreenReader'
 
 interface ChoreAddFormProps {

@@ -1,7 +1,7 @@
 'use client'
 
 import React, { createContext, useContext, useCallback, useState, useEffect } from 'react'
-import { Card } from '@/components/ui/card'
+import { Card } from '@/shared/ui/card'
 import { cn } from '@/lib/utils'
 import { colors, zIndex } from '@/styles/design-system'
 

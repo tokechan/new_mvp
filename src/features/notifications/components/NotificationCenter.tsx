@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useNotifications, Notification } from '@/contexts/NotificationContext'
-import ThankYouCelebration from '@/components/ThankYouCelebration'
+import ThankYouCelebration from '@/features/thank-you/components/ThankYouCelebration'
 import { useAuth } from '@/contexts/AuthContext'
 import { cn } from '@/lib/utils'
 import { AlertTriangle, Bell, CheckCircle2, Info, X, XCircle } from 'lucide-react'

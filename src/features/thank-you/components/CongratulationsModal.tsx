@@ -1,7 +1,7 @@
 'use client'
 
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { Button } from '@/components/ui/Button'
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/shared/ui/dialog'
+import { Button } from '@/shared/ui/Button'
 import { Chore } from '@/types/chore'
 import { ThumbsUp, X } from 'lucide-react'
 

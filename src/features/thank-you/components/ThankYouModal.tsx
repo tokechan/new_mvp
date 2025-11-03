@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { Undo2, Send } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
-import { Button } from '@/components/ui/Button'
+import { Button } from '@/shared/ui/Button'
 
 export interface ThankYouReaction {
   label: string

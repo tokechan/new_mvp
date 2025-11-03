@@ -1,8 +1,8 @@
 'use client'
 
 import { FileText, Share2, HeartHandshake, ArrowRight, SkipForward } from 'lucide-react'
-import { Button } from '@/components/ui/Button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/shared/ui/Button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui/card'
 
 interface FeatureIntroductionProps {
   onNext: () => void

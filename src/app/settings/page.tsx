@@ -2,10 +2,10 @@
 
 import { useState } from 'react'
 import { useTheme } from 'next-themes'
-import { Button } from '@/components/ui/Button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Label } from '@/components/ui/label'
-import { Input } from '@/components/ui/Input'
+import { Button } from '@/shared/ui/Button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card'
+import { Label } from '@/shared/ui/label'
+import { Input } from '@/shared/ui/Input'
 import { Laptop, Moon, Sun } from 'lucide-react'
 import { ensurePushSubscription, disablePushSubscription } from '@/services/pushSubscriptionService'
 

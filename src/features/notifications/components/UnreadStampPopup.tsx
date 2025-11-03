@@ -1,8 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { Button } from '@/components/ui/Button'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/shared/ui/dialog'
+import { Button } from '@/shared/ui/Button'
 import { Check, ChevronLeft, ChevronRight, Heart } from 'lucide-react'
 
 interface UnreadStamp {

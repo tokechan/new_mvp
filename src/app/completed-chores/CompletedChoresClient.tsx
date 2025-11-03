@@ -5,10 +5,10 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { ChoreService, ExtendedChore } from '@/services/choreService'
 import { sendThankYou } from '@/services/thankYouService'
 import { useAuthState } from '@/hooks/useAuthState'
-import { ThankYouModal, type ThankYouReaction } from '@/components/ThankYouModal'
+import { ThankYouModal, type ThankYouReaction } from '@/features/thank-you/components/ThankYouModal'
 import { Smile, ThumbsUp, Heart, Handshake, Flame, Clock, Home, CheckCircle2, FileText, ClipboardList } from 'lucide-react'
-import { useToast } from '@/components/ui/toast'
-import { Button } from '@/components/ui/Button'
+import { useToast } from '@/shared/ui/toast'
+import { Button } from '@/shared/ui/Button'
 import { cn } from '@/lib/utils'
 
 /**

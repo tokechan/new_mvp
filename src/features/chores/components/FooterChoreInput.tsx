@@ -1,14 +1,14 @@
 'use client'
 
 import { type CSSProperties, useState, useCallback } from 'react'
-import { Input } from '@/components/ui/Input'
-import { Button } from '@/components/ui/Button'
+import { Input } from '@/shared/ui/Input'
+import { Button } from '@/shared/ui/Button'
 import { Plus } from 'lucide-react'
 import { useChores } from '@/hooks/useChores'
 import { ChoreLimitReachedError } from '@/services/choreService'
 import { useScreenReader } from '@/hooks/useScreenReader'
 import { useNotifications } from '@/contexts/NotificationContext'
-import { useToast } from '@/components/ui/toast'
+import { useToast } from '@/shared/ui/toast'
 
 /**
  * モバイル用の固定フッター入力

@@ -4,7 +4,7 @@
 // 作成日: 2025-10-31
 
 import { useRouter } from 'next/navigation'
-import PartnerInvitation from '@/components/PartnerInvitation'
+import PartnerInvitation from '@/features/partners/components/PartnerInvitation'
 import { ArrowRight } from 'lucide-react'
 
 /**

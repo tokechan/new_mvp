@@ -1,6 +1,6 @@
 'use client'
 
-import { Skeleton } from '@/components/ui/skeleton'
+import { Skeleton } from '@/shared/ui/skeleton'
 import PartnerInvitation from './PartnerInvitation'
 
 interface PartnerSetupProps {

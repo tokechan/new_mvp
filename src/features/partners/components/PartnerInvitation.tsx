@@ -17,8 +17,8 @@ import type {
   GetInvitationsResponse,
   PartnerInvitation
 } from '@/types/invitation'
-import { PartnerInvitationActiveCard } from '@/components/PartnerInvitationActiveCard'
-import { PartnerInvitationCreateForm } from '@/components/PartnerInvitationCreateForm'
+import { PartnerInvitationActiveCard } from '@/features/partners/components/PartnerInvitationActiveCard'
+import { PartnerInvitationCreateForm } from '@/features/partners/components/PartnerInvitationCreateForm'
 
 interface PartnerInvitationProps {
   onPartnerLinked?: () => void // パートナー連携完了時のコールバック
