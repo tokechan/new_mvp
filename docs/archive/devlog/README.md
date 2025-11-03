@@ -9,5 +9,9 @@
 
 ### 既存ログ
 - `Realtime-PostgresChanges.md`
+- `realtime-notifications-status.md`
+- `realtime-troubleshooting-log.md`
+- `test-environment-rls-fix.md`
 - `pkce-error-resolution.md`
-- `realtime-troubleshooting-log.md` など
+- `nextauth-secret-generation.md`
+- `base.md`（テンプレート）
