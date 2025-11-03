@@ -150,7 +150,7 @@ supabase migration list   # 状態確認（任意）
 
 Playwright レポートは `npm run test:e2e` 後に `npx playwright show-report` で確認できます。
 
-`scripts/check-jwt-expiration.mjs` は JWT の有効期限チェックに利用できます。トークンを引数または `JWT_TOKEN` 環境変数で渡して実行してください。`test-rls-policies.html` をブラウザで開く前に、`TEST_RLS_SUPABASE_URL` / `TEST_RLS_SUPABASE_ANON_KEY` を設定し `npm run test:rls:prepare` を実行して `test-rls-policies.env.js` を生成します。コミット前のシークレット検出には `pre-commit install` を実行して `.pre-commit-config.yaml` の gitleaks フックを有効化します。
+`scripts/check-jwt-expiration.mjs` は JWT の有効期限チェックに利用できます。トークンを引数または `JWT_TOKEN` 環境変数で渡して実行してください。`test-rls-policies.html` をブラウザで開く前に、`TEST_RLS_SUPABASE_URL` / `TEST_RLS_SUPABASE_PUBLISHABLE_KEY` を設定し `npm run test:rls:prepare` を実行して `test-rls-policies.env.js` を生成します。コミット前のシークレット検出には `pre-commit install` を実行して `.pre-commit-config.yaml` の gitleaks フックを有効化します。
 
 ---
 
