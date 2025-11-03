@@ -10,7 +10,6 @@
 - 追加: `verification-test-cases.md`
   - 実装とドキュメントの整合性確認用の検証テストケース集（非実行）。
 - 目次更新: `docs/reference/index.md` に上記ドキュメントへのリンクを追記。
-- 注記: `next-auth`は現行未採用。`devlog/nextauth-secret-generation.md`は参考資料として保持。
 
 ## 通知・配置
 - 配置場所: `docs/reference/`（技術仕様の一元管理）。
