@@ -4,7 +4,7 @@
 本ドキュメントは、既存の設計ドキュメント（architecture.md / security.md / api.md など）と現行実装の差分を整理し、変更されたモジュール/コンポーネントの特定、設計変更の理由、および影響範囲を明確化します。
 
 ## 設計ドキュメントとの主な差分
-- 認証方式: 設計上の方針通り「Supabase Auth（Email Link / Google OAuth）+ JWT + RLS」。NextAuthは依存に残っていますが現行アプリでは未使用（将来のBFF/Workers統合まで保留）。
+- 認証方式: 設計上の方針通り「Supabase Auth（Email Link / Google OAuth）+ JWT + RLS」。NextAuth 依存は削除し、Supabase Auth 単独構成を採用。
 - OAuth PKCE: 以前は手動実装の痕跡がありましたが、現行はSupabaseの`auth.getSession()`と`auth.exchangeCodeForSession(url)`による自動処理へ統一（devlog/pkce-error-resolution.md の方針反映）。
 - Realtime 認証連携: ドキュメントの記載は簡略でしたが、現行実装では`NotificationProvider`で`onAuthStateChange`イベントを監視し、`realtime.setAuth(session.access_token)`を確実に実行する設計へ強化。
 - セッション保持: SSRブラウザクライアント（@supabase/ssr）で`autoRefreshToken: true`/`persistSession: true`/`detectSessionInUrl: true`を採用。テスト・デモ用に`NEXT_PUBLIC_SKIP_AUTH`を導入（モック認証と最小限のRLS検証のため）。
@@ -50,10 +50,6 @@
 - 運用: デバッグ/検証フラグによりステージング/ローカルでの確認が容易。
 - 将来拡張: BFF（Workers/Hono）導入時は`JWKS`でSupabase JWT検証、CORS制限、NextAuth連携の再評価が必要。
 
-## 未使用の依存（現状）
-- `next-auth`: 依存に残っていますが、現行フロントでは未使用。将来的なBFF導入時の選択肢として保持。文書は「参考情報」として扱い、本番仕様はSupabase Authです。
-
 ## 推奨アクション
 - CORS設定の見直し（BFF導入時にオリジン制限）。
 - `NEXT_PUBLIC_SKIP_AUTH`の使用範囲をステージング/ローカルに限定し、本番では無効化を保証。
-- NextAuth関連ドキュメントに「現行は未採用」の注記を追加（参考目的）。

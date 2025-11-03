@@ -13,5 +13,4 @@
 - `realtime-troubleshooting-log.md`
 - `test-environment-rls-fix.md`
 - `pkce-error-resolution.md`
-- `nextauth-secret-generation.md`
 - `base.md`（テンプレート）
