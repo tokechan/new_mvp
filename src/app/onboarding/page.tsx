@@ -3,12 +3,12 @@
 import { useEffect } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useRouter } from 'next/navigation'
-import { useOnboarding } from '@/hooks/useOnboarding'
-import OnboardingStepper from '@/components/onboarding/OnboardingStepper'
-import FeatureIntroduction from '@/components/onboarding/FeatureIntroduction'
-import PwaInstallPrompt from '@/components/onboarding/PwaInstallPrompt'
-import PushNotificationPrompt from '@/components/onboarding/PushNotificationPrompt'
-import { Button } from '@/components/ui/Button'
+import { useOnboarding } from '@/features/onboarding/hooks/useOnboarding'
+import OnboardingStepper from '@/features/onboarding/components/OnboardingStepper'
+import FeatureIntroduction from '@/features/onboarding/components/FeatureIntroduction'
+import PwaInstallPrompt from '@/features/onboarding/components/PwaInstallPrompt'
+import PushNotificationPrompt from '@/features/onboarding/components/PushNotificationPrompt'
+import { Button } from '@/shared/ui/Button'
 import { CheckCircle } from 'lucide-react'
 
 /**

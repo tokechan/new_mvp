@@ -2,7 +2,7 @@ import React from 'react'
 import { render, screen, fireEvent } from '@testing-library/react'
 import { useRouter, usePathname } from 'next/navigation'
 import '@testing-library/jest-dom'
-import Navigation from '../Navigation'
+import Navigation from '@/features/layout/components/Navigation'
 
 // Next.jsのナビゲーションフックをモック
 jest.mock('next/navigation', () => ({
@@ -11,7 +11,7 @@ jest.mock('next/navigation', () => ({
 }))
 
 // NotificationCenterコンポーネントをモック
-jest.mock('@/components/NotificationCenter', () => {
+jest.mock('@/features/notifications/components/NotificationCenter', () => {
   return function MockNotificationCenter() {
     return <div data-testid="notification-center">Notification Center</div>
   }

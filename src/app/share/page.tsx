@@ -3,7 +3,7 @@
 import { useAuth } from '@/contexts/AuthContext'
 import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
-import PartnerInvitation from '@/components/PartnerInvitation'
+import PartnerInvitation from '@/features/partners/components/PartnerInvitation'
 import { Handshake } from 'lucide-react'
 
 /**

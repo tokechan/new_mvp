@@ -14,7 +14,7 @@
   - `chores/completions/thanks` は `DEFAULT (d)` のまま。
   - そのため UPDATE/DELETE の WAL には主キーと変更列のみが含まれ、`owner_id/partner_id` が含まれない可能性が高い。
 - クライアント（フロント実装）
-  - <mcfile name="ChoresList.tsx" path="/Users/yutatokeshi/Develop/TRAE/MVP/src/components/ChoresList.tsx"></mcfile>
+  - <mcfile name="ChoresList.tsx" path="/Users/yutatokeshi/Develop/TRAE/MVP/src/features/chores/components/ChoresList.tsx"></mcfile>
     - `postgres_changes` を `owner_id=eq.<uid>` / `partner_id=eq.<uid>` のフィルタ付きで購読。
     - `SUBSCRIBED` ログは出ており、チャンネルの作成・購読自体は成功。
     - 楽観的 UI のため関数型 `setState` を使用済み。
@@ -198,6 +198,6 @@ using (owner_id = auth.uid() or partner_id = auth.uid());
 - [ ] **具体的なエラーメッセージの特定**（診断中）
 
 ## 参考ファイル
-- クライアント実装: <mcfile name="ChoresList.tsx" path="/Users/yutatokeshi/Develop/TRAE/MVP/src/components/ChoresList.tsx"></mcfile>
+- クライアント実装: <mcfile name="ChoresList.tsx" path="/Users/yutatokeshi/Develop/TRAE/MVP/src/features/chores/components/ChoresList.tsx"></mcfile>
 - Supabase クライアント: <mcfile name="supabase.ts" path="/Users/yutatokeshi/Develop/TRAE/MVP/src/lib/supabase.ts"></mcfile>
 - RLS 定義: <mcfile name="rls-policies.sql" path="/Users/yutatokeshi/Develop/TRAE/MVP/docs/rls-policies.sql"></mcfile>

@@ -12,8 +12,8 @@ YOUDO における Web Push 機能の実装と運用上の要点をまとめた�
 | ---- | -------- | ---- |
 | ランディング UI | `src/app/(marketing)/page.tsx` | PWA を含む公開サイトの入口。|
 | 設定 UI | `src/app/settings/page.tsx` | Push 有効化/解除ボタンを提供。|
-| クライアント購読ロジック | `src/services/pushSubscriptionService.ts` / `pushSubscriptionSafe.ts` | フラグ判定、iOS 再試行、BFF 登録。|
-| API クライアント | `src/services/apiClient.ts` | Supabase セッションからアクセストークンを付与。|
+| クライアント購読ロジック | `src/features/notifications/services/pushSubscriptionService.ts` / `pushSubscriptionSafe.ts` | フラグ判定、iOS 再試行、BFF 登録。|
+| API クライアント | `src/shared/services/apiClient.ts` | Supabase セッションからアクセストークンを付与。|
 | BFF (Hono/Cloudflare Worker) | `src/bff/app.ts` | `/push/subscribe` `/push/unsubscribe` を実装し Supabase を更新。|
 | Service Worker | `public/sw.js` | `push` / `notificationclick` ハンドラ。|
 

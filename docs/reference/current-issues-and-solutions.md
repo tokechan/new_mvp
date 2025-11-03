@@ -82,7 +82,7 @@ WITH CHECK (
 
 ### 解決策3: エラーハンドリングの改善
 
-**実装場所:** `src/components/ChoresList.tsx`
+**実装場所:** `src/features/chores/components/ChoresList.tsx`
 
 ```typescript
 // より詳細なエラーハンドリング

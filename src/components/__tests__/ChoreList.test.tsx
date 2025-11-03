@@ -1,11 +1,11 @@
 import React from 'react'
 import { render, screen } from '@testing-library/react'
 import { ChoreList } from '../ChoreList'
-import { Chore } from '@/types/chore'
-import { useAuthState } from '@/hooks/useAuthState'
+import { Chore } from '@/features/chores/types/chore'
+import { useAuthState } from '@/features/auth/hooks/useAuthState'
 
 // モック設定
-jest.mock('@/hooks/useAuthState', () => ({
+jest.mock('@/features/auth/hooks/useAuthState', () => ({
   useAuthState: jest.fn()
 }))
 

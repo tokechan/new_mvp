@@ -1,8 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { Button } from '@/components/ui/Button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/shared/ui/Button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card'
 import { CheckCircle2, XCircle, Trash2, RotateCcw, ExternalLink } from 'lucide-react'
 import Link from 'next/link'
 

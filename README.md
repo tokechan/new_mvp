@@ -41,7 +41,8 @@ Next.js 15（App Router）と Supabase をベースに、Cloudflare Pages 上に
 主なディレクトリ:
 
 - `src/app` … Next.js App Router のページ/レイアウト
-- `src/components` … UI コンポーネント（家事カード、通知センター等）
+- `src/features` … 機能別のUIコンポーネント群（家事、通知、感謝メッセージなど）
+- `src/shared` … 共通UIプリミティブや横断的コンポーネント
 - `src/hooks` … `useChores` / `useRealtime` など状態管理ロジック
 - `src/services` … Supabase アクセス・Push購読・ThankYou送信などのドメインサービス
 - `src/bff` … Cloudflare Worker 上で動く Hono ベースの API

@@ -12,7 +12,7 @@ import {
   getInvitations as getInvitationsService,
   getInvitation as getInvitationService,
   acceptInvitation as acceptInvitationService,
-} from '@/services/invitationService'
+} from '@/features/partners/services/invitationService'
 import {
   generateInviteUrl,
   generateQRCodeUrl,
@@ -35,7 +35,7 @@ import {
   GetInvitationsResponse,
   AcceptInvitationResponse,
   AcceptInvitationRequest,
-} from '@/types/invitation'
+} from '@/features/partners/types/invitation'
 
 // ===== API操作（新しいサービス層を使用） =====
 

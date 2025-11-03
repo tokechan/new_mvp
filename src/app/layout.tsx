@@ -2,11 +2,11 @@ import type { Metadata, Viewport } from 'next'
 import './globals.css'
 import { AuthProvider } from '@/contexts/AuthContext'
 import { NotificationProvider } from '@/contexts/NotificationContext'
-import { ToastProvider } from '@/components/ui/toast'
-import Navigation from '@/components/Navigation'
-import ThemeProvider from '@/components/ThemeProvider'
-import PwaInitializer from '@/components/PwaInitializer'
-import Footer from '@/components/Footer'
+import { ToastProvider } from '@/shared/ui/toast'
+import Navigation from '@/features/layout/components/Navigation'
+import ThemeProvider from '@/shared/components/ThemeProvider'
+import PwaInitializer from '@/shared/components/PwaInitializer'
+import Footer from '@/features/layout/components/Footer'
 
 export const metadata: Metadata = {
   title: 'YOUDO - 家事共有アプリ',

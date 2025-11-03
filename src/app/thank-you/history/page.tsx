@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useRouter } from 'next/navigation'
-import { getThankYouHistory, type ThankYouMessage } from '@/services/thankYouService'
+import { getThankYouHistory, type ThankYouMessage } from '@/features/thank-you/services/thankYouService'
 
 export default function ThankYouHistoryPage() {
   const { user, loading } = useAuth()

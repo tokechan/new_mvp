@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation'
-import MarkdownRenderer from '@/components/MarkdownRenderer'
+import MarkdownRenderer from '@/shared/components/MarkdownRenderer'
 
 const LEGAL_PAGES = {
   privacy: {

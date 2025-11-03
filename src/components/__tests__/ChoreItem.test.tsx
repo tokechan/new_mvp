@@ -1,15 +1,15 @@
 import React from 'react'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { useRouter } from 'next/navigation'
-import { ChoreItem } from '../ChoreItem'
-import { Chore } from '@/types/chore'
+import { ChoreItem } from '@/features/chores/components/ChoreItem'
+import { Chore } from '@/features/chores/types/chore'
 
 // モック設定
 jest.mock('next/navigation', () => ({
   useRouter: jest.fn()
 }))
 
-jest.mock('@/components/ChoreCompletionModal', () => ({
+jest.mock('@/features/chores/components/ChoreCompletionModal', () => ({
   ChoreCompletionModal: ({ isOpen, onClose, onConfirm }: any) => {
     if (!isOpen) return null
     return (
@@ -21,7 +21,7 @@ jest.mock('@/components/ChoreCompletionModal', () => ({
   }
 }))
 
-jest.mock('@/components/CongratulationsModal', () => ({
+jest.mock('@/features/thank-you/components/CongratulationsModal', () => ({
   CongratulationsModal: ({ isOpen, onClose }: any) => {
     if (!isOpen) return null
     return (
@@ -32,7 +32,7 @@ jest.mock('@/components/CongratulationsModal', () => ({
   }
 }))
 
-jest.mock('../ThankYouMessage', () => {
+jest.mock('@/features/thank-you/components/ThankYouMessage', () => {
   return function ThankYouMessage({ onSuccess, onCancel }: any) {
     return (
       <div data-testid="thank-you-message">

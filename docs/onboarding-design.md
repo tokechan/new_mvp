@@ -224,11 +224,11 @@ export function isOnboardingComplete(): boolean {
 ```typescript
 'use client'
 
-import { useOnboarding } from '@/hooks/useOnboarding'
-import FeatureIntroduction from '@/components/onboarding/FeatureIntroduction'
-import PwaInstallPrompt from '@/components/onboarding/PwaInstallPrompt'
-import PushNotificationPrompt from '@/components/onboarding/PushNotificationPrompt'
-import OnboardingComplete from '@/components/onboarding/OnboardingComplete'
+import { useOnboarding } from '@/features/onboarding/hooks/useOnboarding'
+import FeatureIntroduction from '@/features/onboarding/components/FeatureIntroduction'
+import PwaInstallPrompt from '@/features/onboarding/components/PwaInstallPrompt'
+import PushNotificationPrompt from '@/features/onboarding/components/PushNotificationPrompt'
+import OnboardingComplete from '@/features/onboarding/components/OnboardingComplete'
 
 export default function OnboardingPage() {
   const { currentStep, nextStep, completeOnboarding } = useOnboarding()
@@ -408,8 +408,8 @@ describe('useOnboarding', () => {
 - 既存実装:
   - `docs/reference/pwa-push-notifications.md`
   - `docs/reference/push-notification-implementation.md`
-  - `src/components/PwaInitializer.tsx`
-  - `src/services/pushSubscriptionService.ts`
+  - `src/shared/components/PwaInitializer.tsx`
+  - `src/features/notifications/services/pushSubscriptionService.ts`
 
 ---
 
