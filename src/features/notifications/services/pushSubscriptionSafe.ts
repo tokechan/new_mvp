@@ -1,7 +1,7 @@
 'use client'
 
 import { supabase } from '@/lib/supabase'
-import { ApiError, createApiClient } from './apiClient'
+import { ApiError, createApiClient } from '@/shared/services/apiClient'
 import type {
   PushSubscriptionResult,
   PushUnsubscriptionResult,
