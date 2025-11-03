@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { User, Session } from '@supabase/supabase-js'
-import { authService } from '@/services/authService'
-import { profileService } from '@/services/profileService'
+import { authService } from '@/features/auth/services/authService'
+import { profileService } from '@/features/profile/services/profileService'
 import { shouldUseMockAuth } from '@/utils/authMode'
 
 /**

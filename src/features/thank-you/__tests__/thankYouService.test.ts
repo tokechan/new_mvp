@@ -6,7 +6,7 @@ import {
   PREDEFINED_THANK_YOU_MESSAGES,
   type ThankYouMessage,
   type PredefinedThankYouMessage
-} from '../thankYouService'
+} from '@/features/thank-you/services/thankYouService'
 import { supabase } from '@/lib/supabase'
 
 // Supabaseクライアントのモック

@@ -84,7 +84,7 @@ describe('ChoreItem', () => {
  * カスタムフックテストの基本パターン
  */
 import { renderHook, act } from '@testing-library/react'
-import { useChores } from '@/hooks/useChores'
+import { useChores } from '@/features/chores/hooks/useChores'
 
 describe('useChores', () => {
   it('初期状態では空の配列を返す', () => {

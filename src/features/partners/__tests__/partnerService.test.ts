@@ -1,4 +1,4 @@
-import { PartnerService } from '../partnerService'
+import { PartnerService } from '@/features/partners/services/partnerService'
 
 // Supabaseクライアントをモック化
 jest.mock('@/lib/supabase', () => ({

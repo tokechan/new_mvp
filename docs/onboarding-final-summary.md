@@ -297,7 +297,7 @@ localStorage.removeItem('youdo_onboarding_complete')
 ## 既存機能との統合
 
 ### 活用した既存機能
-- ✅ `src/services/pushSubscriptionService.ts` - プッシュ通知管理
+- ✅ `src/features/notifications/services/pushSubscriptionService.ts` - プッシュ通知管理
 - ✅ `src/shared/components/PwaInitializer.tsx` - Service Worker 登録
 - ✅ `src/app/app/page.tsx` - ホーム画面
 - ✅ `src/features/layout/components/Navigation.tsx` / `Footer.tsx` - レイアウト

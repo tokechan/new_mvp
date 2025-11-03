@@ -2,9 +2,9 @@
 
 import { useState, useEffect, useCallback, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { ChoreService, ExtendedChore } from '@/services/choreService'
-import { sendThankYou } from '@/services/thankYouService'
-import { useAuthState } from '@/hooks/useAuthState'
+import { ChoreService, ExtendedChore } from '@/features/chores/services/choreService'
+import { sendThankYou } from '@/features/thank-you/services/thankYouService'
+import { useAuthState } from '@/features/auth/hooks/useAuthState'
 import { ThankYouModal, type ThankYouReaction } from '@/features/thank-you/components/ThankYouModal'
 import { Smile, ThumbsUp, Heart, Handshake, Flame, Clock, Home, CheckCircle2, FileText, ClipboardList } from 'lucide-react'
 import { useToast } from '@/shared/ui/toast'

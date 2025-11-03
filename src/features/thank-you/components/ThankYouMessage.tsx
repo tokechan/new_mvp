@@ -3,8 +3,8 @@
 import React, { useState } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useNotifications } from '@/contexts/NotificationContext'
-import { sendThankYou, PREDEFINED_THANK_YOU_MESSAGES } from '@/services/thankYouService'
-import type { ThankYouMessage as ThankYouMessageType } from '@/services/thankYouService'
+import { sendThankYou, PREDEFINED_THANK_YOU_MESSAGES } from '@/features/thank-you/services/thankYouService'
+import type { ThankYouMessage as ThankYouMessageType } from '@/features/thank-you/services/thankYouService'
 
 interface ThankYouMessageProps {
   choreId: string

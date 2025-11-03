@@ -1,5 +1,5 @@
 import { renderHook, act } from '@testing-library/react'
-import { useChores } from '../useChores'
+import { useChores } from '@/features/chores/hooks/useChores'
 import { supabase } from '@/lib/supabase'
 
 // useAuthフックのモック

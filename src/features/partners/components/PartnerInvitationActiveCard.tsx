@@ -7,7 +7,7 @@ import {
   getInvitationStatusColor,
   getTimeUntilExpiration,
 } from '@/lib/invitation-api'
-import type { PartnerInvitation } from '@/types/invitation'
+import type { PartnerInvitation } from '@/features/partners/types/invitation'
 
 interface PartnerInvitationActiveCardProps {
   invitation: PartnerInvitation

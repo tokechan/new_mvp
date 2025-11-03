@@ -1,7 +1,7 @@
 'use client'
 
 import { Check, Circle } from 'lucide-react'
-import { OnboardingStep } from '@/hooks/useOnboarding'
+import { OnboardingStep } from '@/features/onboarding/hooks/useOnboarding'
 import { cn } from '@/lib/utils'
 
 interface OnboardingStepperProps {

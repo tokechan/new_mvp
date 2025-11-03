@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card'
 import { Label } from '@/shared/ui/label'
 import { Input } from '@/shared/ui/Input'
 import { Laptop, Moon, Sun } from 'lucide-react'
-import { ensurePushSubscription, disablePushSubscription } from '@/services/pushSubscriptionService'
+import { ensurePushSubscription, disablePushSubscription } from '@/features/notifications/services/pushSubscriptionService'
 
 export default function SettingsPage() {
   const [timezone, setTimezone] = useState('Asia/Tokyo')

@@ -6,7 +6,7 @@ import {
   cancelInvitation,
   cleanupExpiredInvitations,
   InvitationService
-} from '../invitationService'
+} from '@/features/partners/services/invitationService'
 
 // Supabaseクライアントをモック化
 jest.mock('@/lib/supabase', () => ({
@@ -20,7 +20,7 @@ jest.mock('@/lib/supabase', () => ({
 }))
 
 import { supabase } from '@/lib/supabase'
-jest.mock('@/services/partnerService', () => ({
+jest.mock('@/features/partners/services/partnerService', () => ({
   PartnerService: {
     getPartnerInfo: jest.fn().mockResolvedValue({
       id: 'partner-456',

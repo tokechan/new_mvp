@@ -15,7 +15,7 @@
 ### 問題1の原因
 - **環境変数設定ミス**: Cloudflare Workersの環境変数に `NEXT_PUBLIC_SKIP_AUTH=true` が設定されている
 - **テスト機能の本番流出**: 開発・テスト環境用の認証スキップ機能が本番環境でも動作している
-- **コード箇所**: `src/hooks/useAuthState.ts` の17行目で環境変数をチェックしている
+- **コード箇所**: `src/features/auth/hooks/useAuthState.ts` の17行目で環境変数をチェックしている
 
 ```typescript
 import { shouldUseMockAuth } from '@/utils/authMode'
@@ -28,7 +28,7 @@ if (shouldUseMockAuth()) {
 ### 問題2の原因
 - **リダイレクトURL設定不備**: Supabase認証設定でlocalhost:3000が優先されている
 - **OAuth設定の不整合**: Google Cloud ConsoleとSupabaseの設定が本番URLに対応していない
-- **コード箇所**: `src/services/authService.ts` の47行目でリダイレクトURLを動的生成している
+- **コード箇所**: `src/features/auth/services/authService.ts` の47行目でリダイレクトURLを動的生成している
 
 ```typescript
 redirectTo: `${window.location.origin}/auth/callback`

@@ -42,7 +42,7 @@
 - 本番では`NEXT_PUBLIC_SKIP_AUTH`は無効（ステージング/ローカルの検証用途のみ）。
 
 ## 実装へのトレーサビリティ
-- セッション/トークン生成・更新: `src/services/authService.ts` / `src/lib/supabase.ts` / `src/app/auth/callback/page.tsx`。
-- 状態管理・プロフィール確立: `src/hooks/useAuthState.ts` / `src/services/profileService.ts`。
+- セッション/トークン生成・更新: `src/features/auth/services/authService.ts` / `src/lib/supabase.ts` / `src/app/auth/callback/page.tsx`。
+- 状態管理・プロフィール確立: `src/features/auth/hooks/useAuthState.ts` / `src/features/profile/services/profileService.ts`。
 - リアルタイム認証更新: `src/contexts/NotificationContext.tsx` の `realtime.setAuth` とチャンネル管理。
 - API仕様: `docs/reference/api.md` / `openapi.yaml`（Bearer JWT / Supabase REST）。

@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { useAuth } from '@/contexts/AuthContext'
 import { Button } from '@/shared/ui/Button'
 import { ValidatedInput } from '@/shared/ui/ValidatedInput'
-import { useFormValidation, validationRules } from '@/hooks/useFormValidation'
+import { useFormValidation, validationRules } from '@/shared/hooks/useFormValidation'
 
 /**
  * サインインページ

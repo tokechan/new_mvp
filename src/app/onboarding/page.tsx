@@ -3,7 +3,7 @@
 import { useEffect } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useRouter } from 'next/navigation'
-import { useOnboarding } from '@/hooks/useOnboarding'
+import { useOnboarding } from '@/features/onboarding/hooks/useOnboarding'
 import OnboardingStepper from '@/features/onboarding/components/OnboardingStepper'
 import FeatureIntroduction from '@/features/onboarding/components/FeatureIntroduction'
 import PwaInstallPrompt from '@/features/onboarding/components/PwaInstallPrompt'

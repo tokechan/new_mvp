@@ -3,19 +3,19 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useNotifications } from '@/contexts/NotificationContext'
-import { useChores } from '@/hooks/useChores'
-import { useRealtime } from '@/hooks/useRealtime' // リアルタイム機能を追加
-import { Chore, PartnerInfo } from '@/types/chore'
+import { useChores } from '@/features/chores/hooks/useChores'
+import { useRealtime } from '@/features/realtime/hooks/useRealtime' // リアルタイム機能を追加
+import { Chore, PartnerInfo } from '@/features/chores/types/chore'
 import { supabase } from '@/lib/supabase'
 import { Database } from '@/lib/supabase'
-import { ChoreLimitReachedError } from '@/services/choreService'
+import { ChoreLimitReachedError } from '@/features/chores/services/choreService'
 import ThankYouMessage from '@/features/thank-you/components/ThankYouMessage'
 import { ChoreItem } from './ChoreItem'
 import { PartnerSetup } from '@/features/partners/components/PartnerSetup'
 import { RealtimeDebugPanel } from '@/features/realtime/components/RealtimeDebugPanel'
 import { Skeleton } from '@/shared/ui/skeleton'
-import { useScreenReader, useFocusManagement } from '@/hooks/useScreenReader'
-import { useKeyboardNavigation } from '@/hooks/useKeyboardNavigation'
+import { useScreenReader, useFocusManagement } from '@/shared/hooks/useScreenReader'
+import { useKeyboardNavigation } from '@/shared/hooks/useKeyboardNavigation'
 import { useToast } from '@/shared/ui/toast'
 
 // 型定義

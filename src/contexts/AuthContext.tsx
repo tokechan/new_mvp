@@ -2,8 +2,8 @@
 
 import React, { createContext, useContext } from 'react'
 import { User, Session } from '@supabase/supabase-js'
-import { useAuthState } from '@/hooks/useAuthState'
-import { useAuthActions } from '@/hooks/useAuthActions'
+import { useAuthState } from '@/features/auth/hooks/useAuthState'
+import { useAuthActions } from '@/features/auth/hooks/useAuthActions'
 
 // 認証コンテキストの型定義
 interface AuthContextType {

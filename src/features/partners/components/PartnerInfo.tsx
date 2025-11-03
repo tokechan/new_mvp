@@ -1,6 +1,6 @@
 'use client'
 
-import { PartnerInfo as PartnerInfoType } from '@/types/chore'
+import { PartnerInfo as PartnerInfoType } from '@/features/chores/types/chore'
 
 interface PartnerInfoProps {
   hasPartner: boolean | null

@@ -11,9 +11,9 @@
 | 役割 | ファイル | 補足 |
 |------|---------|------|
 | Supabase クライアント生成 | `src/lib/supabase.ts` | `createBrowserClient` で 1 インスタンスを共有。Auth は `autoRefreshToken`/`persistSession` を有効化。 |
-| 認証サービス | `src/services/authService.ts` | メールサインイン/サインアップ、Google OAuth、`getSession`、`onAuthStateChange` をラップ。ログ出力あり。 |
-| 認証状態管理 | `src/hooks/useAuthState.ts` | 初回セッション取得・`onAuthStateChange` 購読。認証済みユーザーには `profileService.ensureProfile` を実行。モック認証の分岐あり。 |
-| 認証操作（UI 呼び出し層） | `src/hooks/useAuthActions.ts` | フォームから呼び出される `signIn` / `signUp` / `signInWithGoogle` など。ロード状態とエラーを管理。 |
+| 認証サービス | `src/features/auth/services/authService.ts` | メールサインイン/サインアップ、Google OAuth、`getSession`、`onAuthStateChange` をラップ。ログ出力あり。 |
+| 認証状態管理 | `src/features/auth/hooks/useAuthState.ts` | 初回セッション取得・`onAuthStateChange` 購読。認証済みユーザーには `profileService.ensureProfile` を実行。モック認証の分岐あり。 |
+| 認証操作（UI 呼び出し層） | `src/features/auth/hooks/useAuthActions.ts` | フォームから呼び出される `signIn` / `signUp` / `signInWithGoogle` など。ロード状態とエラーを管理。 |
 | コンテキスト | `src/contexts/AuthContext.tsx` | 上記ふたつのフックを束ね、`useAuth()` から利用可能に。 |
 | サインイン画面 | `src/app/auth/signin/page.tsx` | フォーム送信 + Google ボタン。`signInWithGoogle` クリック時は `redirectTo=/auth/callback?redirect=...` を指定。 |
 | サインアップ画面 | `src/app/auth/signup/page.tsx` | サインアップ後に `signInWithGoogle` へ誘導する導線を用意。 |

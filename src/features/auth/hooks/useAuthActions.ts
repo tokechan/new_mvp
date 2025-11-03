@@ -1,8 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { authService } from '@/services/authService'
-import { profileService } from '@/services/profileService'
+import { authService } from '@/features/auth/services/authService'
+import { profileService } from '@/features/profile/services/profileService'
 
 /**
  * 認証操作を管理するカスタムフック

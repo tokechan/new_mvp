@@ -1,4 +1,4 @@
-import { RealtimeService, realtimeService, type RealtimeConnectionState } from '../realtimeService'
+import { RealtimeService, realtimeService, type RealtimeConnectionState } from '@/features/realtime/services/realtimeService'
 import { supabase } from '@/lib/supabase'
 import { RealtimeChannel } from '@supabase/supabase-js'
 
@@ -592,8 +592,8 @@ describe('RealtimeService', () => {
     })
 
     it('複数回インポートしても同じインスタンスを返す', () => {
-      const { realtimeService: service1 } = require('../realtimeService')
-      const { realtimeService: service2 } = require('../realtimeService')
+      const { realtimeService: service1 } = require('@/features/realtime/services/realtimeService')
+      const { realtimeService: service2 } = require('@/features/realtime/services/realtimeService')
 
       expect(service1).toBe(service2)
     })

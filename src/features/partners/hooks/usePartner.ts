@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
-import { PartnerInfo } from '@/types/chore'
+import { PartnerInfo } from '@/features/chores/types/chore'
 
 /**
  * パートナー管理のカスタムフック

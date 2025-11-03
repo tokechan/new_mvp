@@ -45,7 +45,7 @@ PKCE コード交換エラー: AuthApiError: invalid request: both auth code and
 
 ### 3. 修正されたファイル
 - `src/app/auth/callback/page.tsx` - コールバック処理の簡潔化
-- `src/services/authService.ts` - 認証サービスの標準化
+- `src/features/auth/services/authService.ts` - 認証サービスの標準化
 
 ## ✅ 解決結果
 - Google認証が正常に動作

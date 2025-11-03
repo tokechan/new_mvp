@@ -3,8 +3,8 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
-import { Chore, ChoreInsert, RealtimeEvents } from '@/types/chore'
-import { ChoreService, ExtendedChore } from '@/services/choreService'
+import { Chore, ChoreInsert, RealtimeEvents } from '@/features/chores/types/chore'
+import { ChoreService, ExtendedChore } from '@/features/chores/services/choreService'
 import { shouldUseMockAuth } from '@/utils/authMode'
 
 /**

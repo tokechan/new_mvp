@@ -17,7 +17,7 @@ import type {
   GetInvitationResponse,
   AcceptInvitationResponse,
   PartnerInvitation,
-} from '@/types/invitation'
+} from '@/features/partners/types/invitation'
 import { Handshake, PartyPopper } from 'lucide-react'
 
 interface InvitePageProps {

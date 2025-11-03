@@ -5,7 +5,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
 import { RealtimeChannel, RealtimePostgresChangesPayload } from '@supabase/supabase-js'
 import { Database } from '@/lib/supabase'
-import { Chore } from '@/types/chore'
+import { Chore } from '@/features/chores/types/chore'
 
 // 型定義
 type DatabaseChore = Database['public']['Tables']['chores']['Row']

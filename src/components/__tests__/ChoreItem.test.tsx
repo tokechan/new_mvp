@@ -2,7 +2,7 @@ import React from 'react'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { useRouter } from 'next/navigation'
 import { ChoreItem } from '@/features/chores/components/ChoreItem'
-import { Chore } from '@/types/chore'
+import { Chore } from '@/features/chores/types/chore'
 
 // モック設定
 jest.mock('next/navigation', () => ({

@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
-import { getThankYouHistory, sendThankYouForChore } from '@/services/thankYouService'
-import type { ThankYouMessage } from '@/services/thankYouService'
+import { getThankYouHistory, sendThankYouForChore } from '@/features/thank-you/services/thankYouService'
+import type { ThankYouMessage } from '@/features/thank-you/services/thankYouService'
 import { AlertTriangle, Heart } from 'lucide-react'
 
 interface ThankYouHistoryProps {

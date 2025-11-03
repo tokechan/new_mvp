@@ -16,7 +16,7 @@ import type {
   CreateInvitationResponse,
   GetInvitationsResponse,
   PartnerInvitation
-} from '@/types/invitation'
+} from '@/features/partners/types/invitation'
 import { PartnerInvitationActiveCard } from '@/features/partners/components/PartnerInvitationActiveCard'
 import { PartnerInvitationCreateForm } from '@/features/partners/components/PartnerInvitationCreateForm'
 

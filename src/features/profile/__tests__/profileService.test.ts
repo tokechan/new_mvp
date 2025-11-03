@@ -1,4 +1,4 @@
-import { ProfileService } from '../profileService'
+import { ProfileService } from '@/features/profile/services/profileService'
 
 // モックオブジェクト
 let mockSupabase: any

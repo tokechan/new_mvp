@@ -2,7 +2,7 @@
 
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/shared/ui/dialog'
 import { Button } from '@/shared/ui/Button'
-import { Chore } from '@/types/chore'
+import { Chore } from '@/features/chores/types/chore'
 import { ThumbsUp, X } from 'lucide-react'
 
 interface CongratulationsModalProps {

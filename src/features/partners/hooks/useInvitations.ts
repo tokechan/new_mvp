@@ -6,7 +6,7 @@ import {
   getInvitations,
   getInvitation,
   acceptInvitation,
-} from '@/services/invitationService'
+} from '@/features/partners/services/invitationService'
 import {
   PartnerInvitation,
   CreateInvitationRequest,
@@ -15,7 +15,7 @@ import {
   GetInvitationsResponse,
   AcceptInvitationResponse,
   AcceptInvitationRequest,
-} from '@/types/invitation'
+} from '@/features/partners/types/invitation'
 import { getErrorMessage } from '@/utils/invitationUtils'
 
 /**

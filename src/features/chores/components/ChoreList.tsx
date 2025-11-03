@@ -1,9 +1,9 @@
 'use client'
 
-import { Chore } from '@/types/chore'
+import { Chore } from '@/features/chores/types/chore'
 import { ChoreItem } from './ChoreItem'
 import { Home, ClipboardList } from 'lucide-react'
-import { useAuthState } from '@/hooks/useAuthState'
+import { useAuthState } from '@/features/auth/hooks/useAuthState'
 
 interface ChoreListProps {
   chores: Chore[]

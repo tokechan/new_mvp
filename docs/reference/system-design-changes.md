@@ -15,12 +15,12 @@
   - 変更: `getSession()`の自動PKCE処理を優先し、未確立時のみ`exchangeCodeForSession()`をフォールバック実行。
   - 影響: PKCEエラーの減少・保守容易化。失敗時のハンドリングを集約。
 
-- `src/services/authService.ts`
+- `src/features/auth/services/authService.ts`
   - 役割: Supabase認証のラッパ。統一返却型`{ data, error }`を採用。
   - 変更: `signIn`, `signUp`, `signOut`, `signInWithGoogle`, `resendConfirmation`, `getSession`, `onAuthStateChange`の整理。自動ログインの独自実装は撤廃（Supabaseのセッション維持に委譲）。
   - 影響: 認証操作の共通化・ログ出力標準化・例外対応の一元化。
 
-- `src/hooks/useAuthState.ts`
+- `src/features/auth/hooks/useAuthState.ts`
   - 役割: 認証状態（`user`/`session`/`loading`）管理。
   - 変更: 初期セッション取得、`onAuthStateChange`購読、`profileService.ensureProfile(user)`の自動作成/検証を組み込み。テスト/デモ向けモック認証（`NEXT_PUBLIC_SKIP_AUTH`）を明示。
   - 影響: サインアップ直後のプロフィール確立遅延の吸収、UI初期化の安定化。

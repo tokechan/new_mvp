@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { Button } from '@/shared/ui/Button'
 import { Input } from '@/shared/ui/Input'
-import { useScreenReader } from '@/hooks/useScreenReader'
+import { useScreenReader } from '@/shared/hooks/useScreenReader'
 
 interface ChoreAddFormProps {
   onAddChore: (choreName: string) => Promise<void>

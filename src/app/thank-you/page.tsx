@@ -6,7 +6,7 @@ import ThankYouMessage from '@/features/thank-you/components/ThankYouMessage'
 import { useAuth } from '@/contexts/AuthContext'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import { PartnerService } from '@/services/partnerService'
+import { PartnerService } from '@/features/partners/services/partnerService'
 
 /**
  * 感謝メッセージ送信ページのコンテンツコンポーネント

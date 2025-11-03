@@ -1,10 +1,10 @@
 import { renderHook, act, waitFor } from '@testing-library/react'
-import { useAuthState } from '../useAuthState'
-import { authService } from '@/services/authService'
-import { profileService } from '@/services/profileService'
+import { useAuthState } from '@/features/auth/hooks/useAuthState'
+import { authService } from '@/features/auth/services/authService'
+import { profileService } from '@/features/profile/services/profileService'
 
 // authServiceのモック
-jest.mock('@/services/authService', () => ({
+jest.mock('@/features/auth/services/authService', () => ({
   authService: {
     getSession: jest.fn(),
     onAuthStateChange: jest.fn(),
@@ -12,7 +12,7 @@ jest.mock('@/services/authService', () => ({
 }))
 
 // profileServiceのモック
-jest.mock('@/services/profileService', () => ({
+jest.mock('@/features/profile/services/profileService', () => ({
   profileService: {
     ensureProfile: jest.fn(),
   }

@@ -10,7 +10,7 @@ import { Input } from '@/shared/ui/Input'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/shared/ui/dialog'
 import { UserRound } from 'lucide-react'
 import { Label } from '@/shared/ui/label'
-import { profileService } from '@/services/profileService'
+import { profileService } from '@/features/profile/services/profileService'
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card'
 
 export default function ProfileEditPage() {

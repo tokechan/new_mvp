@@ -8,7 +8,7 @@ import { Card } from '@/shared/ui/card'
 import { ChoreCompletionModal } from '@/features/chores/components/ChoreCompletionModal'
 import { CongratulationsModal } from '@/features/thank-you/components/CongratulationsModal'
 import ThankYouMessage from '@/features/thank-you/components/ThankYouMessage'
-import { Chore } from '@/types/chore'
+import { Chore } from '@/features/chores/types/chore'
 import { Database } from '@/lib/supabase'
 import { RotateCcw, Heart, Check, Sparkles, Trash2 } from 'lucide-react'
 

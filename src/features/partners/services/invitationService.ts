@@ -1,7 +1,7 @@
 'use client'
 
 import { supabase } from '@/lib/supabase'
-import { PartnerService } from '@/services/partnerService'
+import { PartnerService } from '@/features/partners/services/partnerService'
 import {
   CreateInvitationRequest,
   CreateInvitationResponse,
@@ -10,7 +10,7 @@ import {
   AcceptInvitationResponse,
   AcceptInvitationRequest,
   PartnerInvitation,
-} from '@/types/invitation'
+} from '@/features/partners/types/invitation'
 import { normalizeNumericId } from '@/lib/utils'
 
 /**

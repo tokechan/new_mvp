@@ -1,11 +1,11 @@
 import { renderHook, act, waitFor } from '@testing-library/react'
-import { useAuthActions } from '../useAuthActions'
-import { authService } from '@/services/authService'
-import { profileService } from '@/services/profileService'
+import { useAuthActions } from '@/features/auth/hooks/useAuthActions'
+import { authService } from '@/features/auth/services/authService'
+import { profileService } from '@/features/profile/services/profileService'
 import { AuthError } from '@supabase/supabase-js'
 
 // authServiceのモック
-jest.mock('@/services/authService', () => ({
+jest.mock('@/features/auth/services/authService', () => ({
   authService: {
     signIn: jest.fn(),
     signUp: jest.fn(),
@@ -15,7 +15,7 @@ jest.mock('@/services/authService', () => ({
 }))
 
 // profileServiceのモック
-jest.mock('@/services/profileService', () => ({
+jest.mock('@/features/profile/services/profileService', () => ({
   profileService: {
     ensureProfile: jest.fn(),
   }

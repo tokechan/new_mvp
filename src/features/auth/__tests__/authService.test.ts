@@ -1,4 +1,4 @@
-import { AuthService, authService } from '../authService'
+import { AuthService, authService } from '@/features/auth/services/authService'
 import { createSupabaseBrowserClient } from '@/lib/supabase'
 
 // モック設定
@@ -402,8 +402,8 @@ describe('AuthService', () => {
     })
 
     it('複数回インポートしても同じインスタンスが返される', () => {
-      const { authService: authService1 } = require('../authService')
-      const { authService: authService2 } = require('../authService')
+      const { authService: authService1 } = require('@/features/auth/services/authService')
+      const { authService: authService2 } = require('@/features/auth/services/authService')
       
       expect(authService1).toBe(authService2)
     })

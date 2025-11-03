@@ -8,7 +8,7 @@ jest.mock('@/lib/supabase', () => ({
   }
 }))
 
-import { ChoreLimitReachedError, ChoreService } from '../choreService'
+import { ChoreLimitReachedError, ChoreService } from '@/features/chores/services/choreService'
 import { supabase } from '@/lib/supabase'
 
 // モックされたsupabaseクライアントの型定義
