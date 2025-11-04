@@ -66,7 +66,7 @@ export default function LandingPage() {
               </li>
               <li className="flex items-start gap-2">
                 <CheckCircle2 className="mt-0.5 h-4 w-4 text-primary" aria-hidden="true" />
-                β版のフィードバック受付（アプリ内設定から送信できます）
+                β版のフィードバック受付（ページ下部のフォームリンクから送信できます）
               </li>
             </ul>
           </div>
