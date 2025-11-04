@@ -19,25 +19,29 @@ export default function LandingPage() {
       <section className="relative overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24">
           <div className="text-center">
-            <span className="inline-flex items-center gap-2 rounded-full border border-primary/40 bg-primary/10 px-4 py-1 text-sm font-semibold uppercase tracking-wide text-primary">
+            <span className="inline-flex items-center gap-2 rounded-full border border-primary/40 bg-primary/10 px-4 py-1 text-sm font-semibold uppercase tracking-wide text-primary mb-12">
               <span className="inline-block h-2 w-2 rounded-full bg-primary" aria-hidden="true" />
-              Beta
+              Beta版
             </span>
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-foreground dark:text-foreground mb-6">
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-foreground dark:text-foreground mb-12">
               <span className="block">家事を</span>
               <span className="block text-primary dark:text-primary">一緒に楽しもう</span>
-              <span className="block">って思わない？</span>
+              {/* <span className="block">って思いませんか？</span> */}
               {/* <span className="block">いやそうだよ</span> */}
             </h1>
             <p className="text-xl text-muted-foreground dark:text-muted-foreground mb-8 max-w-3xl mx-auto">
-              パートナーと一緒に家事を共有してもっと効率的で楽しい毎日にしたいですよね
-              <br className="hidden sm:block" />
+              パートナーと一緒に家事を共有して
+              <br className="hidden sm:block" mb-4 />
+              もっと効率的で楽しい毎日を
+              <br className="hidden sm:block" mb-4 />
               招待リンクやQRコードで簡単に始められます            
             </p>
             <div className="mx-auto mt-6 max-w-2xl rounded-xl border border-border/60 bg-background/80 px-6 py-4 text-sm text-muted-foreground shadow-sm backdrop-blur">
-              <h2 className="mb-1 text-base font-semibold text-foreground">今はベータ版です</h2>
+              <h2 className="mb-1 text-base font-semibold text-foreground">今はBETA版です</h2>
               <p>
-                機能は随時更新中で、データが予告なく変更される場合があります。気づいた点やご意見はフィードバックフォームまでお寄せください。
+                機能は随時更新中で、データが予告なく変更される場合があります。
+                <br className="hidden sm:block" />
+                気づいた点やご意見はフィードバックフォームまでお寄せください。
               </p>
             </div>
           </div>
@@ -60,7 +64,7 @@ export default function LandingPage() {
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li className="flex items-start gap-2">
                 <CheckCircle2 className="mt-0.5 h-4 w-4 text-primary" aria-hidden="true" />
-                家事ボード、感謝メッセージ、パートナー招待などのコア機能
+                家事リスト作成、感謝メッセージ、パートナー招待などのコア機能
               </li>
               <li className="flex items-start gap-2">
                 <CheckCircle2 className="mt-0.5 h-4 w-4 text-primary" aria-hidden="true" />
@@ -132,11 +136,11 @@ export default function LandingPage() {
       <section className="py-16 bg-primary dark:bg-primary rounded-lg">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl font-bold text-primary-foreground mb-4">
-            今すぐ試してたほうがいいよ?
+            今すぐ試してみよう！
           </h2>
 
           <p className="mx-auto mb-6 max-w-xl text-base text-primary-foreground/80">
-            現在はベータ版として提供しています。今後、機能の追加や仕様変更が行われる可能性がありますのでご了承ください。
+            現在はβ版として提供しています。今後、機能の追加や仕様変更が行われる可能性がありますのでご了承ください。
           </p>
 
           <button
@@ -147,7 +151,7 @@ export default function LandingPage() {
             <ArrowRight className="ml-2 w-5 h-5" aria-hidden="true" />
           </button>
           <p className="mt-3 text-sm text-primary-foreground/70">
-            ベータ期間中は利用無料です。気づいたことはお気軽にフィードバックをお寄せください。
+            β期間中は利用無料です。気づいたことはお気軽にフィードバックをお寄せください。
           </p>
         </div>
       </section>
