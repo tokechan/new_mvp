@@ -23,6 +23,7 @@
 - [Thank You 機能](./thank-you-feature.md)
 - [パートナー招待設計](./partner-invitation-design.md)
 - [Push 通知実装](./push-notification-implementation.md)
+- [Storybook セットアップ](./storybook-setup.md)
 - [PWA Push 運用メモ](./pwa-push-notifications.md)
 - [感謝 / 招待フロー調査](../partner-invitation-flow-assessment.md)
 

@@ -6,6 +6,8 @@
 import { useRouter } from 'next/navigation'
 import { ArrowRight, HeartHandshake, Handshake, CheckCircle2, ListCheck } from 'lucide-react'
 
+const FEEDBACK_FORM_URL = 'https://forms.gle/EwwM1ZVyfvof5kJ26'
+
 /**
  * ランディングページ - パートナー招待
  * 既存のPartnerInvitationコンポーネントを使用してLP用ページを構築
@@ -19,15 +21,21 @@ export default function LandingPage() {
       <section className="relative overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24">
           <div className="text-center">
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-foreground dark:text-foreground mb-6">
+            <span className="inline-flex items-center gap-2 rounded-full border border-primary/40 bg-primary/10 px-4 py-1 text-sm font-semibold uppercase tracking-wide text-primary mb-12">
+              <span className="inline-block h-2 w-2 rounded-full bg-primary" aria-hidden="true" />
+              Beta版
+            </span>
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-foreground dark:text-foreground mb-12">
               <span className="block">家事を</span>
               <span className="block text-primary dark:text-primary">一緒に楽しもう</span>
-              <span className="block">って思わない？</span>
+              {/* <span className="block">って思いませんか？</span> */}
               {/* <span className="block">いやそうだよ</span> */}
             </h1>
             <p className="text-xl text-muted-foreground dark:text-muted-foreground mb-8 max-w-3xl mx-auto">
-              パートナーと一緒に家事を共有してもっと効率的で楽しい毎日にしたいですよね
-              <br className="hidden sm:block" />
+              パートナーと一緒に家事を共有して
+              <br className="hidden sm:block" mb-4 />
+              もっと効率的で楽しい毎日を
+              <br className="hidden sm:block" mb-4 />
               招待リンクやQRコードで簡単に始められます            
             </p>
           </div>
@@ -35,7 +43,7 @@ export default function LandingPage() {
       </section>
 
       {/* 特徴セクション */}
-      <section className="py-16 bg-card dark:bg-card">
+      <section className="py-16 bg-card dark:bg-card rounded-lg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-foreground dark:text-foreground mb-4">
@@ -45,7 +53,24 @@ export default function LandingPage() {
               まずはやる事をリストアップしてみましょう
             </p>
           </div>
-          
+          <div className="mx-auto mb-12 max-w-2xl rounded-xl border border-border/60 bg-background/70 px-6 py-5 text-left shadow-sm">
+            <h3 className="text-lg font-semibold text-foreground mb-2">β版で提供している主な内容</h3>
+            <ul className="space-y-2 text-sm text-muted-foreground">
+              <li className="flex items-start gap-2">
+                <CheckCircle2 className="mt-0.5 h-4 w-4 text-primary" aria-hidden="true" />
+                家事リスト作成、感謝メッセージ、パートナー招待などのコア機能
+              </li>
+              <li className="flex items-start gap-2">
+                <CheckCircle2 className="mt-0.5 h-4 w-4 text-primary" aria-hidden="true" />
+                PWA・プッシュ通知の初期実装（今後チューニング予定）
+              </li>
+              <li className="flex items-start gap-2">
+                <CheckCircle2 className="mt-0.5 h-4 w-4 text-primary" aria-hidden="true" />
+                β版のフィードバック受付（ページ下部のフォームリンクから送信できます）
+              </li>
+            </ul>
+          </div>
+
           <div className="grid md:grid-cols-3 gap-8">
           <div className="text-center">
               <div className="w-16 h-16 bg-accent/20 dark:bg-accent/30 rounded-xl flex items-center justify-center mx-auto mb-4">
@@ -88,7 +113,7 @@ export default function LandingPage() {
       </section>
 
       {/* パートナー招待セクション */}
-      <section className="py-16 bg-card dark:bg-card border-t">
+      <section className="py-16 bg-card dark:bg-card border-t rounded-lg">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <h2 className="text-3xl font-bold text-foreground dark:text-foreground mb-4">
@@ -102,19 +127,46 @@ export default function LandingPage() {
       </section>
 
       {/* CTAセクション */}
-      <section className="py-16 bg-primary dark:bg-primary">
+      <section className="py-16 bg-primary dark:bg-primary rounded-lg">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl font-bold text-primary-foreground mb-4">
-            今すぐ試してたほうがいいよ?
+            今すぐ試してみよう！
           </h2>
-          
+
+          <p className="mx-auto mb-6 max-w-xl text-base text-primary-foreground/80">
+            現在はβ版として提供しています。今後、機能の追加や仕様変更が行われる可能性がありますのでご了承ください。
+          </p>
+
           <button
             onClick={() => router.push('/app')}
             className="inline-flex items-center px-8 py-3 bg-card text-primary font-semibold rounded-lg hover:bg-muted transition-colors"
           >
-            YOUDOを試す
+            YOUDO β を試す
             <ArrowRight className="ml-2 w-5 h-5" aria-hidden="true" />
           </button>
+          <p className="mt-3 text-sm text-primary-foreground/70">
+            β期間中は利用無料です。気づいたことはお気軽にフィードバックをお寄せください。
+          </p>
+        </div>
+      </section>
+
+      <section className="py-10">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="rounded-xl border border-border/60 bg-background/90 px-6 py-5 text-sm text-muted-foreground shadow-sm">
+            <h3 className="text-base font-semibold text-foreground mb-2">今はBETA版です</h3>
+            <p className="mb-3 leading-relaxed">
+              機能は随時更新中で、データが予告なく変更される場合があります。気づいた点やご意見は以下のフォームからお寄せください。
+            </p>
+            <a
+              href={FEEDBACK_FORM_URL}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-2 rounded-md border border-primary/40 bg-primary/10 px-4 py-2 font-semibold text-primary transition-colors hover:bg-primary/20"
+            >
+              フィードバックフォームを開く
+              <span aria-hidden="true">↗</span>
+            </a>
+          </div>
         </div>
       </section>
     </div>

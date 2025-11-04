@@ -9,6 +9,8 @@ import { Input } from '@/shared/ui/Input'
 import { Laptop, Moon, Sun } from 'lucide-react'
 import { ensurePushSubscription, disablePushSubscription } from '@/features/notifications/services/pushSubscriptionService'
 
+const FEEDBACK_FORM_URL = 'https://forms.gle/EwwM1ZVyfvof5kJ26'
+
 export default function SettingsPage() {
   const [timezone, setTimezone] = useState('Asia/Tokyo')
   const [language, setLanguage] = useState('ja')
@@ -108,6 +110,30 @@ export default function SettingsPage() {
         <p className="mt-1 text-sm text-muted-foreground">後で詳細を拡充予定のプレースホルダー画面です。</p>
 
         <div className="mt-6 grid gap-4">
+          {/* Beta フィードバック */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-foreground">ベータ版について</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3 text-sm text-muted-foreground">
+              <p>
+                YOUDO は現在ベータ版です。機能は随時更新されるため、予告なく変更・停止となる場合があります。
+              </p>
+              <p>
+                気づいた点やご意見は以下のフォームからお寄せください。いただいた内容を今後の改善に活用します。
+              </p>
+              <a
+                href={FEEDBACK_FORM_URL}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-2 rounded-md border border-primary/40 bg-primary/10 px-4 py-2 font-semibold text-primary transition-colors hover:bg-primary/20"
+              >
+                フィードバックフォームを開く
+                <span aria-hidden="true">↗</span>
+              </a>
+            </CardContent>
+          </Card>
+
           {/* 基本設定 */}
           <Card>
             <CardHeader>
