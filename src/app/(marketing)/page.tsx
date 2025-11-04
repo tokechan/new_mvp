@@ -35,7 +35,7 @@ export default function LandingPage() {
       </section>
 
       {/* 特徴セクション */}
-      <section className="py-16 bg-card dark:bg-card">
+      <section className="py-16 bg-card dark:bg-card rounded-lg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-foreground dark:text-foreground mb-4">
@@ -88,7 +88,7 @@ export default function LandingPage() {
       </section>
 
       {/* パートナー招待セクション */}
-      <section className="py-16 bg-card dark:bg-card border-t">
+      <section className="py-16 bg-card dark:bg-card border-t rounded-lg">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <h2 className="text-3xl font-bold text-foreground dark:text-foreground mb-4">
@@ -102,7 +102,7 @@ export default function LandingPage() {
       </section>
 
       {/* CTAセクション */}
-      <section className="py-16 bg-primary dark:bg-primary">
+      <section className="py-16 bg-primary dark:bg-primary rounded-lg">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl font-bold text-primary-foreground mb-4">
             今すぐ試してたほうがいいよ?
