@@ -6,6 +6,8 @@
 import { useRouter } from 'next/navigation'
 import { ArrowRight, HeartHandshake, Handshake, CheckCircle2, ListCheck } from 'lucide-react'
 
+const FEEDBACK_FORM_URL = 'https://forms.gle/EwwM1ZVyfvof5kJ26'
+
 /**
  * ランディングページ - パートナー招待
  * 既存のPartnerInvitationコンポーネントを使用してLP用ページを構築
@@ -36,14 +38,6 @@ export default function LandingPage() {
               <br className="hidden sm:block" mb-4 />
               招待リンクやQRコードで簡単に始められます            
             </p>
-            <div className="mx-auto mt-6 max-w-2xl rounded-xl border border-border/60 bg-background/80 px-6 py-4 text-sm text-muted-foreground shadow-sm backdrop-blur">
-              <h2 className="mb-1 text-base font-semibold text-foreground">今はBETA版です</h2>
-              <p>
-                機能は随時更新中で、データが予告なく変更される場合があります。
-                <br className="hidden sm:block" />
-                気づいた点やご意見はフィードバックフォームまでお寄せください。
-              </p>
-            </div>
           </div>
         </div>
       </section>
@@ -153,6 +147,26 @@ export default function LandingPage() {
           <p className="mt-3 text-sm text-primary-foreground/70">
             β期間中は利用無料です。気づいたことはお気軽にフィードバックをお寄せください。
           </p>
+        </div>
+      </section>
+
+      <section className="py-10">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="rounded-xl border border-border/60 bg-background/90 px-6 py-5 text-sm text-muted-foreground shadow-sm">
+            <h3 className="text-base font-semibold text-foreground mb-2">今はBETA版です</h3>
+            <p className="mb-3 leading-relaxed">
+              機能は随時更新中で、データが予告なく変更される場合があります。気づいた点やご意見は以下のフォームからお寄せください。
+            </p>
+            <a
+              href={FEEDBACK_FORM_URL}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-2 rounded-md border border-primary/40 bg-primary/10 px-4 py-2 font-semibold text-primary transition-colors hover:bg-primary/20"
+            >
+              フィードバックフォームを開く
+              <span aria-hidden="true">↗</span>
+            </a>
+          </div>
         </div>
       </section>
     </div>
